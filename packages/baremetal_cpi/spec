@@ -1,0 +1,8 @@
+---
+name: baremetal_cpi
+
+dependencies:
+- golang_1.3
+
+files:
+- "**/*.go"

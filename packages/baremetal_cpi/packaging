@@ -1,0 +1,12 @@
+set -e -x
+
+export GOROOT=$(readlink -nf /var/vcap/packages/golang_1.3)
+export GOPATH=$PWD
+export PATH=$GOROOT/bin:$PATH
+
+mkdir ../src && cp -a * ../src/ && mv ../src ./src
+
+# todo why -p?
+mkdir -p $BOSH_INSTALL_TARGET/bin
+
+go build -o $BOSH_INSTALL_TARGET/bin/cpi src/github.com/cppforlife/baremetal_cpi/main/*.go

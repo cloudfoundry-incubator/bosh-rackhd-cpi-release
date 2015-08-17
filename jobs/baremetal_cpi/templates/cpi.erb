@@ -1,0 +1,16 @@
+#!/bin/bash
+
+pkgs_dir=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+jobs_dir=${BOSH_JOBS_DIR:-/var/vcap/jobs}
+
+cmd="$pkgs_dir/baremetal_cpi/bin/cpi -configPath=$jobs_dir/baremetal_cpi/config/cpi.json"
+
+# If this cpi release is used with bosh-init
+# there is no guarantee that /var/vcap/sys/log is present
+if [ -d /var/vcap/sys/log ]; then
+  mkdir -p /var/vcap/sys/log/baremetal_cpi
+  exec $cmd 2>>/var/vcap/sys/log/baremetal_cpi/cpi.stderr.log <&0
+else
+  exec $cmd <&0
+fi
+

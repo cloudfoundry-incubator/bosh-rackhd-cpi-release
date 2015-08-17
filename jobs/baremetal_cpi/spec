@@ -1,0 +1,40 @@
+---
+name: baremetal_cpi
+
+templates:
+  cpi.erb: bin/cpi
+  cpi.json.erb: config/cpi.json
+
+packages:
+- baremetal_cpi
+
+properties:
+  baremetal_cpi.user:
+    description: "User name to use for SSH"
+    default: root
+  baremetal_cpi.port:
+    description: "Port to use for SSH"
+    default: 22
+  baremetal_cpi.private_key:
+    description: "Private key to use for SSH"
+
+  baremetal_cpi.machines:
+    description: "List of machines and their IP addresses available to SSH"
+    example: {"8b0f4d2b": "10.230.0.3", "bf85e71e": "10.230.0.3"}
+
+  baremetal_cpi.stemcells_dir:
+    description: "Directory where stemcells are stored"
+    default: "/var/vcap/store/cpi/stemcells"
+
+  baremetal_cpi.agent.mbus:
+    description: "Mbus URL used by deployed BOSH agents"
+    example: "nats://nats:nats-password@10.254.50.4:4222"
+  baremetal_cpi.agent.ntp:
+    description: "NTP configuration used by deployed BOSH agents"
+    default: []
+  baremetal_cpi.agent.blobstore.provider:
+    description: "Provider type for the blobstore used by deployed BOSH agents (e.g. dav, s3)"
+    default: "dav"
+  baremetal_cpi.agent.blobstore.options:
+    description: "Options for the blobstore used by deployed BOSH agents"
+    default: {}
