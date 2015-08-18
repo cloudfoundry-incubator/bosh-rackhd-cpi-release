@@ -21,12 +21,6 @@ func NewConcreteFactory(
 	options ConcreteFactoryOptions,
 	logger boshlog.Logger,
 ) concreteFactory {
-	stemcellImporter := bwcstem.NewFSImporter(
-		options.StemcellsDir,
-		fs,
-		uuidGen,
-		logger,
-	)
 
 	stemcellFinder := bwcstem.NewFSFinder(options.StemcellsDir, fs, logger)
 
@@ -51,7 +45,7 @@ func NewConcreteFactory(
 	return concreteFactory{
 		availableActions: map[string]Action{
 			// Stemcell management
-			"create_stemcell": NewCreateStemcell(stemcellImporter),
+			"create_stemcell": NewCreateStemcell(logger),
 			"delete_stemcell": NewDeleteStemcell(stemcellFinder),
 
 			// VM management
