@@ -2,14 +2,14 @@ package action
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"fmt"
 	"os/exec"
 	"os"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	httpclient "github.com/cloudfoundry/bosh-utils/httpclient"
+	httpclient "github.com/cppforlife/baremetal_cpi/utils/httpclient"
 	"bytes"
 	"io/ioutil"
 	"strings"
+	"fmt"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type CreateStemcell struct {
@@ -34,19 +34,31 @@ func (a CreateStemcell) Run(imagePath string, _ CreateStemcellCloudProps) (Stemc
 	}
 
 	a.logger.Info(logTag, "Extracted stemcell")
+	file, err := os.Open("tmp/image-disk1.vmdk")
+	if (err != nil) {
+		bosherr.WrapErrorf(err, "Error opening file")
+	}
+	defer file.Close()
 
+	fileStat, err := file.Stat()
+	if (err != nil) {
+		bosherr.WrapErrorf(err, "Error getting file info")
+	}
+	fileSize := fileStat.Size()
+	a.logger.Info(logTag, "File Size is '%d'", fileSize)
+
+	body := ioutil.NopCloser(file)
 	client := httpclient.NewHTTPClient(httpclient.DefaultClient, a.logger)
-	resp, err := client.Put("upload_path", nil)
+	resp, err := client.Put("endpoint", body, fileSize)
 
 	if err != nil {
 		bosherr.WrapErrorf(err, "Error uploading stemcell")
 	}
-	defer resp.Body.Close()
 
 	a.logger.Info(logTag, "Succeeded uploading stemcell '%s'", resp.Status)
 	responseBody, _ := ioutil.ReadAll(resp.Body)
 	uuid := string(responseBody)
-	fmt.Printf("UUID %s  \n", uuid)
+	a.logger.Info(logTag, "UUID '%s'  \n", uuid)
 
     return StemcellCID(uuid), nil
 }
