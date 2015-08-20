@@ -11,6 +11,8 @@ type ConcreteFactoryOptions struct {
 	Port       int
 	PrivateKey string
 
+	APIServer string
+
 	Machines map[string]string
 
 	StemcellsDir string
@@ -33,6 +35,10 @@ func (o ConcreteFactoryOptions) Validate() error {
 
 	if len(o.Machines) == 0 {
 		return bosherr.Error("Must provide at least one machine in Machines")
+	}
+
+	if o.APIServer == "" {
+		return bosherr.Error("Must provide API Server IP")
 	}
 
 	if o.StemcellsDir == "" {

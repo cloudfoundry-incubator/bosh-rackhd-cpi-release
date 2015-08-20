@@ -22,6 +22,10 @@ properties:
     description: "List of machines and their IP addresses available to SSH"
     example: {"8b0f4d2b": "10.230.0.3", "bf85e71e": "10.230.0.3"}
 
+  baremetal_cpi.apiserver:
+    description: "API endpoint ip"
+    example: "10.10.10.10"
+
   baremetal_cpi.stemcells_dir:
     description: "Directory where stemcells are stored"
     default: "/var/vcap/store/cpi/stemcells"

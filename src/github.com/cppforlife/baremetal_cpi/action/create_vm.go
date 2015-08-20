@@ -2,12 +2,9 @@ package action
 
 import (
 	//bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"fmt"
 
 	bwcstem "github.com/cppforlife/baremetal_cpi/stemcell"
 	bwcvm "github.com/cppforlife/baremetal_cpi/vm"
-	httpclient "github.com/cloudfoundry/bosh-utils/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type CreateVM struct {
