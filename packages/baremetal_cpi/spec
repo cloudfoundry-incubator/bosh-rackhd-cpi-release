@@ -2,7 +2,7 @@
 name: baremetal_cpi
 
 dependencies:
-- golang_1.3
+- golang
 
 files:
 - "**/*.go"

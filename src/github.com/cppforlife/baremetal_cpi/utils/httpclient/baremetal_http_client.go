@@ -1,4 +1,4 @@
-package utils
+package httpclient
 
 import (
 	"crypto/tls"
@@ -46,13 +46,13 @@ func (c httpClient) Put(endpoint string, content io.ReadCloser, contentLength in
 
 	request, err := http.NewRequest("PUT", endpoint, content)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating POST request")
+		return nil, bosherr.WrapError(err, "Creating PUT request")
 	}
 
 	request.ContentLength = contentLength
 	response, err := c.client.Do(request)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Performing POST request")
+		return nil, bosherr.WrapError(err, "Performing PUT request")
 	}
 	return response, nil
 }

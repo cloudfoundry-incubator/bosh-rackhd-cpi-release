@@ -1,0 +1,9 @@
+set -e -x
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	tar xzf golang/go1.4.2.darwin-amd64-osx10.8.tar.gz
+else
+	tar xzf golang/go1.4.2.linux-amd64.tar.gz
+fi
+
+cp -R go/* ${BOSH_INSTALL_TARGET}
