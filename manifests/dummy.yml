@@ -38,10 +38,12 @@ jobs:
   networks:
   - name: default
 
+    static_ips: []
+
 cloud_provider:
   template: {name: baremetal_cpi, release: emc_baremetal}
 
-  mbus: https://mbus:Pbc7ssdfh8w2@127.0.0.1:6868
+  mbus: https://mbus:Pbc7ssdfh8w2@{NODE_IP}:6868
 
 #figure out needed baremetal properties
   properties:
@@ -55,13 +57,14 @@ cloud_provider:
         blobstore:
           provider: local
           options: {blobstore_path: /var/vcap/micro_bosh/data/cache}
+        disks:
+          system: "/dev/sda"
+          ephemeral: "/dev/sdb"
+          persistent: {}
       private_key: &private_key |
           -----BEGIN RSA PRIVATE KEY-----
           MIIEpAIBAAKCAQEA433I7+JP1TvcqOhF2P6sVPpLb6L1IFBVt95zY0TnLyVbnwbU
           L6dhiT2o5vOGPNXTboV65s6F2o8YiH05Bha0x8VoMWokEHkV82UU60FCrwhLTFkj
           ..snip..
-          lViH0jMAzI6nxIYhEFCYoJOfkRtjJdwR0HcusuPtiZgxgWMFsmonk18l+DBUDg2f
-          DqvGjQKBgQC0YHLloVj80Lg8+xT9kZnSb8+MBNceYh4KO1yenqD10Exaa4BE2sjC
-          yR63joCjnEFrSJ0juc/puViwXSKhpSb09JOfTLps5PyVBZvF1g7UcV42dxvpeyy6
           po8qXz8/p+cXF0FTX49117jrr/ZnKAVlxkcgH6ImwoA9eQdHnDNs/w==
           -----END RSA PRIVATE KEY-----

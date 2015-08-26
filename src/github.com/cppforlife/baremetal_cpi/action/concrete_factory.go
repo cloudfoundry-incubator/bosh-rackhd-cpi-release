@@ -46,10 +46,10 @@ func NewConcreteFactory(
 		availableActions: map[string]Action{
 			// Stemcell management
 			"create_stemcell": NewCreateStemcell(options.APIServer, logger),
-			"delete_stemcell": NewDeleteStemcell(stemcellFinder),
+			"delete_stemcell": NewDeleteStemcell(stemcellFinder, options.APIServer, logger),
 
 			// VM management
-			"create_vm":          NewCreateVM(stemcellFinder, vmCreator),
+			"create_vm":          NewCreateVM(stemcellFinder, vmCreator, options.APIServer, options.Agent, logger),
 			"delete_vm":          NewDeleteVM(vmFinder),
 			"has_vm":             NewHasVM(vmFinder),
 			"reboot_vm":          NewRebootVM(),
