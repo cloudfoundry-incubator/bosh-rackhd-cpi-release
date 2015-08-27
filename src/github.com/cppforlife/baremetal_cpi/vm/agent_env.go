@@ -46,10 +46,14 @@ type NetworkSpec struct {
 }
 
 type DisksSpec struct {
+	System SystemSpec	`json:"system"`
+	Ephemeral EphemeralSpec `json:"ephemeral"`
 	Persistent PersistentSpec `json:"persistent"`
 }
 
 type PersistentSpec map[string]string
+type EphemeralSpec string
+type SystemSpec string
 
 type EnvSpec map[string]interface{}
 
@@ -109,6 +113,11 @@ func NewAgentEnvForVM(agentID, vmCID string, networks Networks, env Environment,
 
 		// todo deep copy env?
 		Env: EnvSpec(env),
+
+		Disks: DisksSpec{
+			System: "/dev/sda",
+			Ephemeral: "/dev/sdb",
+		},
 	}
 
 	return agentEnv
