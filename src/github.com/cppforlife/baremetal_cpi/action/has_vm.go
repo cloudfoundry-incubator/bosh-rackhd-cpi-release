@@ -17,7 +17,7 @@ type HasVM struct {
 	logTag string
 }
 
-func NewHasVM(vmFinder bwcvm.Finder, logger boshlog.Logger, APIServer string) HasVM {
+func NewHasVM(vmFinder bwcvm.Finder,  APIServer string, logger boshlog.Logger) HasVM {
 	return HasVM{
 		vmFinder: vmFinder,
 		APIServer: APIServer,
@@ -34,7 +34,6 @@ func (a HasVM) Run(vmCID VMCID) (bool, error) {
 		//maybe better/diff error handling
 		return false, errors.New("Error Getting node")
 	}
-	defer client.Close()
 
 	a.logger.Info(a.logTag, "The response status is '%s'", resp.Status)
 	body, err := ioutil.ReadAll(resp.Body)

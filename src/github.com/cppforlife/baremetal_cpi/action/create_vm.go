@@ -11,6 +11,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"encoding/json"
+	"time"
+	"net/http"
+	"errors"
 )
 
 type CreateVM struct {
@@ -39,20 +42,23 @@ func NewCreateVM(stemcellFinder bwcstem.Finder, vmCreator bwcvm.Creator, APIServ
 
 func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperties, networks Networks, _ []DiskCID, env Environment) (VMCID, error) {
 	client := httpclient.NewHTTPClient(httpclient.DefaultClient, a.logger)
+	machineID := "machine-id"
     //create agent and network env
 	vmNetworks := networks.AsVMNetworks()
 	vmEnv := bwcvm.Environment(env)
-	agentEnv := bwcvm.NewAgentEnvForVM(agentID, "some-vm", vmNetworks, vmEnv, a.agentOptions)
+	agentEnv := bwcvm.NewAgentEnvForVM(agentID,machineID, vmNetworks, vmEnv, a.agentOptions)
 	jsonBytes, err := json.Marshal(agentEnv)
 	if err != nil {
 		return "", bosherr.WrapError(err, "Marshalling agent env")
 	}
 
+	a.logger.Info(a.logTag, "Agent Json data '%s'", string(jsonBytes))
+
     //call api to provision the machine
-	url := fmt.Sprintf("post path", a.APIServer, "machine_id")
+	url := fmt.Sprintf("http://%s:8080/api/common/nodes/%s/workflows", a.APIServer, machineID)
 	path := "/var/vcap/bosh/baremetal-cpi-agent-env.json"
 
-	jsonStr := fmt.Sprintf("body", stemcellCID, path, strings.Replace(string(jsonBytes), "\"", "\\\"", -1))
+	jsonStr := fmt.Sprintf("{\"name\":\"Graph.CF.CreateVM\",\"options\":{\"defaults\": {\"file\": \"%s\",\"path\": \"%s\", \"env\": \"%s\"}}}", stemcellCID, path, strings.Replace(string(jsonBytes), "\"", "\\\"", -1))
 	a.logger.Info(a.logTag, "Json string is '%s'", jsonStr)
 
 	resp, err := client.Post(url, strings.NewReader(jsonStr))
@@ -60,9 +66,48 @@ func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperti
 		bosherr.WrapErrorf(err, "Error uploading stemcell")
 	}
 
-	responseBody, _ := ioutil.ReadAll(resp.Body)
-	a.logger.Info(a.logTag, "Response: '%s' '%s'\n", resp.Status, string(responseBody))
+	if (resp.StatusCode != http.StatusCreated) {
+		return VMCID(""), errors.New("Error creating nodes")
+	}
+
+	//succeeded in creating workflow, so wait for the workflow to finish before returning
+	for a.isWorkFlowActive(client, machineID) {
+		time.Sleep(30 * time.Second)
+	}
 
 	//TODO implement full create vm using apis
-	return VMCID("some-vm"), nil
+	return VMCID(machineID), nil
+}
+
+func (a CreateVM) isWorkFlowActive(client httpclient.HTTPClient, machineID string) bool {
+	a.logger.Info(a.logTag, "Checking workflow actively")
+	workFlowUrl := fmt.Sprintf("http://%s:8080/api/common/nodes/%s/workflows/active", a.APIServer, machineID)
+	resp, err := client.Get(workFlowUrl)
+
+	if (err != nil) {
+		//maybe better/diff error handling
+		return false
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false
+	}
+    defer resp.Body.Close()
+
+	var workflow Workflow
+	err = json.Unmarshal(body, &workflow)
+	if err != nil {
+		return false
+	}
+
+	if workflow.Status != nil {
+		return true
+	}
+
+	return false
+}
+
+type Workflow struct {
+	Status *string `json:"_status"`
 }
