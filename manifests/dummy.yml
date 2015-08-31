@@ -41,7 +41,6 @@ jobs:
   - {name: redis, release: redis}
   properties:
     redis:
-      master: ${NODE_IP}
       password: r3d!s
       port: 6379
 
@@ -62,10 +61,6 @@ cloud_provider:
         blobstore:
           provider: local
           options: {blobstore_path: /var/vcap/micro_bosh/data/cache}
-        disks:
-          system: "/dev/sda"
-          ephemeral: "/dev/sdb"
-          persistent: {}
       private_key: &private_key |
           -----BEGIN RSA PRIVATE KEY-----
           MIIEpAIBAAKCAQEA433I7+JP1TvcqOhF2P6sVPpLb6L1IFBVt95zY0TnLyVbnwbU

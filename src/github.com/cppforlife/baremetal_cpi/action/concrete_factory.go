@@ -51,7 +51,7 @@ func NewConcreteFactory(
 			// VM management
 			"create_vm":          NewCreateVM(stemcellFinder, vmCreator, options.APIServer, options.Agent, logger),
 			"delete_vm":          NewDeleteVM(vmFinder),
-			"has_vm":             NewHasVM(vmFinder),
+			"has_vm":             NewHasVM(vmFinder, options.APIServer, logger),
 			"reboot_vm":          NewRebootVM(),
 			"set_vm_metadata":    NewSetVMMetadata(),
 			"configure_networks": NewConfigureNetworks(),
