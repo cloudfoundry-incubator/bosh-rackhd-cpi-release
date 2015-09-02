@@ -5,9 +5,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-
-	bwcstem "github.com/cppforlife/baremetal_cpi/stemcell"
-	bwcvm "github.com/cppforlife/baremetal_cpi/vm"
 )
 
 type concreteFactory struct {
@@ -21,37 +18,16 @@ func NewConcreteFactory(
 	options ConcreteFactoryOptions,
 	logger boshlog.Logger,
 ) concreteFactory {
-
-	stemcellFinder := bwcstem.NewFSFinder(options.StemcellsDir, fs, logger)
-
-	sshClientFactory := bwcvm.NewSSHClientFactory(
-		uuidGen,
-		options.User,
-		options.Port,
-		options.PrivateKey,
-		options.Machines,
-		logger,
-	)
-
-	vmCreator := bwcvm.NewSSHCreator(
-		uuidGen,
-		sshClientFactory,
-		options.Agent,
-		logger,
-	)
-
-	vmFinder := bwcvm.NewSSHFinder(sshClientFactory, logger)
-
 	return concreteFactory{
 		availableActions: map[string]Action{
 			// Stemcell management
 			"create_stemcell": NewCreateStemcell(options.APIServer, logger),
-			"delete_stemcell": NewDeleteStemcell(stemcellFinder, options.APIServer, logger),
+			"delete_stemcell": NewDeleteStemcell(options.APIServer, logger),
 
 			// VM management
-			"create_vm":          NewCreateVM(stemcellFinder, vmCreator, options.APIServer, options.Agent, logger),
-			"delete_vm":          NewDeleteVM(vmFinder),
-			"has_vm":             NewHasVM(vmFinder, options.APIServer, logger),
+			"create_vm":          NewCreateVM(options.APIServer, options.Agent, logger),
+			"delete_vm":          NewDeleteVM(options.APIServer, logger),
+			"has_vm":             NewHasVM(options.APIServer, logger),
 			"reboot_vm":          NewRebootVM(),
 			"set_vm_metadata":    NewSetVMMetadata(),
 			"configure_networks": NewConfigureNetworks(),

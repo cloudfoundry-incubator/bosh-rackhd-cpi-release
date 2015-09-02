@@ -1,7 +1,6 @@
 package action
 
 import (
-	bwcvm "github.com/cppforlife/baremetal_cpi/vm"
 	"fmt"
 	"encoding/json"
 	"io/ioutil"
@@ -11,15 +10,13 @@ import (
 )
 
 type HasVM struct {
-	vmFinder bwcvm.Finder
 	APIServer string
 	logger boshlog.Logger
 	logTag string
 }
 
-func NewHasVM(vmFinder bwcvm.Finder,  APIServer string, logger boshlog.Logger) HasVM {
+func NewHasVM(APIServer string, logger boshlog.Logger) HasVM {
 	return HasVM{
-		vmFinder: vmFinder,
 		APIServer: APIServer,
 		logger: logger,
 		logTag: "has-vm",

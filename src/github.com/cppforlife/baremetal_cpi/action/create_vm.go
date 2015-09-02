@@ -3,7 +3,6 @@ package action
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	bwcstem "github.com/cppforlife/baremetal_cpi/stemcell"
 	bwcvm "github.com/cppforlife/baremetal_cpi/vm"
 	httpclient "github.com/cppforlife/baremetal_cpi/utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -17,8 +16,6 @@ import (
 )
 
 type CreateVM struct {
-	stemcellFinder bwcstem.Finder
-	vmCreator      bwcvm.Creator
 	APIServer string
 	agentOptions bwcvm.AgentOptions
 	logger boshlog.Logger
@@ -29,10 +26,8 @@ type VMCloudProperties struct{}
 
 type Environment map[string]interface{}
 
-func NewCreateVM(stemcellFinder bwcstem.Finder, vmCreator bwcvm.Creator, APIServer string, agentOptions bwcvm.AgentOptions, logger boshlog.Logger) CreateVM {
+func NewCreateVM(APIServer string, agentOptions bwcvm.AgentOptions, logger boshlog.Logger) CreateVM {
 	return CreateVM{
-		stemcellFinder: stemcellFinder,
-		vmCreator:      vmCreator,
 		APIServer: APIServer,
 		agentOptions: agentOptions,
 		logger: logger,
@@ -43,13 +38,19 @@ func NewCreateVM(stemcellFinder bwcstem.Finder, vmCreator bwcvm.Creator, APIServ
 func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperties, networks Networks, _ []DiskCID, env Environment) (VMCID, error) {
 	client := httpclient.NewHTTPClient(httpclient.DefaultClient, a.logger)
 	machineID := "machine-id"
+
+    macAddress, err := a.getMacAddress(machineID)
+	if err != nil {
+		bosherr.WrapError(err, "Error getting mac address")
+	}
+
     //create agent and network env
 	vmNetworks := networks.AsVMNetworks()
 	vmEnv := bwcvm.Environment(env)
-	agentEnv := bwcvm.NewAgentEnvForVM(agentID,machineID, vmNetworks, vmEnv, a.agentOptions)
+	agentEnv := bwcvm.NewAgentEnvForVM(agentID,machineID, vmNetworks, vmEnv, a.agentOptions, macAddress)
 	jsonBytes, err := json.Marshal(agentEnv)
 	if err != nil {
-		return "", bosherr.WrapError(err, "Marshalling agent env")
+		bosherr.WrapError(err, "Marshalling agent env")
 	}
 
 	a.logger.Info(a.logTag, "Agent Json data '%s'", string(jsonBytes))
@@ -63,7 +64,7 @@ func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperti
 
 	resp, err := client.Post(url, strings.NewReader(jsonStr))
 	if err != nil {
-		bosherr.WrapErrorf(err, "Error uploading stemcell")
+		bosherr.WrapError(err, "Error uploading stemcell")
 	}
 
 	if (resp.StatusCode != http.StatusCreated) {
@@ -71,7 +72,7 @@ func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperti
 	}
 
 	//succeeded in creating workflow, so wait for the workflow to finish before returning
-	for a.isWorkFlowActive(client, machineID) {
+	for a.isWorkFlowActive(machineID) {
 		time.Sleep(30 * time.Second)
 	}
 
@@ -79,10 +80,31 @@ func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperti
 	return VMCID(machineID), nil
 }
 
-func (a CreateVM) isWorkFlowActive(client httpclient.HTTPClient, machineID string) bool {
+func (a CreateVM) getMacAddress(machineID string) (string, error){
+	//call api for mac address
+	nodeInfoUrl := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", a.APIServer, machineID)
+	resp, err := http.Get(nodeInfoUrl)
+	if (err != nil) {
+		return "", errors.New("Cannot get url")
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.New("Cannot read body")
+	}
+
+	var nodeInfo NodeInfo
+	err = json.Unmarshal(body, &nodeInfo)
+	if err != nil {
+		return "", errors.New("Cannot marshall node's body")
+	}
+
+	return nodeInfo.Identifiers[0], nil
+}
+
+func (a CreateVM) isWorkFlowActive(machineID string) bool {
 	a.logger.Info(a.logTag, "Checking workflow actively")
 	workFlowUrl := fmt.Sprintf("http://%s:8080/api/common/nodes/%s/workflows/active", a.APIServer, machineID)
-	resp, err := client.Get(workFlowUrl)
+	resp, err := http.Get(workFlowUrl)
 
 	if (err != nil) {
 		//maybe better/diff error handling
@@ -110,4 +132,8 @@ func (a CreateVM) isWorkFlowActive(client httpclient.HTTPClient, machineID strin
 
 type Workflow struct {
 	Status *string `json:"_status"`
+}
+
+type NodeInfo struct {
+	Identifiers []string `json:"identifiers"`
 }

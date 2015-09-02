@@ -6,11 +6,17 @@ releases:
 - name: emc_baremetal
   url: file://~/workspace/emc_baremetal/dev_releases/emc_baremetal/emc_baremetal-0+dev.1.tgz
 - name: redis
-  url: file:///workspace/emc_baremetal/redis-bosh-release.tgz
+  url: file://~/workspace/emc_baremetal/redis-bosh-release.tgz
 
 networks:
 - name: default
-  type: dynamic
+  type: manual
+
+  subnets:
+  - range: ${IP_RANGE}
+    gateway: ${GATEWAY}
+
+    static: [${NODE_IP}]
 
 resource_pools:
 - name: default
@@ -37,6 +43,7 @@ jobs:
   resource_pool: default
   networks:
   - name: default
+    static_ips: [${NODE_IP}]
   templates:
   - {name: redis, release: redis}
   properties:
