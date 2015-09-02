@@ -59,19 +59,9 @@ cloud_provider:
 #figure out needed baremetal properties
   properties:
     baremetal_cpi:
-      machines:
-        some-vm: 127.0.0.1
       apiserver: ${BAREMETAL_API}
-      stemcells_dir: /Users/elm/.bosh_init/stemcells
       agent:
         mbus: "https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868"
         blobstore:
           provider: local
           options: {blobstore_path: /var/vcap/micro_bosh/data/cache}
-      private_key: &private_key |
-          -----BEGIN RSA PRIVATE KEY-----
-          MIIEpAIBAAKCAQEA433I7+JP1TvcqOhF2P6sVPpLb6L1IFBVt95zY0TnLyVbnwbU
-          L6dhiT2o5vOGPNXTboV65s6F2o8YiH05Bha0x8VoMWokEHkV82UU60FCrwhLTFkj
-          ..snip..
-          po8qXz8/p+cXF0FTX49117jrr/ZnKAVlxkcgH6ImwoA9eQdHnDNs/w==
-          -----END RSA PRIVATE KEY-----

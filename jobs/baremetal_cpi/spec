@@ -9,26 +9,9 @@ packages:
 - baremetal_cpi
 
 properties:
-  baremetal_cpi.user:
-    description: "User name to use for SSH"
-    default: root
-  baremetal_cpi.port:
-    description: "Port to use for SSH"
-    default: 22
-  baremetal_cpi.private_key:
-    description: "Private key to use for SSH"
-
-  baremetal_cpi.machines:
-    description: "List of machines and their IP addresses available to SSH"
-    example: {"8b0f4d2b": "10.230.0.3", "bf85e71e": "10.230.0.3"}
-
   baremetal_cpi.apiserver:
     description: "API endpoint ip"
     example: "10.10.10.10"
-
-  baremetal_cpi.stemcells_dir:
-    description: "Directory where stemcells are stored"
-    default: "/var/vcap/store/cpi/stemcells"
 
   baremetal_cpi.agent.mbus:
     description: "Mbus URL used by deployed BOSH agents"
