@@ -1,9 +1,9 @@
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-
 	bwcvm "github.com/cppforlife/baremetal_cpi/vm"
+
+	"errors"
 )
 
 type ConcreteFactoryOptions struct {
@@ -13,12 +13,12 @@ type ConcreteFactoryOptions struct {
 
 func (o ConcreteFactoryOptions) Validate() error {
 	if o.APIServer == "" {
-		return bosherr.Error("Must provide API Server IP")
+		return errors.New("Must provide API Server IP")
 	}
 
 	err := o.Agent.Validate()
 	if err != nil {
-		return bosherr.WrapError(err, "Validating Agent configuration")
+		return err
 	}
 
 	return nil

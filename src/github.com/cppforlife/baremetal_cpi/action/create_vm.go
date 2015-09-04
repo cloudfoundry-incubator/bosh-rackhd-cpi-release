@@ -37,7 +37,10 @@ func NewCreateVM(APIServer string, agentOptions bwcvm.AgentOptions, logger boshl
 
 func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperties, networks Networks, _ []DiskCID, env Environment) (VMCID, error) {
 	client := httpclient.NewHTTPClient(httpclient.DefaultClient, a.logger)
-	machineID := "machine-id"
+	machineID, err := a.getMachineID()
+	if err != nil {
+		bosherr.WrapError(err, "Error getting machine ID")
+	}
 
     macAddress, err := a.getMacAddress(machineID)
 	if err != nil {
@@ -76,8 +79,28 @@ func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, _ VMCloudProperti
 		time.Sleep(30 * time.Second)
 	}
 
-	//TODO implement full create vm using apis
 	return VMCID(machineID), nil
+}
+
+func (a CreateVM) getMachineID() (string, error) {
+	var machineID string //initialized to be ""
+	nodesUrl := fmt.Sprintf("http://%s:8080/api/common/nodes", a.APIServer)
+	resp, err := http.Get(nodesUrl)
+	if err != nil {
+		return machineID, errors.New("Error getting response")
+	}
+
+	defer resp.Body.Close()
+	var nodes Nodes
+	err = a.readResponseToJson(resp, &nodes)
+	if err != nil {
+		return machineID, err
+	}
+
+	a.logger.Info(a.logTag, "Selecting machine '%s'", nodes[14].Id)
+
+	return nodes[14].Id, nil
+
 }
 
 func (a CreateVM) getMacAddress(machineID string) (string, error){
@@ -87,15 +110,12 @@ func (a CreateVM) getMacAddress(machineID string) (string, error){
 	if (err != nil) {
 		return "", errors.New("Cannot get url")
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", errors.New("Cannot read body")
-	}
+	defer resp.Body.Close()
 
 	var nodeInfo NodeInfo
-	err = json.Unmarshal(body, &nodeInfo)
+	err = a.readResponseToJson(resp, &nodeInfo)
 	if err != nil {
-		return "", errors.New("Cannot marshall node's body")
+		return "", err
 	}
 
 	return nodeInfo.Identifiers[0], nil
@@ -105,20 +125,10 @@ func (a CreateVM) isWorkFlowActive(machineID string) bool {
 	a.logger.Info(a.logTag, "Checking workflow actively")
 	workFlowUrl := fmt.Sprintf("http://%s:8080/api/common/nodes/%s/workflows/active", a.APIServer, machineID)
 	resp, err := http.Get(workFlowUrl)
-
-	if (err != nil) {
-		//maybe better/diff error handling
-		return false
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return false
-	}
-    defer resp.Body.Close()
+	defer resp.Body.Close()
 
 	var workflow Workflow
-	err = json.Unmarshal(body, &workflow)
+	err = a.readResponseToJson(resp, &workflow)
 	if err != nil {
 		return false
 	}
@@ -130,10 +140,29 @@ func (a CreateVM) isWorkFlowActive(machineID string) bool {
 	return false
 }
 
+func (a CreateVM) readResponseToJson(resp *http.Response, jsonObject interface{}) error {
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return errors.New("Cannot read body")
+	}
+
+
+	err = json.Unmarshal(body, jsonObject)
+	if err != nil {
+		return errors.New("Cannot unmarshall the body")
+	}
+
+	return nil
+}
+
 type Workflow struct {
 	Status *string `json:"_status"`
 }
 
 type NodeInfo struct {
 	Identifiers []string `json:"identifiers"`
+}
+
+type Nodes []struct {
+	Id string `json:"id"`
 }

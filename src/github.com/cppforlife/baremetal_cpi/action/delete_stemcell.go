@@ -35,6 +35,8 @@ func (a DeleteStemcell) Run(stemcellCID StemcellCID) (interface{}, error) {
 	if err != nil {
 		bosherr.WrapErrorf(err, "Error getting response body")
 	}
+	defer resp.Body.Close()
+
 	a.logger.Info(a.logTag, "Status is  '%s'", resp.Status)
 	var metadata FileMetadata
 	err = json.Unmarshal(body, &metadata)

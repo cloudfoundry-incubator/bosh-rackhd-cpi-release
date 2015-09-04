@@ -1,10 +1,10 @@
 package action
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"fmt"
 )
 
 type concreteFactory struct {
@@ -51,7 +51,7 @@ func NewConcreteFactory(
 func (f concreteFactory) Create(method string) (Action, error) {
 	action, found := f.availableActions[method]
 	if !found {
-		return nil, bosherr.Errorf("Could not create action with method %s", method)
+		return nil, fmt.Errorf("Could not create action with method %s", method)
 	}
 
 	return action, nil

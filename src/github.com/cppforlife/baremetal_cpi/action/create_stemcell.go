@@ -32,26 +32,26 @@ func (a CreateStemcell) Run(imagePath string, _ CreateStemcellCloudProps) (Stemc
 	command := fmt.Sprintf("tar -C %s -xzf %s 2>&1", "tmp/", imagePath)
 	_, err:= runCommand(command)
 	if err != nil {
-		bosherr.WrapErrorf(err, "Error extracting image '%s'", imagePath)
+		return "", fmt.Errorf("Error extracting image '%s': %s", imagePath, err)
 	}
 
 	a.logger.Info(logTag, "Extracted stemcell")
 	file, err := os.Open("tmp/image-disk1.vmdk")
 	if (err != nil) {
-		bosherr.WrapErrorf(err, "Error opening file")
+		return "", bosherr.WrapError(err, "Error opening file")
 	}
 	defer file.Close()
 
 	fileStat, err := file.Stat()
 	if (err != nil) {
-		bosherr.WrapErrorf(err, "Error getting file info")
+		return "", bosherr.WrapError(err, "Error getting file info")
 	}
 	fileSize := fileStat.Size()
 	a.logger.Info(logTag, "File Size is '%d'", fileSize)
 
 	uuid, err := uuidGen.NewGenerator().Generate()
 	if (err != nil) {
-		bosherr.WrapErrorf(err, "Error generating UUID")
+		return "", bosherr.WrapError(err, "Error generating UUID")
 	}
 
 	url := fmt.Sprintf("http://%s:8080/api/common/files/%s", a.APIServer, uuid)
@@ -60,8 +60,10 @@ func (a CreateStemcell) Run(imagePath string, _ CreateStemcellCloudProps) (Stemc
 
 	resp, err := client.Put(url, body, fileSize)
 	if err != nil {
-		bosherr.WrapErrorf(err, "Error uploading stemcell")
+		return "", bosherr.WrapError(err, "Error uploading stemcell")
 	}
+	
+	defer resp.Body.Close()
 
 	a.logger.Info(logTag, "Succeeded uploading stemcell '%s'", resp.Status)
 	responseBody, _ := ioutil.ReadAll(resp.Body)

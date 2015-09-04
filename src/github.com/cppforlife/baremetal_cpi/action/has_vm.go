@@ -37,6 +37,7 @@ func (a HasVM) Run(vmCID VMCID) (bool, error) {
 	if err != nil {
 		return false, errors.New("Error getting response body")
 	}
+	defer resp.Body.Close()
 
 	var node Node
 	err = json.Unmarshal(body, &node)

@@ -58,6 +58,50 @@ var _ = Describe("HttpClient", func() {
 			))
 		})
 	})
+
+	Describe("Get", func() {
+		Context("make a GET request to a specific address", func() {
+			It("should return the content at that request url", func() {
+				fakeServer.SetResponseBody("fake-put-response")
+				fakeServer.SetResponseStatus(200)
+
+				response, err := httpClient.Get("http://localhost:6305/fake-path")
+				Ω(err).ToNot(HaveOccurred())
+
+				defer response.Body.Close()
+				responseBody, err := ioutil.ReadAll(response.Body)
+				Ω(responseBody).To(Equal([]byte("fake-put-response")))
+				Ω(response.StatusCode).To(Equal(200))
+			})
+		})
+
+	})
+
+	Describe("Post", func() {
+		Context("make a POST request with json body", func() {
+			It("should have appropriate json body when the server receive it", func() {
+				fakeServer.SetResponseBody("fake-put-response")
+				fakeServer.SetResponseStatus(200)
+
+				reader := strings.NewReader(`{"name":"test", "id":1}`)
+				response, err := httpClient.Post("http://localhost:6305/fake-path", reader)
+				Ω(err).ToNot(HaveOccurred())
+				defer response.Body.Close()
+				responseBody, err := ioutil.ReadAll(response.Body)
+				Ω(responseBody).To(Equal([]byte("fake-put-response")))
+				Ω(response.StatusCode).To(Equal(200))
+
+				Ω(fakeServer.ReceivedRequests).To(HaveLen(1))
+				Ω(fakeServer.ReceivedRequests).To(ContainElement(
+					receivedRequest{
+						Body:   []byte(`{"name":"test", "id":1}`),
+						Method: "POST",
+					},
+				))
+			})
+		})
+
+	})
 })
 
 type receivedRequestBody struct {

@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"time"
 	"io"
-
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
@@ -49,14 +47,15 @@ func (c httpClient) Put(endpoint string, content io.ReadCloser, contentLength in
 
 	request, err := http.NewRequest("PUT", endpoint, content)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating PUT request")
+		return nil, err
 	}
 
 	request.ContentLength = contentLength
 	response, err := c.client.Do(request)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Performing PUT request")
+		return nil, err
 	}
+
 	return response, nil
 }
 
@@ -67,20 +66,21 @@ func (c httpClient) Post(endpoint string, reader io.Reader) (*http.Response, err
 	request.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating POST request")
+		return nil, err
 	}
 
 	response, err := c.client.Do(request)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Performing POST request")
+		return nil, err
 	}
+
 	return response, nil
 }
 
 func (c httpClient) Get(endpoint string) (*http.Response, error) {
 	response, err := http.Get(endpoint)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Performing GET request")
+		return nil, err
 	}
 
 	return response, nil
@@ -91,13 +91,14 @@ func (c httpClient) Delete(endpoint string) (*http.Response, error) {
 
 	request, err := http.NewRequest("DELETE", endpoint, nil)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating DELETE request")
+		return nil, err
 	}
 
 	response, err := c.client.Do(request)
 	if err != nil {
-		return nil, bosherr.WrapError(err, "Performing DELETE request")
+		return nil, err
 	}
+
 	return response, nil
 }
 
