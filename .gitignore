@@ -21,3 +21,8 @@ releases/*.tgz
 releases/**/*.tgz
 
 .vagrant/
+.ipynb
+.ipynb_checkpoints/
+
+pkg
+bin
