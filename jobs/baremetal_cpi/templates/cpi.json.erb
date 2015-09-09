@@ -1,18 +1,11 @@
 <%=
 
 JSON.dump(
-  "Actions" => {
-    "APIServer" => p("baremetal_cpi.apiserver"),
+    "api_server" => p("baremetal_cpi.apiserver"),
 
-    "Agent" => {
-      "Mbus" => p("baremetal_cpi.agent.mbus"),
-      "NTP"  => p("baremetal_cpi.agent.ntp"),
-
-      "Blobstore" => {
-        "Type"    => p("baremetal_cpi.agent.blobstore.provider"),
-        "Options" => p("baremetal_cpi.agent.blobstore.options"),
-      },
+    "agent" => {
+      "mbus" => p("baremetal_cpi.agent.mbus"),
+      "ntp"  => p("baremetal_cpi.agent.ntp"),
     },
-  },
 )
 %>
