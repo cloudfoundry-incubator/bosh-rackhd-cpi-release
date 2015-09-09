@@ -62,7 +62,7 @@ func (a CreateStemcell) Run(imagePath string, _ CreateStemcellCloudProps) (Stemc
 	if err != nil {
 		return "", bosherr.WrapError(err, "Error uploading stemcell")
 	}
-	
+
 	defer resp.Body.Close()
 
 	a.logger.Info(logTag, "Succeeded uploading stemcell '%s'", resp.Status)
@@ -70,8 +70,7 @@ func (a CreateStemcell) Run(imagePath string, _ CreateStemcellCloudProps) (Stemc
 	stemcell_uuid := string(responseBody)
 	a.logger.Info(logTag, "UUID '%s'  \n", stemcell_uuid)
 
-	//TODO verify what uuid is needed later in the api. This is returned from the server
-	// and appended to the uuid we've generated above. Format: localuuid_remoteuuid
+	//TODO returning locally generated uuid because create_vm needs filename. delete_stemcell needs the uuid.
     return StemcellCID(uuid), nil
 }
 
