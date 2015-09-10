@@ -36,6 +36,7 @@ func CreateStemcell(config config.Cpi, extInput ExternalInput) (string, error) {
 	body := ioutil.NopCloser(stemcellHandle)
 	request, err := http.NewRequest("PUT", url, body)
 	if err != nil {
+		log.Printf("Error building request to api server: %s", err)
 		return "", err
 	}
 
@@ -47,6 +48,7 @@ func CreateStemcell(config config.Cpi, extInput ExternalInput) (string, error) {
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
+		log.Printf("Error making request to api server: %s", err)
 		return "", err
 	}
 	defer resp.Body.Close()

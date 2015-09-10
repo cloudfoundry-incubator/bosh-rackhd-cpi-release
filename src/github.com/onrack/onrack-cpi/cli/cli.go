@@ -14,17 +14,17 @@ func ParseCommand(rawInput []byte) (string, cpi.ExternalInput, error) {
 
 	implemented, err := cpi.ImplementsMethod(splitInput[0])
 	if err != nil {
-		return "", "", err
+		return "", cpi.ExternalInput{}, err
 	}
 
 	if !implemented {
-		return "", "", errors.New(fmt.Sprintf("Method %s is not implemented", splitInput[0]))
+		return "", cpi.ExternalInput{}, errors.New(fmt.Sprintf("Method %s is not implemented", splitInput[0]))
 	}
 
 	extInput := cpi.ExternalInput{}
 	err = json.Unmarshal([]byte(splitInput[1]), &extInput)
 	if err != nil {
-		return "", errors.New("Error parsing args")
+		return "", cpi.ExternalInput{}, errors.New("Error parsing args")
 	}
 
 
