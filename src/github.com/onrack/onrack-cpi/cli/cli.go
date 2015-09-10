@@ -8,8 +8,8 @@ import (
 	"github.com/onrack/onrack-cpi/cpi"
 )
 
-func ParseCommand(rawInput string) (string, string, error) {
-	splitInput := strings.Split(rawInput, " ")
+func ParseCommand(rawInput []byte) (string, string, error) {
+	splitInput := strings.Split(string(rawInput), " ")
 
 	implemented, err := cpi.ImplementsMethod(splitInput[0])
 	if err != nil {
