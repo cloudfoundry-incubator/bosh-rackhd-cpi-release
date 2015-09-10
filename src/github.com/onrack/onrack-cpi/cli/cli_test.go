@@ -72,39 +72,39 @@ var _ = Describe("Cli", func() {
 		})
 		Context("For supported CPI methods", func() {
 			It("Dispatches create_stemcell", func() {
-				testInput := "create_stemcell some-awesome-stemcell-options"
+				testInput := "create_stemcell [some-awesome-stemcell-options]"
 				command, commandInput, err := cli.ParseCommand(testInput)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(command).To(Equal(cpi.CREATE_STEMCELL))
-				Expect(commandInput).To(Equal("some-awesome-stemcell-options"))
+				Expect(commandInput).To(Equal("[some-awesome-stemcell-options]"))
 			})
 			It("Dispatches delete_stemcell", func() {
-				testInput := "delete_stemcell some-useless-stemcell-cid"
+				testInput := "delete_stemcell [some-useless-stemcell-cid]"
 				command, commandInput, err := cli.ParseCommand(testInput)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(command).To(Equal(cpi.DELETE_STEMCELL))
-				Expect(commandInput).To(Equal("some-useless-stemcell-cid"))
+				Expect(commandInput).To(Equal("[some-useless-stemcell-cid]"))
 			})
 			It("Dispatches create_vm", func() {
-				testInput := "create_vm some-awesome-vm-options"
+				testInput := "create_vm [some-awesome-vm-options]"
 				command, commandInput, err := cli.ParseCommand(testInput)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(command).To(Equal(cpi.CREATE_VM))
-				Expect(commandInput).To(Equal("some-awesome-vm-options"))
+				Expect(commandInput).To(Equal("[some-awesome-vm-options]"))
 			})
 			It("Dispatches delete_vm", func() {
-				testInput := "delete_vm some-unused-vm-cid"
+				testInput := "delete_vm [some-unused-vm-cid]"
 				command, commandInput, err := cli.ParseCommand(testInput)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(command).To(Equal(cpi.DELETE_VM))
-				Expect(commandInput).To(Equal("some-unused-vm-cid"))
+				Expect(commandInput).To(Equal("[some-unused-vm-cid]"))
 			})
 			It("Dispatches has_vm", func() {
-				testInput := "has_vm some-interesting-vm-cid"
+				testInput := "has_vm [some-interesting-vm-cid]"
 				command, commandInput, err := cli.ParseCommand(testInput)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(command).To(Equal(cpi.HAS_VM))
-				Expect(commandInput).To(Equal("some-interesting-vm-cid"))
+				Expect(commandInput).To(Equal("[some-interesting-vm-cid]"))
 			})
 		})
 	})
