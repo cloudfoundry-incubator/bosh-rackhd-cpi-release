@@ -4,11 +4,12 @@ import (
 	"errors"
 	"strings"
 	"fmt"
+	"encoding/json"
 
 	"github.com/onrack/onrack-cpi/cpi"
 )
 
-func ParseCommand(rawInput []byte) (string, string, error) {
+func ParseCommand(rawInput []byte) (string, cpi.ExternalInput, error) {
 	splitInput := strings.Split(string(rawInput), " ")
 
 	implemented, err := cpi.ImplementsMethod(splitInput[0])
@@ -20,5 +21,12 @@ func ParseCommand(rawInput []byte) (string, string, error) {
 		return "", "", errors.New(fmt.Sprintf("Method %s is not implemented", splitInput[0]))
 	}
 
-	return splitInput[0], splitInput[1], nil
+	extInput := cpi.ExternalInput{}
+	err = json.Unmarshal([]byte(splitInput[1]), &extInput)
+	if err != nil {
+		return "", errors.New("Error parsing args")
+	}
+
+
+	return splitInput[0], extInput, nil
 }

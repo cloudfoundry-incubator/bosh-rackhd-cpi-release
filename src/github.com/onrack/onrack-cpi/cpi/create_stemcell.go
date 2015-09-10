@@ -9,17 +9,10 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"encoding/json"
 )
 
-func CreateStemcell(config config.Cpi, args string) (string, error) {
+func CreateStemcell(config config.Cpi, extInput ExternalInput) (string, error) {
 	var imagePath string
-	var extInput ExternalInput
-
-	err := json.Unmarshal([]byte(args), &extInput)
-	if err != nil {
-		return "", errors.New("Error parsing args")
-	}
 
 	if reflect.TypeOf(extInput[0]) == reflect.TypeOf(imagePath) {
 		imagePath = extInput[0].(string)

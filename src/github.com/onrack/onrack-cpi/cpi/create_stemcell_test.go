@@ -22,7 +22,9 @@ var _ = Describe("CreateStemcell", func() {
 			Expect(apiServerIp).ToNot(BeEmpty())
 
 			config := config.Cpi{ApiServer: apiServerIp}
-			input := `["../spec_assets/stemcell.tgz"]`
+
+			var input cpi.ExternalInput
+			input = append(input, "../spec_assets/stemcell.tgz")
 
 			uuid, err := cpi.CreateStemcell(config, input)
 			Expect(err).ToNot(HaveOccurred())
@@ -50,7 +52,9 @@ var _ = Describe("CreateStemcell", func() {
 	Context("With invalid CPI v1 input", func() {
 		It("Returns an error", func() {
 			config := config.Cpi{}
-			input := `[{"foo": "bar"}]`
+
+			var input cpi.ExternalInput
+			input = append(input, map[string]string{"foo": "bar"})
 
 			uuid, err := cpi.CreateStemcell(config, input)
 			Expect(err).To(MatchError("Received unexpected type for stemcell image path"))
