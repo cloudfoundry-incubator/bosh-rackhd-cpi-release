@@ -6,13 +6,3 @@ package cpi
 	 array with heterogeneous elements
  */
 type ExternalInput []interface{}
-
-type Config struct {
-	ApiServer string `json:"apiserver"`
-	Agent AgentConfig `json:"agent"`
-}
-
-type AgentConfig struct{
-	Mbus string `json:"mbus"`
-	Ntp string `json:"ntp"`
-}

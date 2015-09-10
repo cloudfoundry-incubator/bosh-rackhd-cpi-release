@@ -2,6 +2,7 @@ package cpi_test
 
 import (
 	"github.com/onrack/onrack-cpi/cpi"
+	"github.com/onrack/onrack-cpi/config"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,7 +21,7 @@ var _ = Describe("CreateStemcell", func() {
 			apiServerIp := os.Getenv("ON_RACK_API_URI")
 			Expect(apiServerIp).ToNot(BeEmpty())
 
-			config := cpi.Config{ApiServer: apiServerIp}
+			config := config.Cpi{ApiServer: apiServerIp}
 
 			var input cpi.ExternalInput
 			input = append(input, "../spec_assets/stemcell.tgz")
@@ -50,7 +51,7 @@ var _ = Describe("CreateStemcell", func() {
 	})
 	Context("With invalid CPI v1 input", func() {
 		It("Returns an error", func() {
-			config := cpi.Config{}
+			config := config.Cpi{}
 
 			var input cpi.ExternalInput
 			input = append(input, map[string]string{"foo": "bar"})

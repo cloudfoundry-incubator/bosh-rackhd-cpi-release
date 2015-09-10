@@ -3,6 +3,7 @@ import (
 	"errors"
 	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/stemcell"
+	"github.com/onrack/onrack-cpi/config"
 	"io/ioutil"
 	"net/http"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 	"reflect"
 )
 
-func CreateStemcell(config Config, args ExternalInput) (string, error) {
+func CreateStemcell(config config.Cpi, args ExternalInput) (string, error) {
 	var imagePath string
 
 	if reflect.TypeOf(args[0]) == reflect.TypeOf(imagePath) {
