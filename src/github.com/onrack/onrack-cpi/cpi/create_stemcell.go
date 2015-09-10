@@ -9,13 +9,20 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"encoding/json"
 )
 
-func CreateStemcell(config config.Cpi, args ExternalInput) (string, error) {
+func CreateStemcell(config config.Cpi, args string) (string, error) {
 	var imagePath string
+	var extInput ExternalInput
 
-	if reflect.TypeOf(args[0]) == reflect.TypeOf(imagePath) {
-		imagePath = args[0].(string)
+	err := json.Unmarshal([]byte(args), &extInput)
+	if err != nil {
+		return "", errors.New("Error parsing args")
+	}
+
+	if reflect.TypeOf(extInput[0]) == reflect.TypeOf(imagePath) {
+		imagePath = extInput[0].(string)
 	} else {
 		return "", errors.New("Received unexpected type for stemcell image path")
 	}
