@@ -1,19 +1,19 @@
-package cpi_test
+package stemcell_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"testing"
-	"log"
 	"io/ioutil"
+	"log"
+	"testing"
 )
 
-func TestCpi(t *testing.T) {
+func TestStemcell(t *testing.T) {
 	// where did my logs go
 	// disable logging
-	log.SetOutput(ioutil.Discard)
+        log.SetOutput(ioutil.Discard)
 
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cpi Suite")
+	RunSpecs(t, "Stemcell Suite")
 }

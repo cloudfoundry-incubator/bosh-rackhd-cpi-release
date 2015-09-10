@@ -1,43 +1,30 @@
 package cpi
 import (
 	"errors"
-	"os"
-	"os/exec"
-	"io/ioutil"
-	"fmt"
-	"net/http"
 	"github.com/nu7hatch/gouuid"
+	"github.com/onrack/onrack-cpi/stemcell"
+	"io/ioutil"
+	"net/http"
+	"fmt"
 	"log"
+	"reflect"
 )
 
 func CreateStemcell(config Config, args ExternalInput) (string, error) {
-	imagePath := ""
+	var imagePath string
 
-	// extract into function here
-	log.Printf("Extracting stemcell from '%s'", imagePath)
+	if reflect.TypeOf(args[0]) == reflect.TypeOf(imagePath) {
+		imagePath = args[0].(string)
+	} else {
+		return "", errors.New("Received unexpected type for stemcell image path")
+	}
 
-	os.Mkdir("tmp", os.FileMode(0755))
-	tarCmd := exec.Command("tar", "-C tmp/", "-xzf", fmt.Sprintf("%s", imagePath))
-	tarCmdOutput, err := tarCmd.CombinedOutput()
+	s := stemcell.New(imagePath)
+	stemcellHandle, err := s.Extract()
 	if err != nil {
-		return "", fmt.Errorf("Error extracting image '%s': %s, commnad output was %s", imagePath, err, tarCmdOutput)
+		return "", err
 	}
-
-	//a.logger.Info(logTag, "Extracted stemcell")
-	file, err := os.Open("tmp/image-disk1.vmdk") // coupling between the vSphere stemcell format
-	if (err != nil) {
-		return "", errors.New("Error opening file")
-	}
-	defer file.Close()
-
-	fileStat, err := file.Stat()
-	if (err != nil) {
-		return "", errors.New("Error getting file info")
-	}
-	fileSize := fileStat.Size()
-	log.Printf("File Size is '%d'", fileSize)
-
-	// end extract into function
+	defer stemcellHandle.Close()
 
 	uuid, err := uuid.NewV4()
 	if (err != nil) {
@@ -45,32 +32,36 @@ func CreateStemcell(config Config, args ExternalInput) (string, error) {
 	}
 
 	url := fmt.Sprintf("http://%s:8080/api/common/files/%s", config.ApiServer, uuid.String())
-	body := ioutil.NopCloser(file)
-
+	body := ioutil.NopCloser(stemcellHandle)
 	request, err := http.NewRequest("PUT", url, body)
 	if err != nil {
 		return "", err
 	}
 
-	request.ContentLength = fileSize
+	fileInfo, err := stemcellHandle.Stat()
+	if err != nil {
+		return "", err
+	}
+	request.ContentLength = fileInfo.Size()
+
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return "", err
 	}
-
 	defer resp.Body.Close()
-
-	log.Printf("Succeeded uploading stemcell '%s'", resp.Status)
-	responseBody, _ := ioutil.ReadAll(resp.Body)
-	stemcell_uuid := string(responseBody)
-	log.Printf("UUID '%s'  \n", stemcell_uuid)
-
-	//TODO returning locally generated uuid because create_vm needs filename. delete_stemcellneeds the uuid.
-
-
-	if imagePath == "" {
-		panic("you're not done!")
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Unable to read response body")
+		return "", err
 	}
-	return uuid.String(), nil
 
+	if resp.StatusCode != 201 {
+		log.Printf("Failed uploading stemcell '%s'", resp.Status)
+		return "", fmt.Errorf("Error uploading stemcell: %s", string(bodyBytes))
+	}
+
+	stemcell_uuid := string(bodyBytes)
+	log.Printf("Succeeded uploading stemcell got '%s' as uuid", stemcell_uuid)
+
+	return uuid.String(), nil
 }
