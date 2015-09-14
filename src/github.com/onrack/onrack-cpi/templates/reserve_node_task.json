@@ -1,0 +1,14 @@
+{
+"friendlyName" : "Reserve Node", 
+"injectableName" : "Task.Os.Reserve.CF.VM",
+"implementsTask": "Task.Base.Linux.Commands",
+"options": {
+  "cid": null,	
+  "commands":[ 
+    {
+      "command": "curl -X PATCH http://172.31.128.1:8080/api/1.1/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"reserved\": \"{{ options.cid }}\" }'"
+    }
+  ]
+ },
+ "properties": {}
+}

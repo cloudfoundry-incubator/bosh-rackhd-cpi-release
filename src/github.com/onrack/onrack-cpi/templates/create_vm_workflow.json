@@ -1,0 +1,68 @@
+{
+    "friendlyName": "CF CreateReserve VM",
+    "injectableName": "Graph.CF.CreateReserveVM",
+    "options": {
+      "defaults": {
+        "downloadDir": "/opt/downloads",
+        "file": null,
+        "path": null,
+        "env": null,
+        "cid": null
+      },
+      "bootstrap-ubuntu": {
+        "overlayfs": "common/overlayfs_all_files.cf.cpio.gz"
+      }
+    },
+    "tasks": [
+      {
+        "label": "set-boot-pxe",
+        "taskName": "Task.Obm.Node.PxeBoot",
+        "ignoreFailure": true
+      },
+      {
+        "label": "reboot",
+        "taskName": "Task.Obm.Node.Reboot",
+        "waitOn": {
+          "set-boot-pxe": "finished"
+        }
+      },
+      {
+        "label": "bootstrap-ubuntu",
+        "taskName": "Task.Linux.Bootstrap.Ubuntu",
+        "waitOn": {
+          "reboot": "succeeded"
+        }
+      },
+      {
+        "label": "reserve-node",
+        "taskName": "Task.Os.Reserve.CF.VM",
+        "waitOn": {
+          "bootstrap-ubuntu": "succeeded"
+        }
+      },
+      {
+        "label": "download-stemcell",
+        "taskName": "Task.Linux.DownloadFiles",
+        "waitOn": {
+          "reserve-node": "succeeded"
+        }
+      },
+      {
+        "label": "stemcell-v2p-machine",
+        "taskName": "Task.Os.Install.CF.Stemcell",
+        "waitOn": {
+          "download-stemcell": "succeeded"
+        }
+      },
+      {
+        "label": "shell-reboot",
+        "taskName": "Task.ProcShellReboot",
+        "waitOn": {
+          "stemcell-v2p-machine": "finished"
+        }
+      }
+    ]
+  }
+
+
+  

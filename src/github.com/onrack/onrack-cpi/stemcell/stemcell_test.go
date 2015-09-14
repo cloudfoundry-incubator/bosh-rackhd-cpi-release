@@ -2,11 +2,13 @@ package stemcell_test
 
 import (
 	"os"
+
 	"github.com/onrack/onrack-cpi/stemcell"
+
+	"io/ioutil"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"io/ioutil"
 )
 
 var _ = Describe("Stemcell", func() {
@@ -49,7 +51,7 @@ var _ = Describe("Stemcell", func() {
 	})
 	Describe("Cleanup()", func() {
 		It("cleans up the temp directory and closes the file handle?", func() {
-			stemcell := stemcell.New("../spec_assets/stemcell.tgz")
+			stemcell := stemcell.New("../spec_assets/image")
 			stemcellHandle, err := stemcell.Extract()
 			Expect(stemcellHandle).ToNot(BeNil())
 			Expect(err).ToNot(HaveOccurred())

@@ -50,5 +50,4 @@ func main() {
 	default:
 		log.Fatal("Should not get here")
 	}
-
 }

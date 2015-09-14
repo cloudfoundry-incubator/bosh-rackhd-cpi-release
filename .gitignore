@@ -26,3 +26,7 @@ releases/**/*.tgz
 
 pkg
 bin
+src/github.com/onrack/onrack-cpi/onrack-cpi/onrack-cpi
+
+# We modify this manually so ignore updates
+src/github.com/onrack/onrack-cpi/templates/cpi.json
