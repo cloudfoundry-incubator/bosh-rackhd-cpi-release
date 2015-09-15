@@ -1,9 +1,22 @@
-export ON_RACK_API_URI="192.168.252.131"
+#!/bin/bash
 
-apt-get install -y direnv
+set -e
 
-cd bosh-external-cpi/
-direnv allow .
+check_param() {
+  local name=$1
+  local value=$(eval echo '$'$name)
+  if [ "$value" == 'replace-me' ]; then
+    echo "environment variable $name must be set"
+    exit 1
+  fi
+}
+
+check_param ON_RACK_API_URI
+
+cd bosh-cpi-release/
+source .envrc
+
+go install github.com/onsi/ginkgo/ginkgo
 
 cd src/github.com/onrack/onrack-cpi
 ginkgo -r
