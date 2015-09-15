@@ -1,0 +1,131 @@
+{
+  "node": "55e79eb14e66816f6152fffb",
+  "source": "ohai",
+  "data": {
+    "network": {
+      "interfaces": {
+        "lo": {
+          "mtu": "65536",
+          "flags": [
+            "LOOPBACK",
+            "UP",
+            "LOWER_UP"
+          ],
+          "encapsulation": "Loopback",
+          "addresses": {
+            "127_0_0_1": {
+              "family": "inet",
+              "prefixlen": "8",
+              "netmask": "255.0.0.0",
+              "scope": "Node"
+            },
+            "::1": {
+              "family": "inet6",
+              "prefixlen": "128",
+              "scope": "Node"
+            }
+          },
+          "state": "unknown"
+        },
+        "p514p1": {
+          "type": "p514p",
+          "number": "1",
+          "mtu": "1500",
+          "flags": [
+            "BROADCAST",
+            "MULTICAST",
+            "UP",
+            "LOWER_UP"
+          ],
+          "encapsulation": "Ethernet",
+          "addresses": {
+            "00:1E:67:C4:E1:A0": {
+              "family": "lladdr"
+            },
+            "172_31_128_77": {
+              "family": "inet",
+              "prefixlen": "22",
+              "netmask": "255.255.252.0",
+              "broadcast": "172.31.131.255",
+              "scope": "Global"
+            },
+            "fe80::21e:67ff:fec4:e1a0": {
+              "family": "inet6",
+              "prefixlen": "64",
+              "scope": "Link"
+            }
+          },
+          "state": "down",
+          "arp": {
+            "172_31_128_1": "00:50:56:99:5b:31"
+          },
+          "routes": [
+            {
+              "destination": "default",
+              "family": "inet",
+              "via": "172.31.128.1"
+            },
+            {
+              "destination": "172.31.128.0/22",
+              "family": "inet",
+              "scope": "link",
+              "proto": "kernel",
+              "src": "172.31.128.77"
+            },
+            {
+              "destination": "fe80::/64",
+              "family": "inet6",
+              "metric": "256",
+              "proto": "kernel"
+            }
+          ]
+        },
+        "p514p2": {
+          "type": "p514p",
+          "number": "2",
+          "mtu": "1500",
+          "flags": [
+            "BROADCAST",
+            "MULTICAST"
+          ],
+          "encapsulation": "Ethernet",
+          "addresses": {
+            "00:1E:67:C4:E1:A1": {
+              "family": "lladdr"
+            }
+          },
+          "state": "down"
+        }
+      },
+      "default_interface": "p514p1",
+      "default_gateway": "172.31.128.1"
+    },
+    "ipaddress": "172.31.128.77",
+    "macaddress": "00:1E:67:C4:E1:A0",
+    "ip6address": "fe80::21e:67ff:fec4:e1a0",
+    "os": "linux",
+    "os_version": "3.13.0-32-generic",
+    "platform": "ubuntu",
+    "platform_version": "14.04",
+    "platform_family": "debian",
+    "uptime_seconds": 63,
+    "uptime": "1 minutes 03 seconds",
+    "idletime_seconds": 1478,
+    "idletime": "24 minutes 38 seconds",
+    "cloud_v2": null,
+    "command": {
+      "ps": "ps -ef"
+    },
+    "hostname": "renasar-diagnostic-rootfs",
+    "machinename": "renasar-diagnostic-rootfs",
+    "fqdn": "renasar-diagnostic-rootfs",
+    "domain": null,
+    "init_package": "init",
+    "ohai_time": 1441243657.3354654,
+    "current_user": "root",
+    "root_group": "root"
+  },
+  "createdAt": "2015-09-03T01:14:57.225Z",
+  "updatedAt": "2015-09-03T01:14:57.225Z",
+  "id": "55e79f118061008d615b614d"
+}
