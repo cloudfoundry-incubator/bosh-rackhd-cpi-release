@@ -1,0 +1,9 @@
+---
+platform: linux
+image: docker:///boshcpi/aws-cpi-release
+inputs:
+- name: bosh-cpi-release
+run:
+  path: bosh-cpi-release/ci/tasks/baremetal_cpi_test_suite.sh
+params:
+  ON_RACK_API_URI:         replace-me

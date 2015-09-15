@@ -1,0 +1,28 @@
+---
+groups:
+  - name: bosh-baremetal-cpi
+    jobs:
+      - baremetal_cpi_test_suite
+
+jobs:
+- name: baremetal_cpi_test_suite
+  plan:
+  - aggregate:
+    - {trigger: false, get: bosh-cpi-release,     resource: bosh-cpi-release-in}
+
+  - task: test
+    file: bosh-cpi-release/ci/tasks/baremetal_cpi_test_suite.yml
+    config:
+      params:
+        ON_RACK_API_URI: {{onrack_server_ip}}
+
+resources:
+- name: bosh-cpi-release-in
+  type: git
+  source:
+    uri: git@github.com:Pipe-s/emc_baremetal.git
+    branch: master
+    private_key: {{github_deployment_key__bosh-baremetal-cpi-release}}
+    ignore_paths:
+      - .final_builds/**/*.yml
+      - releases/**/*.yml
