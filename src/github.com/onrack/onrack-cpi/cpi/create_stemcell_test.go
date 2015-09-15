@@ -1,30 +1,30 @@
 package cpi_test
 
 import (
-	"github.com/onrack/onrack-cpi/cpi"
 	"github.com/onrack/onrack-cpi/config"
+	"github.com/onrack/onrack-cpi/cpi"
+
+	"encoding/json"
+	"net/http"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"encoding/json"
-	"net/http"
 
 	"fmt"
 	"io/ioutil"
 	"os"
-
 )
 
 var _ = Describe("CreateStemcell", func() {
 	Context("With valid CPI v1 input", func() {
 		It("Extracts and uploads a VMDK from a vSphere stemcell", func() {
-			apiServerIp := os.Getenv("ON_RACK_API_URI")
-			Expect(apiServerIp).ToNot(BeEmpty())
+			apiServerIP := os.Getenv("ON_RACK_API_URI")
+			Expect(apiServerIP).ToNot(BeEmpty())
 
-			config := config.Cpi{ApiServer: apiServerIp}
+			config := config.Cpi{ApiServer: apiServerIP}
 
 			var input cpi.ExternalInput
-			input = append(input, "../spec_assets/stemcell.tgz")
+			input = append(input, "../spec_assets/image")
 
 			uuid, err := cpi.CreateStemcell(config, input)
 			Expect(err).ToNot(HaveOccurred())
@@ -62,6 +62,3 @@ var _ = Describe("CreateStemcell", func() {
 		})
 	})
 })
-
-
-
