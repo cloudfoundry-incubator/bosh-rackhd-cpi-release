@@ -35,23 +35,21 @@ var _ = Describe("Workflows", func() {
 			expectedWorkflow := workflows.Workflow{
 				FriendlyName: "CF Create VM",
 				InjectableName: fmt.Sprintf("Graph.CF.CreateVM.%s", fakeUuid.String()),
-				Options: map[string]interface{}{
-					"defaults": map[string]interface{}{
-						"cid": nil,
-						"downloadDir": "/opt/downloads",
-						"env": nil,
-		        "file": nil,
-		        "path": nil,
-					},
-					"bootstrap-ubuntu": map[string]string{
-						"overlayfs": "common/overlayfs_all_files.cf.cpio.gz",
-					},
+				Options: workflows.Options{
+						BootstrapUbuntu: map[string]string{"overlayfs": "common/overlayfs_all_files.cf.cpio.gz"},
+						Defaults: workflows.Defaults{
+							Cid: "",
+							Env: "",
+							File: "",
+							Path: "",
+							DownloadDir: "/opt/downloads",
+						},
 				},
 				Tasks: []workflows.Task{
 					workflows.Task{
 						Label: "set-boot-pxe",
-						IgnoreFailure: true,
 						TaskName: "Task.Obm.Node.PxeBoot",
+						IgnoreFailure: true,
 					},
 					workflows.Task{
 						Label: "reboot",

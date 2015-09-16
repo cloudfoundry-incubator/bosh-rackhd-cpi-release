@@ -1,9 +1,13 @@
 package workflows
 
 import (
+	"bytes"
 	"fmt"
 	// "errors"
-//	"encoding/json"
+	"encoding/json"
+	"net/http"
+	"io/ioutil"
+	"log"
 	"github.com/onrack/onrack-cpi/config"
 )
 
@@ -20,7 +24,7 @@ type Workflow struct {
 	FriendlyName			string 									`json:"friendlyName"`
 	InjectableName 		string 									`json:"injectableName"`
 	Tasks 						[]Task 									`json:"tasks"`
-	Options						map[string]interface{}	`json:"options"`
+	Options						Options									`json:"options"`
 }
 
 type Task struct {
@@ -30,11 +34,49 @@ type Task struct {
 	IgnoreFailure			bool										`json:"ignoreFailure",omitempty`
 }
 
+type Defaults struct {
+	Cid 					string				`json:"cid"`
+	DownloadDir 	string				`json:"downloadDir"`
+	Env 					string				`json:"env"`
+	File					string				`json:"file"`
+	Path					string				`json:"path"`
+}
+
+type Options struct {
+	BootstrapUbuntu			map[string]string		`json:"bootstrap-ubuntu"`
+	Defaults						Defaults						`json:"defaults"`
+}
+
 
 func PublishCreateVMWorkflow(cpiConfig config.Cpi, uuid string) (err error) {
 	createVMWorkflow := generateCreateVMWorkflowString(uuid)
-	// http.GetClient.POST(url, createVMWorkflow)
-	fmt.Printf("\n%s\n", createVMWorkflow)
+	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", cpiConfig.ApiServer)
+	body, err := json.Marshal(createVMWorkflow)
+	if err != nil {
+		log.Printf("error marshalling createVMWorkflow")
+		return
+	}
+
+	request, err := http.NewRequest("PUT", url, bytes.NewReader(body))
+	if err != nil {
+		log.Printf("error building http request")
+		return
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		log.Printf("error sending PUT request to %s", cpiConfig.ApiServer)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("error response code is %d: %s", resp.StatusCode, string(msg))
+		return
+	}
+
 	return
 }
 
@@ -42,17 +84,15 @@ func generateCreateVMWorkflowString(uuid string) (workflow Workflow) {
 		workflow = Workflow{
 			FriendlyName: "CF Create VM",
 			InjectableName: fmt.Sprintf("Graph.CF.CreateVM.%s",uuid),
-			Options: map[string]interface{}{
-				"defaults": map[string]interface{}{
-					"cid": nil,
-					"downloadDir": "/opt/downloads",
-					"env": nil,
-					"file": nil,
-					"path": nil,
-				},
-				"bootstrap-ubuntu": map[string]string{
-					"overlayfs": "common/overlayfs_all_files.cf.cpio.gz",
-				},
+			Options: Options{
+					BootstrapUbuntu: map[string]string{"overlayfs": "common/overlayfs_all_files.cf.cpio.gz"},
+					Defaults: Defaults{
+						Cid: "",
+						Env: "",
+						File: "",
+						Path: "",
+						DownloadDir: "/opt/downloads",
+					},
 			},
 			Tasks: []Task{
 				Task{
