@@ -20,7 +20,7 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-type CatalogResponse struct {
+type NodeCatalog struct {
 	Data CatalogData `json:"data"`
 }
 
