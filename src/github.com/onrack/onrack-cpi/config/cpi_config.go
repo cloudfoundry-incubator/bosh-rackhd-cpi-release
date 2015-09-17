@@ -55,6 +55,10 @@ func isAgentConfigValid(config AgentConfig) bool {
 		return false
 	}
 
+	if len(config.Blobstore) == 0 {
+		return false
+	}
+
 	// ntp is optional
 	return true
 }
@@ -66,6 +70,7 @@ type Cpi struct {
 }
 
 type AgentConfig struct {
-	Mbus string `json:"mbus"`
-	Ntp  string `json:"ntp"`
+	Blobstore map[string]interface{}
+	Mbus      string   `json:"mbus"`
+	Ntp       []string `json:"ntp"`
 }
