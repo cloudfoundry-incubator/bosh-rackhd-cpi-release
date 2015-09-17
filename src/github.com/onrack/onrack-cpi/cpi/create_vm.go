@@ -13,7 +13,6 @@ import (
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
-	"github.com/onrack/onrack-cpi/workflows"
 )
 
 func CreateVM(c config.Cpi, extInput bosh.ExternalInput) (string, error) {
@@ -89,15 +88,15 @@ func CreateVM(c config.Cpi, extInput bosh.ExternalInput) (string, error) {
 	}
 
 	log.Printf("Succeeded uploading agent registry, got '%s' as uuid", regUUID)
-	uploadReq := workflows.UploadAgentSettingsRequest{
-		Name: workflows.OnrackReserveVMGraphName,
-		Options: map[string]workflows.UploadAgentSettingsOptions{
-			"defaults": workflows.UploadAgentSettingsOptions{
+	uploadReq := onrackhttp.UploadAgentSettingsRequest{
+		Name: onrackhttp.OnrackReserveVMGraphName,
+		Options: map[string]onrackhttp.UploadAgentSettingsOptions{
+			"defaults": onrackhttp.UploadAgentSettingsOptions{
 				AgentSettingsFile:    nodeID,
-				AgentSettingsPath:    workflows.OnrackEnvPath,
+				AgentSettingsPath:    onrackhttp.OnrackEnvPath,
 				CID:                  vmCID,
 				RegistrySettingsFile: agentRegistryName,
-				RegistrySettingsPath: workflows.OnrackRegistryPath,
+				RegistrySettingsPath: onrackhttp.OnrackRegistryPath,
 				StemcellFile:         stemcellCID,
 			},
 		},
