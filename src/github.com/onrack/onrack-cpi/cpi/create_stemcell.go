@@ -1,14 +1,16 @@
 package cpi
+
 import (
 	"errors"
-	"github.com/nu7hatch/gouuid"
-	"github.com/onrack/onrack-cpi/stemcell"
-	"github.com/onrack/onrack-cpi/config"
-	"io/ioutil"
-	"net/http"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"reflect"
+
+	"github.com/nu7hatch/gouuid"
+	"github.com/onrack/onrack-cpi/config"
+	"github.com/onrack/onrack-cpi/stemcell"
 )
 
 func CreateStemcell(config config.Cpi, extInput ExternalInput) (string, error) {
@@ -28,7 +30,7 @@ func CreateStemcell(config config.Cpi, extInput ExternalInput) (string, error) {
 	defer stemcellHandle.Close()
 
 	uuid, err := uuid.NewV4()
-	if (err != nil) {
+	if err != nil {
 		return "", errors.New("Error generating UUID")
 	}
 

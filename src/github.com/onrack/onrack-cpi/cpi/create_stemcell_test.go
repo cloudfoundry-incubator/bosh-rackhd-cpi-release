@@ -3,6 +3,7 @@ package cpi_test
 import (
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/cpi"
+	"github.com/onrack/onrack-cpi/onrackhttp"
 
 	"encoding/json"
 	"net/http"
@@ -40,13 +41,16 @@ var _ = Describe("CreateStemcell", func() {
 			defer resp.Body.Close()
 			Expect(resp.StatusCode).To(Equal(200))
 
-			fileMetadataResp := cpi.FileMetadataResponse{}
+			fileMetadataResp := onrackhttp.FileMetadataResponse{}
 			err = json.Unmarshal(respBytes, &fileMetadataResp)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fileMetadataResp).To(HaveLen(1))
 
 			fileMetadata := fileMetadataResp[0]
 			Expect(fileMetadata.Basename).To(Equal(uuid))
+
+			err = onrackhttp.DeleteFile(config, fileMetadata.UUID)
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 	Context("With invalid CPI v1 input", func() {
