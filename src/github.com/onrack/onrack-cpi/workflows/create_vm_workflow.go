@@ -22,8 +22,16 @@ import (
 
 func PublishCreateVMWorkflow(cpiConfig config.Cpi, uuid string) (err error) {
 
-	publishReserveNodeTask(cpiConfig, uuid)
-	publishProvisonNodeTask(cpiConfig, uuid)
+	err = publishReserveNodeTask(cpiConfig, uuid)
+	if err != nil {
+		log.Printf("error publishing reserve node task to %s", cpiConfig.ApiServer)
+		return
+	}
+	err = publishProvisonNodeTask(cpiConfig, uuid)
+	if err != nil {
+		log.Printf("error publishing provision node task to %s", cpiConfig.ApiServer)
+		return
+	}
 
 	createVMWorkflow := GenerateCreateVMWorkflow(uuid)
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", cpiConfig.ApiServer)
@@ -119,7 +127,7 @@ func GenerateCreateVMWorkflow(uuid string) (workflow onrackhttp.Workflow) {
 
 func publishReserveNodeTask(cpiConfig config.Cpi, uuid string) (err error) {
 	task := GenerateReserveNodeTask(uuid)
-	onrackhttp.PublishTask(cpiConfig, task)
+	err = onrackhttp.PublishTask(cpiConfig, task)
 	return
 }
 
