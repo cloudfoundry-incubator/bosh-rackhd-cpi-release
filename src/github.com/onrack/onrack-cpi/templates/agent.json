@@ -1,0 +1,13 @@
+{
+    "Infrastructure": {
+        "Settings": {
+            "Sources": [
+                {
+                    "SettingsPath": "/var/vcap/bosh/onrack-cpi-agent-env.json",
+                    "Type": "File"
+                }
+            ],
+            "UseRegistry": true
+        }
+    }
+}

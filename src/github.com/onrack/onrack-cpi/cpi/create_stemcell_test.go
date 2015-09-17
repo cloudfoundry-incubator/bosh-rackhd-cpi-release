@@ -1,6 +1,7 @@
 package cpi_test
 
 import (
+	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/cpi"
 	"github.com/onrack/onrack-cpi/onrackhttp"
@@ -24,7 +25,7 @@ var _ = Describe("CreateStemcell", func() {
 
 			config := config.Cpi{ApiServer: apiServerIP}
 
-			var input cpi.ExternalInput
+			var input bosh.ExternalInput
 			input = append(input, "../spec_assets/image")
 
 			uuid, err := cpi.CreateStemcell(config, input)
@@ -57,7 +58,7 @@ var _ = Describe("CreateStemcell", func() {
 		It("Returns an error", func() {
 			config := config.Cpi{}
 
-			var input cpi.ExternalInput
+			var input bosh.ExternalInput
 			input = append(input, map[string]string{"foo": "bar"})
 
 			uuid, err := cpi.CreateStemcell(config, input)

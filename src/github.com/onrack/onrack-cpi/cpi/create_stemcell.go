@@ -9,11 +9,12 @@ import (
 	"reflect"
 
 	"github.com/nu7hatch/gouuid"
+	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/stemcell"
 )
 
-func CreateStemcell(config config.Cpi, extInput ExternalInput) (string, error) {
+func CreateStemcell(config config.Cpi, extInput bosh.ExternalInput) (string, error) {
 	var imagePath string
 
 	if reflect.TypeOf(extInput[0]) == reflect.TypeOf(imagePath) {

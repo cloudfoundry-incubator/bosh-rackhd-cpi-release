@@ -15,7 +15,7 @@ var _ = Describe("Stemcell", func() {
 	Describe("Extract()", func() {
 		Context("With a valid stemcell", func() {
 			It("returns a file handle to the VMDK contained in a vSphere stemcell", func() {
-				stemcell := stemcell.New("../spec_assets/stemcell.tgz")
+				stemcell := stemcell.New("../spec_assets/image")
 				stemcellHandle, err := stemcell.Extract()
 				Expect(stemcellHandle).ToNot(BeNil())
 				Expect(err).ToNot(HaveOccurred())
