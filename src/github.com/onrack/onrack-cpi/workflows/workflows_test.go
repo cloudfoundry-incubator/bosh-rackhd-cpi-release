@@ -157,3 +157,4 @@ var _ = Describe("Workflows", func() {
 			Expect(workflowLibrary).To(ContainElement(expectedWorkflow))
 		})
 	})
+})
