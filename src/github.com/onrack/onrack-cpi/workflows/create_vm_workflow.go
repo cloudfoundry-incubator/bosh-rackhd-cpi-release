@@ -25,7 +25,7 @@ func PublishCreateVMWorkflow(cpiConfig config.Cpi, uuid string) (err error) {
 	publishReserveNodeTask(cpiConfig, uuid)
 	publishProvisonNodeTask(cpiConfig, uuid)
 
-	createVMWorkflow := generateCreateVMWorkflow(uuid)
+	createVMWorkflow := GenerateCreateVMWorkflow(uuid)
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", cpiConfig.ApiServer)
 	body, err := json.Marshal(createVMWorkflow)
 	if err != nil {
@@ -55,7 +55,7 @@ func PublishCreateVMWorkflow(cpiConfig config.Cpi, uuid string) (err error) {
 	return
 }
 
-func generateCreateVMWorkflow(uuid string) (workflow onrackhttp.Workflow) {
+func GenerateCreateVMWorkflow(uuid string) (workflow onrackhttp.Workflow) {
 		workflow = onrackhttp.Workflow{
 			FriendlyName: "CF CreateReserve VM",
 			InjectableName: fmt.Sprintf("Graph.CF.CreateReserveVM.%s",uuid),
@@ -118,12 +118,12 @@ func generateCreateVMWorkflow(uuid string) (workflow onrackhttp.Workflow) {
 }
 
 func publishReserveNodeTask(cpiConfig config.Cpi, uuid string) (err error) {
-	task := generateReserveNodeTask(uuid)
+	task := GenerateReserveNodeTask(uuid)
 	onrackhttp.PublishTask(cpiConfig, task)
 	return
 }
 
-func generateReserveNodeTask(uuid string) (task onrackhttp.Task) {
+func GenerateReserveNodeTask(uuid string) (task onrackhttp.Task) {
 	task = onrackhttp.Task{
 		FriendlyName: "Reserve Node",
 		ImplementsTask: "Task.Base.Linux.Commands",
@@ -140,12 +140,12 @@ func generateReserveNodeTask(uuid string) (task onrackhttp.Task) {
 }
 
 func publishProvisonNodeTask(cpiConfig config.Cpi, uuid string) (err error) {
- 	task := generateProvisionNodeTask(uuid)
+ 	task := GenerateProvisionNodeTask(uuid)
 	onrackhttp.PublishTask(cpiConfig, task)
 	return
 }
 
-func generateProvisionNodeTask(uuid string) (task onrackhttp.Task) {
+func GenerateProvisionNodeTask(uuid string) (task onrackhttp.Task) {
 	task = onrackhttp.Task{
 		FriendlyName: "Provision Node",
 		ImplementsTask: "Task.Base.Linux.Commands",

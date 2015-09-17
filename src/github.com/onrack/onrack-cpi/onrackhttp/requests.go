@@ -150,9 +150,26 @@ func PublishTask(c config.Cpi, task Task) (err error) {
 	return
 }
 
-
 func RetrieveTasks(c config.Cpi) (tasks []Task, err error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/tasks/library", c.ApiServer)
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("error retrieving tasks: response code is %d: %s", resp.StatusCode, string(msg))
+		return
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+
+	err = json.Unmarshal(body, &tasks)
+	return
+}
+
+func RetrieveWorkflows(c config.Cpi) (tasks []Workflow, err error) {
+	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/library", c.ApiServer)
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
