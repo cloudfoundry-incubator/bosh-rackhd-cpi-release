@@ -5,9 +5,7 @@
 "options": {
   "cid": null,
   "commands":[
-    {
-      "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"reserved\": \"{{ options.cid }}\" }'"
-    }
+    "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"reserved\": \"{{ options.cid }}\" }'"
   ]
  },
  "properties": {}

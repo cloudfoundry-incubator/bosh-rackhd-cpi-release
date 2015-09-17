@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"bytes"
 
 	"github.com/onrack/onrack-cpi/config"
 )
@@ -118,4 +119,52 @@ func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
 	}
 
 	return nodeCatalog, nil
+}
+
+func PublishTask(c config.Cpi, task Task) (err error) {
+	body, err := json.Marshal(task)
+	if err != nil {
+		log.Printf("error marshalling createVMWorkflow")
+		return
+	}
+
+	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/tasks", c.ApiServer)
+	request, err := http.NewRequest("PUT", url, bytes.NewReader(body))
+	if err != nil {
+		log.Printf("error building publish task request")
+		return
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		log.Printf("error sending PUT request to %s", c.ApiServer)
+		return
+	}
+
+	if resp.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("error publishing task: response code is %d: %s", resp.StatusCode, string(msg))
+		return
+	}
+	return
+}
+
+
+func RetrieveTasks(c config.Cpi) (tasks []Task, err error) {
+	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/tasks/library", c.ApiServer)
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("error retrieving tasks: response code is %d: %s", resp.StatusCode, string(msg))
+		return
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+
+	err = json.Unmarshal(body, &tasks)
+	return
 }

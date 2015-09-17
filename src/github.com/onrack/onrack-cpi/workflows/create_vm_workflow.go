@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"github.com/onrack/onrack-cpi/config"
+	"github.com/onrack/onrack-cpi/onrackhttp"
 )
 
 //make sure they block until finished
@@ -20,7 +21,11 @@ import (
 //func KillActiveWorkflowsOnVM(config cpi.Config, nodeID string)
 
 func PublishCreateVMWorkflow(cpiConfig config.Cpi, uuid string) (err error) {
-	createVMWorkflow := generateCreateVMWorkflowString(uuid)
+
+	publishReserveNodeTask(cpiConfig, uuid)
+	publishProvisonNodeTask(cpiConfig, uuid)
+
+	createVMWorkflow := generateCreateVMWorkflow(uuid)
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", cpiConfig.ApiServer)
 	body, err := json.Marshal(createVMWorkflow)
 	if err != nil {
@@ -50,75 +55,130 @@ func PublishCreateVMWorkflow(cpiConfig config.Cpi, uuid string) (err error) {
 	return
 }
 
-// func RunCreateVMWorkflow(cpiConfig config.Cpi, uuid string, cid string, env string, file string, path string){
-// 	var nodeID string //get node id from cid
-// 	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%d/workflows", cpiConfig.ApiServer, nodeID)
-// 	// body, err := json.Marshal()
-// }
-
-func generateCreateVMWorkflowString(uuid string) (workflow Workflow) {
-		workflow = Workflow{
-			FriendlyName: "CF Create VM",
-			InjectableName: fmt.Sprintf("Graph.CF.CreateVM.%s",uuid),
-			Options: Options{
+func generateCreateVMWorkflow(uuid string) (workflow onrackhttp.Workflow) {
+		workflow = onrackhttp.Workflow{
+			FriendlyName: "CF CreateReserve VM",
+			InjectableName: fmt.Sprintf("Graph.CF.CreateReserveVM.%s",uuid),
+			Options: onrackhttp.Options{
 					BootstrapUbuntu: map[string]string{"overlayfs": "common/overlayfs_all_files.cf.cpio.gz"},
-					Defaults: Defaults{
+					Defaults: onrackhttp.Defaults{
+						AgentSettingsFile: "",
+						AgentSettingsPath: "",
 						Cid: "",
-						Env: "",
-						File: "",
-						Path: "",
 						DownloadDir: "/opt/downloads",
+						RegistrySettingsFile: "",
+						RegistrySettingsPath: "",
+						StemcellFile: "",
 					},
 			},
-			Tasks: []Task{
-				Task{
+			Tasks: []onrackhttp.WorkflowTask{
+				onrackhttp.WorkflowTask{
 					Label: "set-boot-pxe",
 					TaskName: "Task.Obm.Node.PxeBoot",
 					IgnoreFailure: true,
 				},
-				Task{
+				onrackhttp.WorkflowTask{
 					Label: "reboot",
 					TaskName: "Task.Obm.Node.Reboot",
 					WaitOn: map[string]string{
 						"set-boot-pxe": "finished",
 					},
 				},
-				Task{
+				onrackhttp.WorkflowTask{
 					Label: "bootstrap-ubuntu",
 					TaskName: "Task.Linux.Bootstrap.Ubuntu",
 					WaitOn: map[string]string{
 						"reboot": "succeeded",
 					},
 				},
-				Task{
+				onrackhttp.WorkflowTask{
 					Label: "reserve-node",
-					TaskName: "Task.Os.Reserve.CF.VM",
+					TaskName: fmt.Sprintf("Task.Os.Reserve.CF.VM.%s", uuid),
 					WaitOn: map[string]string{
 						"bootstrap-ubuntu": "succeeded",
 					},
 				},
-				Task{
-					Label: "download-stemcell",
-					TaskName: "Task.Linux.DownloadFiles",
+				onrackhttp.WorkflowTask{
+					Label: "provision-node",
+					TaskName: fmt.Sprintf("Task.Os.Install.CF.Stemcell.%s", uuid),
 					WaitOn: map[string]string{
 						"reserve-node": "succeeded",
 					},
 				},
-				Task{
-					Label: "stemcell-v2p-machine",
-					TaskName: "Task.Os.Install.CF.Stemcell",
-					WaitOn: map[string]string{
-						"download-stemcell": "succeeded",
-					},
-				},
-				Task{
+				onrackhttp.WorkflowTask{
 					Label: "shell-reboot",
 					TaskName: "Task.ProcShellReboot",
 					WaitOn: map[string]string{
-						"stemcell-v2p-machine": "finished",
+						"provision-node": "finished",
 					},
 				},
 			},
-		}
-		return
+	}
+	return
+}
+
+func publishReserveNodeTask(cpiConfig config.Cpi, uuid string) (err error) {
+	task := generateReserveNodeTask(uuid)
+	onrackhttp.PublishTask(cpiConfig, task)
+	return
+}
+
+func generateReserveNodeTask(uuid string) (task onrackhttp.Task) {
+	task = onrackhttp.Task{
+		FriendlyName: "Reserve Node",
+		ImplementsTask: "Task.Base.Linux.Commands",
+		InjectableName: fmt.Sprintf("Task.Os.Reserve.CF.VM.%s", uuid),
+		Options: map[string]interface{} {
+			"cid": nil,
+			"commands": []string{
+				"curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"reserved\": \"{{ options.cid }}\" }'",
+			},
+		},
+		Properties: map[string]interface{}{},
+	}
+	return
+}
+
+func publishProvisonNodeTask(cpiConfig config.Cpi, uuid string) (err error) {
+ 	task := generateProvisionNodeTask(uuid)
+	onrackhttp.PublishTask(cpiConfig, task)
+	return
+}
+
+func generateProvisionNodeTask(uuid string) (task onrackhttp.Task) {
+	task = onrackhttp.Task{
+		FriendlyName: "Provision Node",
+		ImplementsTask: "Task.Base.Linux.Commands",
+		InjectableName: fmt.Sprintf("Task.Os.Install.CF.Stemcell.%s", uuid),
+		Options: map[string]interface{} {
+			"agentSettingsFile": "",
+			"agentSettingsMd5Uri": "{{ api.files }}/md5/{{ options.agentSettingsFile }}/latest",
+			"agentSettingsPath": "",
+			"agentSettingsUri": "{{ api.files }}/{{ options.agentSettingsFile }}/latest",
+			"commands": []string{
+				"curl --retry 3 {{ options.stemcellUri }} -o {{ options.downloadDir }}/{{ options.stemcellFile }}",
+        "test `curl {{ options.stemcellFileMd5Uri }}` = \\\"`md5sum {{ options.downloadDir }}/{{ options.stemcellFile }}| awk '{print $1}'`\\\"",
+        "curl --retry 3 {{ options.agentSettingsUri }} -o {{ options.downloadDir }}/{{ options.agentSettingsFile }}",
+        "test `curl {{ options.agentSettingsMd5Uri }}` = \\\"`md5sum {{ options.downloadDir }}/{{ options.agentSettingsFile }}| awk '{print $1}'`\\\"",
+        "curl --retry 3 {{ options.registrySettingsUri }} -o {{ options.downloadDir }}/{{ options.registrySettingsFile }}",
+        "test `curl {{ options.registrySettingsMd5Uri }}` = \\\"`md5sum {{ options.downloadDir }}/{{ options.registrySettingsFile }}| awk '{print $1}'`\\\"",
+        "sudo qemu-img convert {{ options.downloadDir }}/{{ options.stemcellFile }} -O raw {{ options.device }}",
+        "sudo mount {{ options.device }}1 /mnt",
+        "sudo cp {{ options.downloadDir }}/{{ options.agentSettingsFile }} /mnt/{{ options.agentSettingsPath }}",
+        "sudo cp {{ options.downloadDir }}/{{ options.registrySettingsFile }} /mnt/{{ options.registrySettingsPath }}",
+        "sudo sync",
+			},
+			"device": "/dev/sda",
+      "downloadDir": "/opt/downloads",
+      "registrySettingsFile": "",
+      "registrySettingsMd5Uri": "{{ api.files }}/md5/{{ options.registrySettingsFile }}/latest",
+      "registrySettingsPath": "",
+      "registrySettingsUri": "{{ api.files }}/{{ options.registrySettingsFile }}/latest",
+      "stemcellFile": "",
+      "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
+      "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest",
+		},
+		Properties: map[string]interface{}{},
+	}
+	return
 }
