@@ -16,7 +16,7 @@
         "test `curl {{ options.registrySettingsMd5Uri }}` = \\\"`md5sum {{ options.downloadDir }}/{{ options.registrySettingsFile }}| awk '{print $1}'`\\\"",
         "sudo tar -xvf {{ options.downloadDir }}/{{ options.stemcellFile }}",
         "sudo dd if={{ options.downloadDir }}/root.img of={{ options.device }} bs=512 skip=63",
-        "sudo mount {{ options.device }}1 /mnt",
+        "sudo mount {{ options.device }} /mnt",
         "sudo cp {{ options.downloadDir }}/{{ options.agentSettingsFile }} /mnt/{{ options.agentSettingsPath }}",
         "sudo cp {{ options.downloadDir }}/{{ options.registrySettingsFile }} /mnt/{{ options.registrySettingsPath }}",
         "sudo sync"
