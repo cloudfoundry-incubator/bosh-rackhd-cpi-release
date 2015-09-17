@@ -15,6 +15,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/onrack/onrack-cpi/bosh"
+	"github.com/onrack/onrack-cpi/onrackhttp"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -31,11 +33,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-			var extInput ExternalInput
+			var extInput bosh.ExternalInput
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = parseCreateVMInput(extInput)
+			_, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("network config has unexpected type in: string. Expecting a map"))
 		})
@@ -55,12 +57,60 @@ var _ = Describe("The VM Creation Workflow", func() {
     		[],
     		{}]`)
 
-			var extInput ExternalInput
+			var extInput bosh.ExternalInput
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = parseCreateVMInput(extInput)
+			_, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(MatchError("config error: Only one network supported, provided length: 2"))
+		})
+
+		It("returns an error if Agent ID is empty", func() {
+			jsonInput := []byte(`[
+    		"",
+    		"vm-478585",
+    		{},
+    		{
+        		"private": {
+            		"type": "dynamic"
+        		},
+        		"private2": {
+            		"type": "dynamic"
+        		}
+    		},
+    		[],
+    		{}]`)
+
+			var extInput bosh.ExternalInput
+			err := json.Unmarshal(jsonInput, &extInput)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, _, _, err = parseCreateVMInput(extInput)
+			Expect(err).To(MatchError("agent id cannot be empty"))
+		})
+
+		It("returns an error if Agent ID is of an unexpected type", func() {
+			jsonInput := []byte(`[
+				{},
+				"vm-478585",
+				{},
+				{
+						"private": {
+								"type": "dynamic"
+						},
+						"private2": {
+								"type": "dynamic"
+						}
+				},
+				[],
+				{}]`)
+
+			var extInput bosh.ExternalInput
+			err := json.Unmarshal(jsonInput, &extInput)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, _, _, err = parseCreateVMInput(extInput)
+			Expect(err).To(MatchError("agent id has unexpected type: map[string]interface {}. Expecting a string"))
 		})
 
 		Context("when specifying manual networking", func() {
@@ -79,11 +129,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-				var extInput ExternalInput
+				var extInput bosh.ExternalInput
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, _, err = parseCreateVMInput(extInput)
+				_, _, _, err = parseCreateVMInput(extInput)
 				Expect(err).To(MatchError("config error: ip must be specified for manual network"))
 			})
 
@@ -102,11 +152,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-				var extInput ExternalInput
+				var extInput bosh.ExternalInput
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, _, err = parseCreateVMInput(extInput)
+				_, _, _, err = parseCreateVMInput(extInput)
 				Expect(err).To(MatchError("config error: gateway must be specified for manual network"))
 			})
 
@@ -125,11 +175,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-				var extInput ExternalInput
+				var extInput bosh.ExternalInput
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, _, err = parseCreateVMInput(extInput)
+				_, _, _, err = parseCreateVMInput(extInput)
 				Expect(err).To(MatchError("config error: netmask must be specified for manual network"))
 			})
 		})
@@ -144,12 +194,12 @@ var _ = Describe("The VM Creation Workflow", func() {
 			b, err := ioutil.ReadAll(dummyCatalogfile)
 			Expect(err).ToNot(HaveOccurred())
 
-			nodeCatalog := onrackCatalogResponse{}
+			nodeCatalog := onrackhttp.NodeCatalog{}
 
 			err = json.Unmarshal(b, &nodeCatalog)
 			Expect(err).ToNot(HaveOccurred())
 
-			prevSpec := boshNetwork{}
+			prevSpec := bosh.Network{}
 
 			_, err = attachMAC(nodeCatalog.Data.NetworkData.Networks, prevSpec)
 			Expect(err).To(MatchError("node has no active network"))
@@ -163,12 +213,12 @@ var _ = Describe("The VM Creation Workflow", func() {
 			b, err := ioutil.ReadAll(dummyCatalogfile)
 			Expect(err).ToNot(HaveOccurred())
 
-			nodeCatalog := onrackCatalogResponse{}
+			nodeCatalog := onrackhttp.NodeCatalog{}
 
 			err = json.Unmarshal(b, &nodeCatalog)
 			Expect(err).ToNot(HaveOccurred())
 
-			prevSpec := boshNetwork{}
+			prevSpec := bosh.Network{}
 
 			_, err = attachMAC(nodeCatalog.Data.NetworkData.Networks, prevSpec)
 			Expect(err).To(MatchError("node has 2 active networks"))
@@ -183,12 +233,19 @@ var _ = Describe("The VM Creation Workflow", func() {
 				b, err := ioutil.ReadAll(dummyCatalogfile)
 				Expect(err).ToNot(HaveOccurred())
 
-				nodeCatalog := onrackCatalogResponse{}
+				nodeCatalog := onrackhttp.NodeCatalog{}
 
 				err = json.Unmarshal(b, &nodeCatalog)
 				Expect(err).ToNot(HaveOccurred())
 
-				prevSpec := boshNetwork{}
+				prevSpec := bosh.Network{
+					NetworkType: bosh.DynamicNetworkType,
+					Netmask:     "255.255.255.0",
+					Gateway:     "10.0.0.1",
+					IP:          "10.0.0.5",
+					Default:     []string{"dns", "gateway"},
+					DNS:         []string{"8.8.8.8"},
+				}
 
 				newSpec, err := attachMAC(nodeCatalog.Data.NetworkData.Networks, prevSpec)
 				Expect(err).ToNot(HaveOccurred())
@@ -210,12 +267,12 @@ var _ = Describe("The VM Creation Workflow", func() {
 				b, err := ioutil.ReadAll(dummyCatalogfile)
 				Expect(err).ToNot(HaveOccurred())
 
-				nodeCatalog := onrackCatalogResponse{}
+				nodeCatalog := onrackhttp.NodeCatalog{}
 
 				err = json.Unmarshal(b, &nodeCatalog)
 				Expect(err).ToNot(HaveOccurred())
 
-				prevSpec := boshNetwork{}
+				prevSpec := bosh.Network{}
 
 				netSpec, err := attachMAC(nodeCatalog.Data.NetworkData.Networks, prevSpec)
 				Expect(err).ToNot(HaveOccurred())
@@ -239,16 +296,16 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-			var extInput ExternalInput
+			var extInput bosh.ExternalInput
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			testSpec := boshNetwork{
-				NetworkType: boshDynamicNetworkType,
+			testSpec := bosh.Network{
+				NetworkType: bosh.DynamicNetworkType,
 			}
-			_, netSpec, err := parseCreateVMInput(extInput)
+			_, _, netSpec, err := parseCreateVMInput(extInput)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(netSpec).To(Equal(map[string]boshNetwork{"private": testSpec}))
+			Expect(netSpec).To(Equal(map[string]bosh.Network{"private": testSpec}))
 		})
 	})
 
@@ -261,7 +318,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 			dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = selectNonReservedNode(dummyResponseBytes)
+			nodes := []onrackhttp.Node{}
+			err = json.Unmarshal(dummyResponseBytes, &nodes)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = selectNonReservedNode(nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 
@@ -273,7 +334,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 			dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			onRackID, err := selectNonReservedNode(dummyResponseBytes)
+			nodes := []onrackhttp.Node{}
+			err = json.Unmarshal(dummyResponseBytes, &nodes)
+			Expect(err).ToNot(HaveOccurred())
+
+			onRackID, err := selectNonReservedNode(nodes)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(onRackID).To(Equal("55e79ea54e66816f6152fff9"))
 
