@@ -48,3 +48,8 @@ type Task struct {
 	Options			             map[string]interface{}		 `json:"options"`
   Properties               map[string]interface{}    `json:"properties"`
 }
+
+type RunWorkflowRequestBody struct {
+  Name			string															`json:"name"`
+  Options		map[string]interface{}							`json:"options"`
+}

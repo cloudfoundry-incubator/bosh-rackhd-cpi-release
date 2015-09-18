@@ -160,3 +160,39 @@ func GenerateProvisionNodeTask(uuid string) (task onrackhttp.Task) {
 	}
 	return
 }
+
+func InitiateCreateVMWorkflow(cpiConfig config.Cpi, uuid string, nodeID string, options onrackhttp.UploadAgentSettingsOptions) (err error){
+	var body onrackhttp.RunWorkflowRequestBody
+	if(options.DownloadDir != ""){
+		body = onrackhttp.RunWorkflowRequestBody{
+			Name: fmt.Sprintf("Graph.CF.CreateReserveVM.%s",uuid),
+			Options: map[string]interface{}{
+				"defaults": map[string]interface{}{
+					"agentSettingsFile": options.AgentSettingsFile,
+					"agentSettingsPath": options.AgentSettingsPath,
+					"cid": options.CID,
+					"downloadDir": options.DownloadDir,
+					"registrySettingsFile": options.RegistrySettingsFile,
+					"registrySettingsPath": options.RegistrySettingsPath,
+					"stemcellFile": options.StemcellFile,
+				},
+			},
+		}
+	}else{
+		body = onrackhttp.RunWorkflowRequestBody{
+			Name: fmt.Sprintf("Graph.CF.CreateReserveVM.%s",uuid),
+			Options: map[string]interface{}{
+				"defaults": map[string]interface{}{
+					"agentSettingsFile": options.AgentSettingsFile,
+					"agentSettingsPath": options.AgentSettingsPath,
+					"cid": options.CID,
+					"registrySettingsFile": options.RegistrySettingsFile,
+					"registrySettingsPath": options.RegistrySettingsPath,
+					"stemcellFile": options.StemcellFile,
+				},
+			},
+		}
+	}
+	err = onrackhttp.InitiateWorkflow(cpiConfig, nodeID, body)
+	return
+}

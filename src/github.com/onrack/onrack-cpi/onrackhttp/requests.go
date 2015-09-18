@@ -217,3 +217,37 @@ func RetrieveWorkflows(c config.Cpi) (tasks []Workflow, err error) {
 	err = json.Unmarshal(body, &tasks)
 	return
 }
+
+func InitiateWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequestBody) (err error) {
+	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/", c.ApiServer, nodeID)
+	body, err := json.Marshal(bodyStruct)
+	if err != nil {
+		log.Printf("error marshalling workflow request body")
+		return
+	}
+	request, err := http.NewRequest("POST", url, bytes.NewReader(body))
+	if err != nil {
+		log.Printf("error building http request to run workflow")
+		return
+	}
+	request.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		log.Printf("error running workflow at url %s", url)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("error response code is %d: %s\n,with body: ", resp.StatusCode, string(msg), string(body))
+		return fmt.Errorf("Failed running workflow at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+	}
+	return
+}
+
+func RunWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequestBody) (err error){
+	return
+}
+
+// func pollActiveWorkflows()
