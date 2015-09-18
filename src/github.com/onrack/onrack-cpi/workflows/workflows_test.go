@@ -63,6 +63,8 @@ var _ = Describe("Workflows", func() {
 			fakeUUIDstr := fakeUUID.String()
 			nodeID := os.Getenv("ON_RACK_NODE_ID")
 
+			defer onrackhttp.KillActiveWorkflowsOnVM(cpiConfig, nodeID)
+
 			defaults := onrackhttp.UploadAgentSettingsOptions{
 				AgentSettingsFile:    nodeID,
 				AgentSettingsPath:    onrackhttp.OnrackEnvPath,

@@ -246,6 +246,27 @@ func InitiateWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequest
 	return
 }
 
+func KillActiveWorkflowsOnVM(c config.Cpi, nodeID string) (err error) {
+	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
+	request, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		log.Printf("error building http request to delete active workflows on url %s", url)
+		return
+	}
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		fmt.Printf("Error deleting active workflows on node at url: %s, msg: %s", url, err)
+		return
+	}
+
+	if resp.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("error response code is %d: %s\n,with body: ", resp.StatusCode, string(msg))
+		return fmt.Errorf("Failed deleting active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+	}
+	return
+}
+
 func RunWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequestBody) (err error){
 	return
 }
