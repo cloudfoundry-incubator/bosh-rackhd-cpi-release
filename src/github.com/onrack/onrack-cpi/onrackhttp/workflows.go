@@ -22,22 +22,22 @@ type Workflow struct {
 type WorkflowTask struct {
 	TaskName					string									`json:"taskName"`
 	Label							string									`json:"label"`
-	WaitOn						map[string]string				`json:"waitOn",omitempty`
-	IgnoreFailure			bool										`json:"ignoreFailure",omitempty`
+	WaitOn						map[string]string				`json:"waitOn,omitempty"`
+	IgnoreFailure			bool										`json:"ignoreFailure,omitempty"`
 }
 
 type Defaults struct {
-  AgentSettingsFile     string				      `json:"agentSettingsFile"`
-  AgentSettingsPath     string				      `json:"agentSettingsPath"`
-  Cid                   string				      `json:"cid"`
-  DownloadDir           string				      `json:"downloadDir"`
-  RegistrySettingsFile  string				      `json:"registrySettingsFile"`
-  RegistrySettingsPath  string				      `json:"registrySettingsPath"`
-  StemcellFile          string				      `json:"stemcellFile"`
+  AgentSettingsFile     interface{}				      `json:"agentSettingsFile"`
+  AgentSettingsPath     interface{}				      `json:"agentSettingsPath"`
+  Cid                   interface{}				      `json:"cid"`
+  DownloadDir           interface{}				      `json:"downloadDir,omitempty"`
+  RegistrySettingsFile  interface{}				      `json:"registrySettingsFile"`
+  RegistrySettingsPath  interface{}				      `json:"registrySettingsPath"`
+  StemcellFile          interface{}				      `json:"stemcellFile"`
 }
 
 type Options struct {
-	BootstrapUbuntu map[string]string `json:"bootstrap-ubuntu"`
+	BootstrapUbuntu map[string]string `json:"bootstrap-ubuntu,omitempty"`
 	Defaults        Defaults          `json:"defaults"`
 }
 
