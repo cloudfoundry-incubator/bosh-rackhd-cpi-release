@@ -145,7 +145,7 @@ func PublishTask(c config.Cpi, task Task) (err error) {
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
 		log.Printf("error publishing task: response code is %d: %s", resp.StatusCode, string(msg))
-		return
+		return fmt.Errorf("Failed publishing task with status: %s", resp.Status)
 	}
 	return
 }
@@ -159,6 +159,7 @@ func RetrieveTasks(c config.Cpi) (tasks []Task, err error) {
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
+		err = fmt.Errorf("Failed retrieving tasks with status: %s", resp.Status)
 		log.Printf("error retrieving tasks: response code is %d: %s", resp.StatusCode, string(msg))
 		return
 	}
@@ -168,9 +169,9 @@ func RetrieveTasks(c config.Cpi) (tasks []Task, err error) {
 	return
 }
 
-func PublishWorkflow(c config.Cpi, workflow Workflow) (err error)  {
+func PublishWorkflow(c config.Cpi, w Workflow) (err error)  {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", c.ApiServer)
-	body, err := json.Marshal(workflow)
+	body, err := json.Marshal(w)
 	if err != nil {
 		log.Printf("error marshalling workflow")
 		return
@@ -185,7 +186,7 @@ func PublishWorkflow(c config.Cpi, workflow Workflow) (err error)  {
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		log.Printf("error sending PUT request to %s", c.ApiServer)
+		log.Printf("error sending publishing workflow to %s", url)
 		return
 	}
 	defer resp.Body.Close()
@@ -193,7 +194,7 @@ func PublishWorkflow(c config.Cpi, workflow Workflow) (err error)  {
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
 		log.Printf("error response code is %d: %s", resp.StatusCode, string(msg))
-		return
+		return fmt.Errorf("Failed publishing workflows with status: %s", resp.Status)
 	}
 	return
 }
@@ -207,6 +208,7 @@ func RetrieveWorkflows(c config.Cpi) (tasks []Workflow, err error) {
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
+		err = fmt.Errorf("Failed retrieving workflows with status: %s", resp.Status)
 		log.Printf("error retrieving tasks: response code is %d: %s", resp.StatusCode, string(msg))
 		return
 	}

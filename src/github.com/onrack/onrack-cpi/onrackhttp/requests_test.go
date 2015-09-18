@@ -117,4 +117,78 @@ var _ = Describe("Requests", func() {
 			Expect(catalog).To(Equal(rawCatalog))
 		})
 	})
+
+	Describe("Publishing tasks to and retrieving tasks from task library", func() {
+		It("adds task to library, retrieves updated list of tasks from task library", func() {
+			apiServer := os.Getenv("ON_RACK_API_URI")
+			uuidObj, err := uuid.NewV4()
+			Expect(err).ToNot(HaveOccurred())
+			uuid := uuidObj.String()
+			cpiConfig := config.Cpi{ApiServer: apiServer}
+
+			fakeTask := onrackhttp.Task{
+				FriendlyName: "Fake CF Task",
+				InjectableName: fmt.Sprintf("Task.CF.Fake.%s", uuid),
+				Options: map[string]interface{} {
+					"option_1": "foo",
+				},
+				Properties: map[string]interface{}{},
+			}
+
+			err = onrackhttp.PublishTask(cpiConfig, fakeTask)
+			Expect(err).ToNot(HaveOccurred())
+
+			taskLibrary, err := onrackhttp.RetrieveTasks(cpiConfig)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(taskLibrary).To(ContainElement(fakeTask))
+		})
+	})
+
+	Describe("Publishing workflow to and retrieving workflows from workflow library", func() {
+		It("add workflow to library, retrieves updated list of tasks from task library", func () {
+			apiServer := os.Getenv("ON_RACK_API_URI")
+			uuidObj, err := uuid.NewV4()
+			Expect(err).ToNot(HaveOccurred())
+			uuid := uuidObj.String()
+			cpiConfig := config.Cpi{ApiServer: apiServer}
+
+			fakeWorkflow := onrackhttp.Workflow{
+				FriendlyName: "Fake CF Workflow",
+				InjectableName: fmt.Sprintf("Task.CF.Fake.%s", uuid),
+				Options: onrackhttp.Options{
+					BootstrapUbuntu: map[string]string{
+						"foo": "bar",
+					},
+					Defaults: onrackhttp.Defaults{
+						AgentSettingsFile: "foo",
+						AgentSettingsPath: "foo",
+						Cid: "foo",
+						DownloadDir: "foo",
+						RegistrySettingsFile: "foo",
+						RegistrySettingsPath: "foo",
+						StemcellFile: "foo",
+					},
+				},
+				Tasks: []onrackhttp.WorkflowTask{
+					onrackhttp.WorkflowTask{
+						TaskName: "fake-task-name",
+						Label: "fake-label",
+						WaitOn: map[string]string{
+							"fake-take": "succeeded",
+						},
+						IgnoreFailure: true,
+					},
+				},
+			}
+
+			err = onrackhttp.PublishWorkflow(cpiConfig, fakeWorkflow)
+			Expect(err).ToNot(HaveOccurred())
+
+			workflowLibrary, err := onrackhttp.RetrieveWorkflows(cpiConfig)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(workflowLibrary).To(ContainElement(fakeWorkflow))
+		})
+	})
 })
