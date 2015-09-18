@@ -168,6 +168,36 @@ func RetrieveTasks(c config.Cpi) (tasks []Task, err error) {
 	return
 }
 
+func PublishWorkflow(c config.Cpi, workflow Workflow) (err error)  {
+	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", c.ApiServer)
+	body, err := json.Marshal(workflow)
+	if err != nil {
+		log.Printf("error marshalling workflow")
+		return
+	}
+
+	request, err := http.NewRequest("PUT", url, bytes.NewReader(body))
+	if err != nil {
+		log.Printf("error building http request")
+		return
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		log.Printf("error sending PUT request to %s", c.ApiServer)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("error response code is %d: %s", resp.StatusCode, string(msg))
+		return
+	}
+	return
+}
+
 func RetrieveWorkflows(c config.Cpi) (tasks []Workflow, err error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/library", c.ApiServer)
 	resp, err := http.Get(url)

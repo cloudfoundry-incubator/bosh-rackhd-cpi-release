@@ -1,11 +1,7 @@
 package workflows
 
 import (
-	"bytes"
 	"fmt"
-	"encoding/json"
-	"net/http"
-	"io/ioutil"
 	"log"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
@@ -21,7 +17,6 @@ import (
 //func KillActiveWorkflowsOnVM(config cpi.Config, nodeID string)
 
 func PublishCreateVMWorkflow(cpiConfig config.Cpi, uuid string) (err error) {
-
 	err = publishReserveNodeTask(cpiConfig, uuid)
 	if err != nil {
 		log.Printf("error publishing reserve node task to %s", cpiConfig.ApiServer)
@@ -34,32 +29,7 @@ func PublishCreateVMWorkflow(cpiConfig config.Cpi, uuid string) (err error) {
 	}
 
 	createVMWorkflow := GenerateCreateVMWorkflow(uuid)
-	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", cpiConfig.ApiServer)
-	body, err := json.Marshal(createVMWorkflow)
-	if err != nil {
-		log.Printf("error marshalling createVMWorkflow")
-		return
-	}
-
-	request, err := http.NewRequest("PUT", url, bytes.NewReader(body))
-	if err != nil {
-		log.Printf("error building http request")
-		return
-	}
-	request.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		log.Printf("error sending PUT request to %s", cpiConfig.ApiServer)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		msg, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("error response code is %d: %s", resp.StatusCode, string(msg))
-		return
-	}
+	err = onrackhttp.PublishWorkflow(cpiConfig, createVMWorkflow)
 	return
 }
 
