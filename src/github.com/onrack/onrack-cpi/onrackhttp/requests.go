@@ -145,7 +145,7 @@ func PublishTask(c config.Cpi, task Task) (err error) {
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
 		log.Printf("error publishing task: response code is %d: %s", resp.StatusCode, string(msg))
-		return fmt.Errorf("Failed publishing task with status: %s", resp.Status)
+		return fmt.Errorf("Failed publishing task with status: %s, message: %s", resp.Status, string(msg))
 	}
 	return
 }
@@ -159,7 +159,7 @@ func RetrieveTasks(c config.Cpi) (tasks []Task, err error) {
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		err = fmt.Errorf("Failed retrieving tasks with status: %s", resp.Status)
+		err = fmt.Errorf("Failed retrieving tasks with status: %s, message: %s", resp.Status, string(msg))
 		log.Printf("error retrieving tasks: response code is %d: %s", resp.StatusCode, string(msg))
 		return
 	}
@@ -208,7 +208,7 @@ func RetrieveWorkflows(c config.Cpi) (tasks []Workflow, err error) {
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		err = fmt.Errorf("Failed retrieving workflows with status: %s", resp.Status)
+		err = fmt.Errorf("Failed retrieving workflows with status: %s, message: %s", resp.Status, string(msg))
 		log.Printf("error retrieving tasks: response code is %d: %s", resp.StatusCode, string(msg))
 		return
 	}
