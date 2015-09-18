@@ -37,16 +37,16 @@ func GenerateCreateVMWorkflow(uuid string) (workflow onrackhttp.Workflow) {
 		workflow = onrackhttp.Workflow{
 			FriendlyName: "CF CreateReserve VM",
 			InjectableName: fmt.Sprintf("Graph.CF.CreateReserveVM.%s",uuid),
-			Options: onrackhttp.Options{
-					BootstrapUbuntu: map[string]string{"overlayfs": "common/overlayfs_all_files.cpio.gz"},
-					Defaults: onrackhttp.Defaults{
-						AgentSettingsFile: nil,
-						AgentSettingsPath: nil,
-						Cid: nil,
-						DownloadDir: "/opt/downloads",
-						RegistrySettingsFile: nil,
-						RegistrySettingsPath: nil,
-						StemcellFile: nil,
+			Options: map[string]interface{}{
+					"bootstrap-ubuntu": map[string]string{"overlayfs": "common/overlayfs_all_files.cpio.gz"},
+					"defaults": map[string]interface{}{
+						"agentSettingsFile": nil,
+						"agentSettingsPath": nil,
+						"cid": nil,
+						"downloadDir": "/opt/downloads",
+						"registrySettingsFile": nil,
+						"registrySettingsPath": nil,
+						"stemcellFile": nil,
 					},
 			},
 			Tasks: []onrackhttp.WorkflowTask{

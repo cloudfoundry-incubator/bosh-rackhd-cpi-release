@@ -156,20 +156,7 @@ var _ = Describe("Requests", func() {
 			fakeWorkflow := onrackhttp.Workflow{
 				FriendlyName: "Fake CF Workflow",
 				InjectableName: fmt.Sprintf("Task.CF.Fake.%s", uuid),
-				Options: onrackhttp.Options{
-					BootstrapUbuntu: map[string]string{
-						"foo": "bar",
-					},
-					Defaults: onrackhttp.Defaults{
-						AgentSettingsFile: "foo",
-						AgentSettingsPath: "foo",
-						Cid: "foo",
-						DownloadDir: "foo",
-						RegistrySettingsFile: "foo",
-						RegistrySettingsPath: "foo",
-						StemcellFile: "foo",
-					},
-				},
+				Options: map[string]interface{}{},
 				Tasks: []onrackhttp.WorkflowTask{
 					onrackhttp.WorkflowTask{
 						TaskName: "fake-task-name",
@@ -188,6 +175,10 @@ var _ = Describe("Requests", func() {
 			workflowLibrary, err := onrackhttp.RetrieveWorkflows(cpiConfig)
 			Expect(err).ToNot(HaveOccurred())
 
+			for i := range workflowLibrary {
+				delete(workflowLibrary[i].Options, "defaults")
+				delete(workflowLibrary[i].Options, "bootstrap-ubuntu")
+			}
 			Expect(workflowLibrary).To(ContainElement(fakeWorkflow))
 		})
 	})

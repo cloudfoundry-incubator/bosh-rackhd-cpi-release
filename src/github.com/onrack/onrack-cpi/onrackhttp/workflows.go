@@ -16,7 +16,7 @@ type Workflow struct {
 	FriendlyName			string 									`json:"friendlyName"`
 	InjectableName 		string 									`json:"injectableName"`
 	Tasks 						[]WorkflowTask 					`json:"tasks"`
-	Options						Options									`json:"options"`
+	Options						map[string]interface{}							`json:"options"`
 }
 
 type WorkflowTask struct {
@@ -26,26 +26,11 @@ type WorkflowTask struct {
 	IgnoreFailure			bool										`json:"ignoreFailure,omitempty"`
 }
 
-type Defaults struct {
-  AgentSettingsFile     interface{}				      `json:"agentSettingsFile"`
-  AgentSettingsPath     interface{}				      `json:"agentSettingsPath"`
-  Cid                   interface{}				      `json:"cid"`
-  DownloadDir           interface{}				      `json:"downloadDir,omitempty"`
-  RegistrySettingsFile  interface{}				      `json:"registrySettingsFile"`
-  RegistrySettingsPath  interface{}				      `json:"registrySettingsPath"`
-  StemcellFile          interface{}				      `json:"stemcellFile"`
-}
-
-type Options struct {
-	BootstrapUbuntu map[string]string `json:"bootstrap-ubuntu,omitempty"`
-	Defaults        Defaults          `json:"defaults"`
-}
-
 type UploadAgentSettingsOptions struct {
 	AgentSettingsFile    string `json:"agentSettingsFile"`
 	AgentSettingsPath    string `json:"agentSettingsPath"`
 	CID                  string `json:"cid"`
-	DownloadDir          string `json:"downloadDir"`
+	DownloadDir          string `json:"downloadDir,omitempty"`
 	RegistrySettingsFile string `json:"registrySettingsFile"`
 	RegistrySettingsPath string `json:"registrySettingsPath"`
 	StemcellFile         string `json:"stemcellFile"`

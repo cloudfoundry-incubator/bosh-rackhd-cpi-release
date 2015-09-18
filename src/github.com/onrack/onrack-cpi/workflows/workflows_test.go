@@ -28,6 +28,8 @@ var _ = Describe("Workflows", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedWorkflow := workflows.GenerateCreateVMWorkflow(fakeUUIDstr)
+			delete(expectedWorkflow.Options, "defaults")
+			delete(expectedWorkflow.Options, "bootstrap-ubuntu")
 			expectedReserveNodeTask := workflows.GenerateReserveNodeTask(fakeUUIDstr)
 			delete(expectedReserveNodeTask.Options, "commands")
 			expectedProvisionNodeTask := workflows.GenerateProvisionNodeTask(fakeUUIDstr)
