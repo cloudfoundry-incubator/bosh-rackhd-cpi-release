@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/config"
@@ -121,6 +123,8 @@ var _ = Describe("Requests", func() {
 	Describe("Publishing tasks to and retrieving tasks from task library", func() {
 		It("adds task to library, retrieves updated list of tasks from task library", func() {
 			apiServer := os.Getenv("ON_RACK_API_URI")
+			Expect(apiServer).ToNot(BeEmpty())
+
 			uuidObj, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())
 			uuid := uuidObj.String()
@@ -148,6 +152,8 @@ var _ = Describe("Requests", func() {
 	Describe("Publishing workflow to and retrieving workflows from workflow library", func() {
 		It("add workflow to library, retrieves updated list of tasks from task library", func() {
 			apiServer := os.Getenv("ON_RACK_API_URI")
+			Expect(apiServer).ToNot(BeEmpty())
+
 			uuidObj, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())
 			uuid := uuidObj.String()

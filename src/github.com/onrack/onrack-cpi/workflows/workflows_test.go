@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
@@ -21,6 +23,8 @@ var _ = Describe("Workflows", func() {
 	Describe("PublishCreateVMWorkflow", func() {
 		It("returns", func() {
 			apiServer := os.Getenv("ON_RACK_API_URI")
+			Expect(apiServer).ToNot(BeEmpty())
+
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 			fakeUUID, _ := uuid.NewV4()
 			fakeUUIDstr := fakeUUID.String()
@@ -57,11 +61,34 @@ var _ = Describe("Workflows", func() {
 
 	Describe("InitiateCreateVMWorkflow", func() {
 		It("successfully initiates the published workflow", func() {
+			rejectNodesRunningWorkflows := func(nodes []onrackhttp.Node) []onrackhttp.Node {
+				var n []onrackhttp.Node
+
+				for i := range nodes {
+					if len(nodes[i].Workflows) == 0 {
+						n = append(n, nodes[i])
+					}
+				}
+
+				return n
+			}
+
 			apiServer := os.Getenv("ON_RACK_API_URI")
+			Expect(apiServer).ToNot(BeEmpty())
+
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 			fakeUUID, _ := uuid.NewV4()
 			fakeUUIDstr := fakeUUID.String()
-			nodeID := os.Getenv("ON_RACK_NODE_ID")
+
+			allNodes, err := onrackhttp.GetNodes(cpiConfig)
+			Expect(err).ToNot(HaveOccurred())
+
+			idleNodes := rejectNodesRunningWorkflows(allNodes)
+			t := time.Now()
+			rand.Seed(t.Unix())
+
+			i := rand.Intn(len(idleNodes))
+			nodeID := idleNodes[i].ID
 
 			defer onrackhttp.KillActiveWorkflowsOnVM(cpiConfig, nodeID)
 
@@ -74,7 +101,7 @@ var _ = Describe("Workflows", func() {
 				StemcellFile:         "12345678",
 			}
 
-			err := workflows.PublishCreateVMWorkflow(cpiConfig, fakeUUIDstr)
+			err = workflows.PublishCreateVMWorkflow(cpiConfig, fakeUUIDstr)
 			Expect(err).To(BeNil())
 
 			err = workflows.InitiateCreateVMWorkflow(cpiConfig, fakeUUIDstr, nodeID, defaults)
