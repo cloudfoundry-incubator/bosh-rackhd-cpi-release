@@ -129,8 +129,7 @@ var _ = Describe("Requests", func() {
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 
 			fakeTask := onrackhttp.Task{
-				FriendlyName:   "Fake CF Task",
-				InjectableName: fmt.Sprintf("Task.CF.Fake.%s", uuid),
+				Name: fmt.Sprintf("Task.CF.Fake.%s", uuid),
 				Options: map[string]interface{}{
 					"option_1": "foo",
 				},
@@ -158,9 +157,8 @@ var _ = Describe("Requests", func() {
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 
 			fakeWorkflow := onrackhttp.Workflow{
-				FriendlyName:   "Fake CF Workflow",
-				InjectableName: fmt.Sprintf("Task.CF.Fake.%s", uuid),
-				Options:        map[string]interface{}{},
+				Name:       fmt.Sprintf("Task.CF.Fake.%s", uuid),
+				UnusedName: onrackhttp.DefaultUnusedName,
 				Tasks: []onrackhttp.WorkflowTask{
 					onrackhttp.WorkflowTask{
 						TaskName: "fake-task-name",

@@ -36,8 +36,8 @@ func PublishCreateVMWorkflow(cpiConfig config.Cpi, uuid string) (err error) {
 
 func GenerateCreateVMWorkflow(uuid string) (workflow onrackhttp.Workflow) {
 	workflow = onrackhttp.Workflow{
-		FriendlyName:   "CF CreateReserve VM",
-		InjectableName: fmt.Sprintf("Graph.CF.CreateReserveVM.%s", uuid),
+		UnusedName: onrackhttp.DefaultUnusedName,
+		Name:       fmt.Sprintf("Graph.CF.CreateReserveVM.%s", uuid),
 		Options: map[string]interface{}{
 			"bootstrap-ubuntu": map[string]string{"overlayfs": "common/overlayfs_all_files.cpio.gz"},
 			"defaults": map[string]interface{}{
@@ -104,9 +104,8 @@ func publishReserveNodeTask(cpiConfig config.Cpi, uuid string) (err error) {
 
 func GenerateReserveNodeTask(uuid string) (task onrackhttp.Task) {
 	task = onrackhttp.Task{
-		FriendlyName:   "Reserve Node",
 		ImplementsTask: "Task.Base.Linux.Commands",
-		InjectableName: fmt.Sprintf("Task.Os.Reserve.CF.VM.%s", uuid),
+		Name:           fmt.Sprintf("Task.Os.Reserve.CF.VM.%s", uuid),
 		Options: map[string]interface{}{
 			"cid": nil,
 			"commands": []string{
@@ -126,9 +125,8 @@ func publishProvisonNodeTask(cpiConfig config.Cpi, uuid string) (err error) {
 
 func GenerateProvisionNodeTask(uuid string) (task onrackhttp.Task) {
 	task = onrackhttp.Task{
-		FriendlyName:   "Provision Node",
 		ImplementsTask: "Task.Base.Linux.Commands",
-		InjectableName: fmt.Sprintf("Task.Os.Install.CF.Stemcell.%s", uuid),
+		Name:           fmt.Sprintf("Task.Os.Install.CF.Stemcell.%s", uuid),
 		Options: map[string]interface{}{
 			"agentSettingsFile":   nil,
 			"agentSettingsMd5Uri": "{{ api.files }}/md5/{{ options.agentSettingsFile }}/latest",

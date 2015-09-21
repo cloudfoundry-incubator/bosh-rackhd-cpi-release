@@ -4,6 +4,7 @@ const (
 	OnrackReserveVMGraphName = "Graph.CF.CreateReserveVM"
 	OnrackEnvPath            = "/var/vcap/bosh/onrack-cpi-agent-env.json"
 	OnrackRegistryPath       = "/var/vcap/bosh/agent.json"
+	DefaultUnusedName        = "UPLOADED_BY_ONRACK_CPI"
 )
 
 type NodeWorkflow struct {
@@ -13,10 +14,11 @@ type NodeWorkflow struct {
 }
 
 type Workflow struct {
-	FriendlyName   string                 `json:"friendlyName"`
-	InjectableName string                 `json:"injectableName"`
-	Tasks          []WorkflowTask         `json:"tasks"`
-	Options        map[string]interface{} `json:"options"`
+	Name       string                 `json:"injectableName"`
+	UnusedName string                 `json:"friendlyName"`
+	Tasks      []WorkflowTask         `json:"tasks"`
+	Options    map[string]interface{} `json:"options"`
+	Status     string                 `json:"_status,omitempty"`
 }
 
 type WorkflowTask struct {
@@ -42,9 +44,8 @@ type UploadAgentSettingsRequest struct {
 }
 
 type Task struct {
-	FriendlyName   string                 `json:"friendlyName"`
 	ImplementsTask string                 `json:"implementsTask,omitempty"`
-	InjectableName string                 `json:"injectableName"`
+	Name           string                 `json:"injectableName"`
 	Options        map[string]interface{} `json:"options"`
 	Properties     map[string]interface{} `json:"properties"`
 }

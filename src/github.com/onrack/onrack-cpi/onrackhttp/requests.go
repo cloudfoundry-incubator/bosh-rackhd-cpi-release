@@ -3,11 +3,13 @@ package onrackhttp
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/onrack/onrack-cpi/config"
 )
@@ -121,25 +123,25 @@ func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
 	return nodeCatalog, nil
 }
 
-func PublishTask(c config.Cpi, task Task) (err error) {
+func PublishTask(c config.Cpi, task Task) error {
 	body, err := json.Marshal(task)
 	if err != nil {
-		log.Printf("error marshalling createVMWorkflow")
-		return
+		log.Println("error marshalling createVMWorkflow")
+		return errors.New("error marshalling createVMWorkflow")
 	}
 
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/tasks", c.ApiServer)
 	request, err := http.NewRequest("PUT", url, bytes.NewReader(body))
 	if err != nil {
-		log.Printf("error building publish task request")
-		return
+		log.Println("error building publish task request")
+		return errors.New("error building publish task request")
 	}
 	request.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		log.Printf("error sending PUT request to %s", c.ApiServer)
-		return
+		return fmt.Errorf("error sending PUT request to %s", c.ApiServer)
 	}
 
 	if resp.StatusCode != 200 {
@@ -147,77 +149,124 @@ func PublishTask(c config.Cpi, task Task) (err error) {
 		log.Printf("error publishing task: response code is %d: %s", resp.StatusCode, string(msg))
 		return fmt.Errorf("Failed publishing task with status: %s, message: %s", resp.Status, string(msg))
 	}
-	return
+
+	return nil
 }
 
-func RetrieveTasks(c config.Cpi) (tasks []Task, err error) {
+func RetrieveTasks(c config.Cpi) ([]Task, error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/tasks/library", c.ApiServer)
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Printf("Error: %s", err)
+		log.Printf("Error: %s", err)
+		return []Task{}, fmt.Errorf("Error: %s", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		msg, _ := ioutil.ReadAll(resp.Body)
-		err = fmt.Errorf("Failed retrieving tasks with status: %s, message: %s", resp.Status, string(msg))
-		log.Printf("error retrieving tasks: response code is %d: %s", resp.StatusCode, string(msg))
-		return
-	}
-	body, err := ioutil.ReadAll(resp.Body)
 
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("error reading response body: %s\n", err)
+		return []Task{}, fmt.Errorf("error reading response body: %s", err)
+	}
+
+	if resp.StatusCode != 200 {
+		log.Printf("error retrieving tasks: response code is %d: %s\n", resp.StatusCode, string(body))
+		return []Task{}, fmt.Errorf("error retrieving tasks: response code is %d: %s", resp.StatusCode, string(body))
+	}
+
+	var tasks []Task
 	err = json.Unmarshal(body, &tasks)
-	return
+	if err != nil {
+		log.Printf("error unmarshalling response body: %s\n", err)
+		return []Task{}, fmt.Errorf("error unmarshalling response body: %s", err)
+	}
+
+	return tasks, nil
 }
 
-func PublishWorkflow(c config.Cpi, w Workflow) (err error) {
+func PublishWorkflow(c config.Cpi, w Workflow) error {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", c.ApiServer)
 	body, err := json.Marshal(w)
 	if err != nil {
-		log.Printf("error marshalling workflow")
-		return
+		log.Printf("error marshalling workflow: %s\n", err)
+		return fmt.Errorf("error marshalling workflow: %s", err)
 	}
 
 	request, err := http.NewRequest("PUT", url, bytes.NewReader(body))
 	if err != nil {
-		log.Printf("error building http request")
-		return
+		log.Printf("error building http request: %s\n", err)
+		return fmt.Errorf("error building http request: %s", err)
 	}
 	request.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		log.Printf("error sending publishing workflow to %s", url)
-		return
+		log.Printf("error sending publishing workflow to %s\n", url)
+		return fmt.Errorf("error sending publishing workflow to %s", url)
 	}
 	defer resp.Body.Close()
 
+	msg, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("error reading response body: %s\n", err)
+		return fmt.Errorf("error reading response body: %s", err)
+	}
+
 	if resp.StatusCode != 200 {
-		msg, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("error response code is %d: %s", resp.StatusCode, string(msg))
+		log.Printf("error response code is %d: %s\n", resp.StatusCode, string(msg))
 		return fmt.Errorf("Failed publishing workflows with status: %s", resp.Status)
 	}
-	return
+
+	publishedWorkflows, err := RetrieveWorkflows(c)
+	if err != nil {
+		return err
+	}
+
+	var uploadedWorkflow *Workflow
+	for i := range publishedWorkflows {
+		if publishedWorkflows[i].Name == w.Name {
+			uploadedWorkflow = &publishedWorkflows[i]
+		}
+	}
+
+	if uploadedWorkflow == nil {
+		log.Println("workflow was not successfully uploaded to server")
+		return errors.New("workflow was not successfully uploaded to server")
+	}
+
+	return nil
 }
 
-func RetrieveWorkflows(c config.Cpi) (tasks []Workflow, err error) {
+func RetrieveWorkflows(c config.Cpi) ([]Workflow, error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/library", c.ApiServer)
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Printf("Error: %s", err)
+		log.Printf("Error: %s\n", err)
+		return []Workflow{}, fmt.Errorf("Error: %s", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		msg, _ := ioutil.ReadAll(resp.Body)
-		err = fmt.Errorf("Failed retrieving workflows with status: %s, message: %s", resp.Status, string(msg))
-		log.Printf("error retrieving tasks: response code is %d: %s", resp.StatusCode, string(msg))
-		return
-	}
-	body, err := ioutil.ReadAll(resp.Body)
 
-	err = json.Unmarshal(body, &tasks)
-	return
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("error reading response body: %s\n", err)
+		return []Workflow{}, fmt.Errorf("error reading response body: %s", err)
+	}
+
+	if resp.StatusCode != 200 {
+		log.Printf("error retrieving tasks: response code is %d: %s\n", resp.StatusCode, string(body))
+		return []Workflow{}, fmt.Errorf("Failed retrieving workflows with status: %s, message: %s", resp.Status, string(body))
+	}
+
+	var workflows []Workflow
+	err = json.Unmarshal(body, &workflows)
+	if err != nil {
+		log.Printf("error unmarshalling response body: %s\n", err)
+		return []Workflow{}, fmt.Errorf("error unmarshalling response body: %s", err)
+	}
+
+	return workflows, nil
 }
 
+// TODO: remove after RunWorkflow completed
 func InitiateWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequestBody) (err error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/", c.ApiServer, nodeID)
 	body, err := json.Marshal(bodyStruct)
