@@ -127,9 +127,9 @@ var _ = Describe("Requests", func() {
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 
 			fakeTask := onrackhttp.Task{
-				FriendlyName: "Fake CF Task",
+				FriendlyName:   "Fake CF Task",
 				InjectableName: fmt.Sprintf("Task.CF.Fake.%s", uuid),
-				Options: map[string]interface{} {
+				Options: map[string]interface{}{
 					"option_1": "foo",
 				},
 				Properties: map[string]interface{}{},
@@ -146,7 +146,7 @@ var _ = Describe("Requests", func() {
 	})
 
 	Describe("Publishing workflow to and retrieving workflows from workflow library", func() {
-		It("add workflow to library, retrieves updated list of tasks from task library", func () {
+		It("add workflow to library, retrieves updated list of tasks from task library", func() {
 			apiServer := os.Getenv("ON_RACK_API_URI")
 			uuidObj, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())
@@ -154,13 +154,13 @@ var _ = Describe("Requests", func() {
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 
 			fakeWorkflow := onrackhttp.Workflow{
-				FriendlyName: "Fake CF Workflow",
+				FriendlyName:   "Fake CF Workflow",
 				InjectableName: fmt.Sprintf("Task.CF.Fake.%s", uuid),
-				Options: map[string]interface{}{},
+				Options:        map[string]interface{}{},
 				Tasks: []onrackhttp.WorkflowTask{
 					onrackhttp.WorkflowTask{
 						TaskName: "fake-task-name",
-						Label: "fake-label",
+						Label:    "fake-label",
 						WaitOn: map[string]string{
 							"fake-take": "succeeded",
 						},

@@ -1,13 +1,13 @@
 package onrackhttp
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"bytes"
 
 	"github.com/onrack/onrack-cpi/config"
 )
@@ -169,7 +169,7 @@ func RetrieveTasks(c config.Cpi) (tasks []Task, err error) {
 	return
 }
 
-func PublishWorkflow(c config.Cpi, w Workflow) (err error)  {
+func PublishWorkflow(c config.Cpi, w Workflow) (err error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", c.ApiServer)
 	body, err := json.Marshal(w)
 	if err != nil {
@@ -267,7 +267,7 @@ func KillActiveWorkflowsOnVM(c config.Cpi, nodeID string) (err error) {
 	return
 }
 
-func RunWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequestBody) (err error){
+func RunWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequestBody) (err error) {
 	return
 }
 

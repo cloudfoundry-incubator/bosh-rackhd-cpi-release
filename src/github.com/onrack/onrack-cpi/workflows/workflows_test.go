@@ -3,22 +3,23 @@ package workflows_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/onrack/onrack-cpi/workflows"
-	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
-
 	"io/ioutil"
 	"net/http"
-	"github.com/nu7hatch/gouuid"
 	"os"
+
+	"github.com/onrack/onrack-cpi/config"
+	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/workflows"
+
+	"github.com/nu7hatch/gouuid"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Workflows", func() {
-	Describe("PublishCreateVMWorkflow", func (){
-		It("returns", func(){
+	Describe("PublishCreateVMWorkflow", func() {
+		It("returns", func() {
 			apiServer := os.Getenv("ON_RACK_API_URI")
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 			fakeUUID, _ := uuid.NewV4()
@@ -45,7 +46,6 @@ var _ = Describe("Workflows", func() {
 			Expect(taskLibrary).To(ContainElement(expectedProvisionNodeTask))
 			Expect(taskLibrary).To(ContainElement(expectedReserveNodeTask))
 
-
 			for i := range workflowLibrary {
 				delete(workflowLibrary[i].Options, "defaults")
 				delete(workflowLibrary[i].Options, "bootstrap-ubuntu")
@@ -55,8 +55,8 @@ var _ = Describe("Workflows", func() {
 		})
 	})
 
-	Describe("InitiateCreateVMWorkflow", func(){
-		It("successfully initiates the published workflow", func(){
+	Describe("InitiateCreateVMWorkflow", func() {
+		It("successfully initiates the published workflow", func() {
 			apiServer := os.Getenv("ON_RACK_API_URI")
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 			fakeUUID, _ := uuid.NewV4()
@@ -92,14 +92,12 @@ var _ = Describe("Workflows", func() {
 			json.Unmarshal(body, &nodeWorkflows)
 
 			expectedNodeWorkflow := onrackhttp.NodeWorkflow{
-				NodeID: 				nodeID,
-				InjectableName:	fmt.Sprintf("Graph.CF.CreateReserveVM.%s", fakeUUIDstr),
-				Status:					"valid",
+				NodeID:         nodeID,
+				InjectableName: fmt.Sprintf("Graph.CF.CreateReserveVM.%s", fakeUUIDstr),
+				Status:         "valid",
 			}
 
 			Expect(nodeWorkflows).To(ContainElement(expectedNodeWorkflow))
-
-			//todo: remove active workflow from node (dont worry about waiting for it to finish)
 		})
 	})
 })
