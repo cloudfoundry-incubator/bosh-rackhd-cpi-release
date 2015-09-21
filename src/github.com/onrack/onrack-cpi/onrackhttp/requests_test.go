@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/config"
