@@ -1,12 +1,13 @@
 package cpi_test
 
 import (
+	"io/ioutil"
+	"log"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"testing"
-	"log"
-	"io/ioutil"
 )
 
 func TestCpi(t *testing.T) {

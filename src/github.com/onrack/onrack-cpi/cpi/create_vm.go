@@ -16,7 +16,7 @@ import (
 )
 
 func CreateVM(c config.Cpi, extInput bosh.ExternalInput) (string, error) {
-	agentID, stemcellCID, boshNetworks, err := parseCreateVMInput(extInput)
+	agentID, stemcellCID, publicKey, boshNetworks, err := parseCreateVMInput(extInput)
 	if err != nil {
 		return "", err
 	}

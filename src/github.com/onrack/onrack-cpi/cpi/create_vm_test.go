@@ -22,8 +22,30 @@ import (
 )
 
 var _ = Describe("The VM Creation Workflow", func() {
-
 	Describe("parsing director input", func() {
+		It("return the fields given a valid config", func() {
+			jsonInput := []byte(`[
+				"4149ba0f-38d9-4485-476f-1581be36f290",
+				"vm-478585",
+				{"public_key": "1234"},
+				{
+						"private": {
+								"type": "dynamic"
+						}
+				},
+				[],
+				{}]`)
+			var extInput bosh.ExternalInput
+			err := json.Unmarshal(jsonInput, &extInput)
+			Expect(err).ToNot(HaveOccurred())
+			agentID, vmCID, publicKey, networks, err := parseCreateVMInput(extInput)
+			Expect(agentID).To(Equal("4149ba0f-38d9-4485-476f-1581be36f290"))
+			Expect(vmCID).To(Equal("vm-478585"))
+			Expect(publicKey).To(Equal("1234"))
+			Expect(networks).ToNot(BeEmpty())
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		It("returns an error if passed an unexpected type for network configuration", func() {
 			jsonInput := []byte(`[
 				"4149ba0f-38d9-4485-476f-1581be36f290",
@@ -37,7 +59,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, err = parseCreateVMInput(extInput)
+			_, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("network config has unexpected type in: string. Expecting a map"))
 		})
@@ -61,7 +83,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, err = parseCreateVMInput(extInput)
+			_, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(MatchError("config error: Only one network supported, provided length: 2"))
 		})
 
@@ -85,7 +107,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, err = parseCreateVMInput(extInput)
+			_, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(MatchError("agent id cannot be empty"))
 		})
 
@@ -109,8 +131,27 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, err = parseCreateVMInput(extInput)
+			_, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(MatchError("agent id has unexpected type: map[string]interface {}. Expecting a string"))
+		})
+
+		It("return an error if public key is of an unexpected type", func() {
+			jsonInput := []byte(`[
+				"4149ba0f-38d9-4485-476f-1581be36f290",
+				"vm-478585",
+				{"public_key": 1234},
+				{
+						"private": {
+								"type": "dynamic"
+						}
+				},
+				[],
+				{}]`)
+			var extInput bosh.ExternalInput
+			err := json.Unmarshal(jsonInput, &extInput)
+			Expect(err).ToNot(HaveOccurred())
+			_, _, _, _, err = parseCreateVMInput(extInput)
+			Expect(err).To(MatchError("public key has unexpected type: float64. Expecting a string"))
 		})
 
 		Context("when specifying manual networking", func() {
@@ -133,7 +174,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, _, _, err = parseCreateVMInput(extInput)
+				_, _, _, _, err = parseCreateVMInput(extInput)
 				Expect(err).To(MatchError("config error: ip must be specified for manual network"))
 			})
 
@@ -156,7 +197,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, _, _, err = parseCreateVMInput(extInput)
+				_, _, _, _, err = parseCreateVMInput(extInput)
 				Expect(err).To(MatchError("config error: gateway must be specified for manual network"))
 			})
 
@@ -179,7 +220,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, _, _, err = parseCreateVMInput(extInput)
+				_, _, _, _, err = parseCreateVMInput(extInput)
 				Expect(err).To(MatchError("config error: netmask must be specified for manual network"))
 			})
 		})
@@ -303,7 +344,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			testSpec := bosh.Network{
 				NetworkType: bosh.DynamicNetworkType,
 			}
-			_, _, netSpec, err := parseCreateVMInput(extInput)
+			_, _, _, netSpec, err := parseCreateVMInput(extInput)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(netSpec).To(Equal(map[string]bosh.Network{"private": testSpec}))
 		})
