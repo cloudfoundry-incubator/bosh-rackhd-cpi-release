@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/onrack/onrack-cpi/bosh"
@@ -20,22 +21,16 @@ func CreateVM(c config.Cpi, extInput bosh.ExternalInput) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	nodeID, err := selectNodeFromOnRack(c)
+	if err != nil {
+		return "", fmt.Errorf("error getting a node from onrack %s", err)
+	}
 
 	var netSpec bosh.Network
 	var netName string
 	for k, v := range boshNetworks {
 		netName = k
 		netSpec = v
-	}
-
-	nodes, err := onrackhttp.GetNodes(c)
-	if err != nil {
-		return "", err
-	}
-
-	nodeID, err := selectNonReservedNode(nodes)
-	if err != nil {
-		return "", err
 	}
 
 	if netSpec.NetworkType == bosh.ManualNetworkType {
@@ -86,15 +81,24 @@ func CreateVM(c config.Cpi, extInput bosh.ExternalInput) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	log.Printf("Succeeded uploading agent registry, got '%s' as uuid", regUUID)
+
+	publicKeyName := fmt.Sprintf("key-%s", vmCID)
+	publicKeyReader := strings.NewReader(publicKey)
+	keyUUID, err := onrackhttp.UploadFile(c, publicKeyName, publicKeyReader, int64(len(publicKey)))
+	if err != nil {
+		return "", err
+	}
+	log.Printf("Succeeded uploading public key, got '%s' as uuid", keyUUID)
+
 	uploadReq := onrackhttp.UploadAgentSettingsRequest{
-		Name: onrackhttp.OnrackReserveVMGraphName,
+		Name: onrackhttp.OnrackCreateVMGraphName,
 		Options: map[string]onrackhttp.UploadAgentSettingsOptions{
 			"defaults": onrackhttp.UploadAgentSettingsOptions{
 				AgentSettingsFile:    nodeID,
 				AgentSettingsPath:    onrackhttp.OnrackEnvPath,
 				CID:                  vmCID,
+				PublicKeyFile:        publicKeyName,
 				RegistrySettingsFile: agentRegistryName,
 				RegistrySettingsPath: onrackhttp.OnrackRegistryPath,
 				StemcellFile:         stemcellCID,
@@ -163,6 +167,48 @@ func attachMAC(nodeNetworks map[string]onrackhttp.Network, oldSpec bosh.Network)
 	}
 
 	return net, nil
+}
+
+type selectionFunc func(config.Cpi) (string, error)
+type reservationFunc func(config.Cpi, string) (string, error)
+
+func tryReservation(c config.Cpi, choose selectionFunc, reserve reservationFunc) (string, error) {
+	var reserved string
+	for i := 0; i < c.MaxCreateVMAttempt; i++ {
+		nodeID, err := choose(c)
+		if err != nil {
+			continue
+		}
+
+		reserved, err = reserve(c, nodeID)
+		if err != nil {
+			continue
+		}
+
+		if reserved != "" {
+			break
+		}
+	}
+
+	if reserved == "" {
+		return "", errors.New("unable to reserve node")
+	}
+
+	return reserved, nil
+}
+
+func selectNodeFromOnRack(c config.Cpi) (string, error) {
+	nodes, err := onrackhttp.GetNodes(c)
+	if err != nil {
+		return "", err
+	}
+
+	nodeID, err := selectNonReservedNode(nodes)
+	if err != nil {
+		return "", err
+	}
+
+	return nodeID, nil
 }
 
 func selectNonReservedNode(nodes []onrackhttp.Node) (string, error) {

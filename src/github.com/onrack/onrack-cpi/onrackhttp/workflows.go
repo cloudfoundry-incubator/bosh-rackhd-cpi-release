@@ -1,7 +1,8 @@
 package onrackhttp
 
 const (
-	OnrackReserveVMGraphName = "Graph.CF.CreateReserveVM"
+	OnrackReserveVMGraphName = "Graph.CF.ReserveVM"
+	OnrackCreateVMGraphName  = "Graph.CF.CreateVM"
 	OnrackEnvPath            = "/var/vcap/bosh/onrack-cpi-agent-env.json"
 	OnrackRegistryPath       = "/var/vcap/bosh/agent.json"
 	DefaultUnusedName        = "UPLOADED_BY_ONRACK_CPI"
@@ -39,9 +40,14 @@ type UploadAgentSettingsOptions struct {
 	AgentSettingsPath    string `json:"agentSettingsPath"`
 	CID                  string `json:"cid"`
 	DownloadDir          string `json:"downloadDir,omitempty"`
+	PublicKeyFile        string `json:"publicKeyFile"`
 	RegistrySettingsFile string `json:"registrySettingsFile"`
 	RegistrySettingsPath string `json:"registrySettingsPath"`
 	StemcellFile         string `json:"stemcellFile"`
+}
+
+type ReserveVMOptions struct {
+	UUID string `json:"uuid"`
 }
 
 type UploadAgentSettingsRequest struct {

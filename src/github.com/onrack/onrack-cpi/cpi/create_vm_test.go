@@ -12,10 +12,13 @@ package cpi
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/onrack/onrack-cpi/bosh"
+	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -383,6 +386,57 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(onRackID).To(Equal("55e79ea54e66816f6152fff9"))
 
+		})
+	})
+
+	Describe("retrying node reservation", func() {
+		It("return a node if selection is successful", func() {
+			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":3}`)
+			c, err := config.New(jsonReader)
+			Expect(err).ToNot(HaveOccurred())
+			nodeID, err := tryReservation(
+				c,
+				func(config.Cpi) (string, error) { return "node-1234", nil },
+				func(config.Cpi, string) (string, error) { return "node-1234", nil },
+			)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(nodeID).To(Equal("node-1234"))
+		})
+
+		It("returns an error if selection continually fails", func() {
+			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":3}`)
+			c, err := config.New(jsonReader)
+			Expect(err).ToNot(HaveOccurred())
+
+			nodeID, err := tryReservation(
+				c,
+				func(config.Cpi) (string, error) { return "node-1234", nil },
+				func(config.Cpi, string) (string, error) { return "", errors.New("") },
+			)
+			Expect(err).To(MatchError("unable to reserve node"))
+			Expect(nodeID).To(Equal(""))
+		})
+
+		It("retries and eventually returns a node when selection is successful", func() {
+			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":3}`)
+			c, err := config.New(jsonReader)
+			Expect(err).ToNot(HaveOccurred())
+
+			tries := 0
+			flakeySelectionFunc := func(config.Cpi) (string, error) {
+				if tries < 2 {
+					tries++
+					return "", errors.New("")
+				}
+				return "node-1234", nil
+			}
+			nodeID, err := tryReservation(
+				c,
+				flakeySelectionFunc,
+				func(config.Cpi, string) (string, error) { return "node-1234", nil },
+			)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(nodeID).To(Equal("node-1234"))
 		})
 	})
 })
