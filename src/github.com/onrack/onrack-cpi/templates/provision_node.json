@@ -14,15 +14,27 @@
         "test `curl {{ options.agentSettingsMd5Uri }}` = \\\"`md5sum {{ options.downloadDir }}/{{ options.agentSettingsFile }}| awk '{print $1}'`\\\"",
         "curl --retry 3 {{ options.registrySettingsUri }} -o {{ options.downloadDir }}/{{ options.registrySettingsFile }}",
         "test `curl {{ options.registrySettingsMd5Uri }}` = \\\"`md5sum {{ options.downloadDir }}/{{ options.registrySettingsFile }}| awk '{print $1}'`\\\"",
-        "sudo tar -xvf {{ options.downloadDir }}/{{ options.stemcellFile }}",
-        "sudo dd if={{ options.downloadDir }}/root.img of={{ options.device }} bs=512 skip=63",
-        "sudo mount {{ options.device }} /mnt",
+        "curl --retry 3 {{ options.publicKeyUri }} -o {{ options.downloadDir }}/{{ options.publicKeyFile }}",
+        "test `curl {{ options.publicKeyMd5Uri }}` = \\\"`md5sum {{ options.downloadDir }}/{{ options.publicKeyFile }}| awk '{print $1}'`\\\"",
+        "sudo umount {{ options.device }} || true",
+        "sudo tar --to-stdout -xvf {{ options.downloadDir }}/{{ options.stemcellFile }} | sudo dd of={{ options.device }}",
+        "sudo sfdisk -R {{ options.device }}",
+        "sudo mount {{ options.device }}1 /mnt",
+        "sudo mkdir -p /mnt/home/vcap/.ssh",
+        "sudo cat {{ options.downloadDir }}/{{ options.publicKeyFile }} >> /mnt/home/vcap/.ssh/authorized_keys",
+        "sudo chown 1000:1000 /mnt/home/vcap/.ssh/authorized_keys",
+        "sudo chown 1000:1000 /mnt/home/vcap/.ssh",
+        "sudo chmod 600 /mnt/home/vcap/.ssh/authorized_keys",
+        "sudo chmod 700 /mnt/home/vcap/.ssh/",
         "sudo cp {{ options.downloadDir }}/{{ options.agentSettingsFile }} /mnt/{{ options.agentSettingsPath }}",
         "sudo cp {{ options.downloadDir }}/{{ options.registrySettingsFile }} /mnt/{{ options.registrySettingsPath }}",
         "sudo sync"
       ],
       "device": "/dev/sda",
       "downloadDir": "/opt/downloads",
+      "publicKeyFile": null,
+      "publicKeyMd5Uri": "{{ api.files }}/md5/{{ options.publicKeyFile }}/latest",
+      "publicKeyUri": "{{ api.files }}/{{ options.publicKeyFile }}/latest",
       "registrySettingsFile": null,
       "registrySettingsMd5Uri": "{{ api.files }}/md5/{{ options.registrySettingsFile }}/latest",
       "registrySettingsPath": null,
@@ -32,4 +44,4 @@
       "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest"
     },
     "properties": {}
-}
+  }

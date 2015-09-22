@@ -1,0 +1,45 @@
+{
+  "friendlyName": "CF Delete VM",
+  "injectableName": "Graph.CF.DeleteVM",
+  "options": {
+    "defaults": {},
+    "bootstrap-ubuntu": {
+      "overlayfs": "common/overlayfs_all_files.cf.cpio.gz"
+    }
+  },
+  "tasks": [
+    {
+      "label": "set-boot-pxe",
+      "taskName": "Task.Obm.Node.PxeBoot",
+      "ignoreFailure": true
+    },
+    {
+      "label": "reboot",
+      "taskName": "Task.Obm.Node.Reboot",
+      "waitOn": {
+        "set-boot-pxe": "finished"
+      }
+    },
+    {
+      "label": "bootstrap-ubuntu",
+      "taskName": "Task.Linux.Bootstrap.Ubuntu",
+      "waitOn": {
+        "reboot": "succeeded"
+      }
+    },
+    {
+      "label": "wipe-machine",
+      "taskName": "Task.Os.Delete.CF.VM",
+      "waitOn": {
+        "bootstrap-ubuntu": "succeeded"
+      }
+    },
+    {
+      "label": "shell-reboot",
+      "taskName": "Task.ProcShellReboot",
+      "waitOn": {
+        "wipe-machine": "finished"
+      }
+    }
+  ]
+}

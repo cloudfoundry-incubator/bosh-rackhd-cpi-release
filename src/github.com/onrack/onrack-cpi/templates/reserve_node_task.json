@@ -3,9 +3,9 @@
 "injectableName" : "Task.Os.Reserve.CF.VM",
 "implementsTask": "Task.Base.Linux.Commands",
 "options": {
-  "cid": null,
+  "uuid": null,
   "commands":[
-    "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"reserved\": \"{{ options.cid }}\" }'"
+    "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"reserved\": \"{{ options.uuid }}\" }'"
   ]
  },
  "properties": {}

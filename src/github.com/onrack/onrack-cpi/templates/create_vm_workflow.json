@@ -1,59 +1,28 @@
 {
-    "friendlyName": "CF CreateReserve VM",
-    "injectableName": "Graph.CF.CreateReserveVM",
+    "friendlyName": "CF Create VM",
+    "injectableName": "Graph.CF.CreateVM",
     "options": {
       "defaults": {
         "agentSettingsFile": null,
         "agentSettingsPath": null,
+        "publicKeyFile": null,
         "cid": null,
         "downloadDir": "/opt/downloads",
         "registrySettingsFile": null,
         "registrySettingsPath": null,
         "stemcellFile": null
-      },
-      "bootstrap-ubuntu": {
-        "overlayfs": "common/overlayfs_all_files.cf.cpio.gz"
       }
     },
     "tasks": [
       {
-        "label": "set-boot-pxe",
-        "taskName": "Task.Obm.Node.PxeBoot",
-        "ignoreFailure": true
-      },
-      {
-        "label": "reboot",
-        "taskName": "Task.Obm.Node.Reboot",
-        "waitOn": {
-          "set-boot-pxe": "finished"
-        }
-      },
-      {
-        "label": "bootstrap-ubuntu",
-        "taskName": "Task.Linux.Bootstrap.Ubuntu",
-        "waitOn": {
-          "reboot": "succeeded"
-        }
-      },
-      {
-        "label": "reserve-node",
-        "taskName": "Task.Os.Reserve.CF.VM",
-        "waitOn": {
-          "bootstrap-ubuntu": "succeeded"
-        }
-      },
-      {
         "label": "provision-node",
-        "taskName": "Task.Os.Install.CF.Stemcell",
-        "waitOn": {
-          "reserve-node": "succeeded"
-        }
+        "taskName": "Task.Os.Install.CF.Stemcell"
       },
       {
-        "label": "shell-reboot",
-        "taskName": "Task.ProcShellReboot",
+        "label": "set-id-and-reboot",
+        "taskName": "Task.Os.SetId.VM",
         "waitOn": {
-          "provision-node": "finished"
+          "provision-node": "succeeded"
         }
       }
     ]

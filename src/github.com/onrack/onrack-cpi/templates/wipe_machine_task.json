@@ -1,0 +1,13 @@
+{
+  "friendlyName": "Delete VM",
+  "implementsTask": "Task.Base.Linux.Commands",
+  "injectableName": "Task.Os.Delete.CF.VM",
+  "options": {
+    "type": "quick",
+    "commands": [
+        "sudo dd if=/dev/zero of=/dev/sda bs=1M count=100",
+        "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"reserved\": \"\" }'"
+    ]
+  },
+  "properties": {}
+}
