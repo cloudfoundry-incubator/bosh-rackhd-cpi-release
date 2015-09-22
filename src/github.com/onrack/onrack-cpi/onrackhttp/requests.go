@@ -416,7 +416,7 @@ func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (err e
 	}
 
 	timeoutChan := time.NewTimer(time.Second * c.RunWorkflowTimeoutSeconds).C
-	retryChan := time.NewTicker(time.Second * 10).C
+	retryChan := time.NewTicker(time.Millisecond * 100).C
 
 	for {
 		select {
