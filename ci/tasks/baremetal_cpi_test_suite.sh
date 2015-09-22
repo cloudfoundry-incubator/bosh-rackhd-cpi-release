@@ -12,6 +12,7 @@ check_param() {
 }
 
 check_param ON_RACK_API_URI
+check_param ON_RACK_RUN_SLOW_TESTS
 
 cd bosh-cpi-release/
 source .envrc

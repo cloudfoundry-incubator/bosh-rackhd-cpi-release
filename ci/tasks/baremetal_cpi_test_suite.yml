@@ -7,3 +7,4 @@ run:
   path: bosh-cpi-release/ci/tasks/baremetal_cpi_test_suite.sh
 params:
   ON_RACK_API_URI:         replace-me
+  ON_RACK_RUN_SLOW_TESTS:  "true"
