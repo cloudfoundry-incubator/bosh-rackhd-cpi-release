@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/workflows"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -118,7 +121,7 @@ var _ = Describe("Requests", func() {
 		})
 	})
 
-	Describe("Publishing tasks to and retrieving tasks from task library", func() {
+	Describe("Publishing tasks", func() {
 		It("adds task to library, retrieves updated list of tasks from task library", func() {
 			apiServer := os.Getenv("ON_RACK_API_URI")
 			Expect(apiServer).ToNot(BeEmpty())
@@ -129,11 +132,11 @@ var _ = Describe("Requests", func() {
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 
 			fakeTask := onrackhttp.Task{
-				Name: fmt.Sprintf("Task.CF.Fake.%s", uuid),
+				Name:       fmt.Sprintf("Task.CF.Fake.%s", uuid),
+				UnusedName: onrackhttp.DefaultUnusedName,
 				Options: map[string]interface{}{
 					"option_1": "foo",
 				},
-				Properties: map[string]interface{}{},
 			}
 
 			err = onrackhttp.PublishTask(cpiConfig, fakeTask)
@@ -146,7 +149,7 @@ var _ = Describe("Requests", func() {
 		})
 	})
 
-	Describe("Publishing workflow to and retrieving workflows from workflow library", func() {
+	Describe("Publishing workflow", func() {
 		It("add workflow to library, retrieves updated list of tasks from task library", func() {
 			apiServer := os.Getenv("ON_RACK_API_URI")
 			Expect(apiServer).ToNot(BeEmpty())
@@ -155,6 +158,17 @@ var _ = Describe("Requests", func() {
 			Expect(err).ToNot(HaveOccurred())
 			uuid := uuidObj.String()
 			cpiConfig := config.Cpi{ApiServer: apiServer}
+
+			fakeTask := onrackhttp.Task{
+				Name:       fmt.Sprintf("Task.CF.Fake.%s", uuid),
+				UnusedName: onrackhttp.DefaultUnusedName,
+				Options: map[string]interface{}{
+					"option_1": "foo",
+				},
+			}
+
+			err = onrackhttp.PublishTask(cpiConfig, fakeTask)
+			Expect(err).ToNot(HaveOccurred())
 
 			fakeWorkflow := onrackhttp.Workflow{
 				Name:       fmt.Sprintf("Task.CF.Fake.%s", uuid),
@@ -182,6 +196,392 @@ var _ = Describe("Requests", func() {
 				delete(workflowLibrary[i].Options, "bootstrap-ubuntu")
 			}
 			Expect(workflowLibrary).To(ContainElement(fakeWorkflow))
+		})
+	})
+
+	Describe("RunWorkflow", func() {
+		Context("when the workflow completes successfully", func() {
+			It("returns no error", func() {
+				rejectNodesRunningWorkflows := func(nodes []onrackhttp.Node) []onrackhttp.Node {
+					var n []onrackhttp.Node
+					for i := range nodes {
+						if len(nodes[i].Workflows) == 0 {
+							n = append(n, nodes[i])
+						}
+					}
+					return n
+				}
+
+				apiServer := os.Getenv("ON_RACK_API_URI")
+				Expect(apiServer).ToNot(BeEmpty())
+
+				uuidObj, err := uuid.NewV4()
+				Expect(err).ToNot(HaveOccurred())
+				uuid := uuidObj.String()
+				cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 10 * 60}
+
+				allNodes, err := onrackhttp.GetNodes(cpiConfig)
+				Expect(err).ToNot(HaveOccurred())
+
+				idleNodes := rejectNodesRunningWorkflows(allNodes)
+				t := time.Now()
+				rand.Seed(t.Unix())
+
+				i := rand.Intn(len(idleNodes))
+				nodeID := idleNodes[i].ID
+
+				dummyTaskFile, err := os.Open("../spec_assets/dummy_succeeding_task.json")
+				Expect(err).ToNot(HaveOccurred())
+				defer dummyTaskFile.Close()
+
+				b, err := ioutil.ReadAll(dummyTaskFile)
+				Expect(err).ToNot(HaveOccurred())
+
+				dummyTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(b, &dummyTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				dummyTaskName := fmt.Sprintf("Requests.Test.Dummy.Success.%s", uuid)
+				dummyTask.Name = dummyTaskName
+
+				err = onrackhttp.PublishTask(cpiConfig, dummyTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				pxeBootTaskTemplate := workflows.SetPxeBootTemplate()
+				pxeBootTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(pxeBootTaskTemplate, &pxeBootTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				pxeBootTask.Name = fmt.Sprintf("Task.Obm.Node.PxeBoot.%s", uuid)
+
+				err = onrackhttp.PublishTask(cpiConfig, pxeBootTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				rebootNodeTemplate := workflows.RebootNodeTemplate()
+				rebootNodeTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(rebootNodeTemplate, &rebootNodeTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				rebootNodeTask.Name = fmt.Sprintf("Task.Obm.Node.Reboot.%s", uuid)
+
+				err = onrackhttp.PublishTask(cpiConfig, rebootNodeTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				bootstrapUbuntuTemplate := workflows.BootstrapUbuntuTaskTemplate()
+				bootstrapUbuntuTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(bootstrapUbuntuTemplate, &bootstrapUbuntuTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				bootstrapUbuntuTask.Name = fmt.Sprintf("Task.Linux.Bootstrap.Ubuntu.%s", uuid)
+
+				err = onrackhttp.PublishTask(cpiConfig, bootstrapUbuntuTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				fakeWorkflowName := fmt.Sprintf("Test.Success.CF.Fake.%s", uuid)
+				fakeWorkflow := onrackhttp.Workflow{
+					Name:       fakeWorkflowName,
+					UnusedName: onrackhttp.DefaultUnusedName,
+					Tasks: []onrackhttp.WorkflowTask{
+						onrackhttp.WorkflowTask{
+							TaskName: pxeBootTask.Name,
+							Label:    "set-boot-pxe",
+						},
+						onrackhttp.WorkflowTask{
+							TaskName: rebootNodeTask.Name,
+							Label:    "reboot",
+							WaitOn: map[string]string{
+								"set-boot-pxe": "finished",
+							},
+						},
+						onrackhttp.WorkflowTask{
+							TaskName: bootstrapUbuntuTask.Name,
+							Label:    "bootstrap-ubuntu",
+							WaitOn: map[string]string{
+								"reboot": "succeeded",
+							},
+						},
+						onrackhttp.WorkflowTask{
+							TaskName: dummyTaskName,
+							Label:    "fake-success-task-label",
+							WaitOn: map[string]string{
+								"bootstrap-ubuntu": "succeeded",
+							},
+						},
+					},
+				}
+				err = onrackhttp.PublishWorkflow(cpiConfig, fakeWorkflow)
+				Expect(err).ToNot(HaveOccurred())
+
+				body := onrackhttp.RunWorkflowRequestBody{
+					Name: fakeWorkflowName,
+				}
+
+				err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("when the workflow completes with failure", func() {
+			It("returns an error", func() {
+				rejectNodesRunningWorkflows := func(nodes []onrackhttp.Node) []onrackhttp.Node {
+					var n []onrackhttp.Node
+					for i := range nodes {
+						if len(nodes[i].Workflows) == 0 {
+							n = append(n, nodes[i])
+						}
+					}
+					return n
+				}
+
+				apiServer := os.Getenv("ON_RACK_API_URI")
+				Expect(apiServer).ToNot(BeEmpty())
+
+				uuidObj, err := uuid.NewV4()
+				Expect(err).ToNot(HaveOccurred())
+				uuid := uuidObj.String()
+				cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 10 * 60}
+
+				allNodes, err := onrackhttp.GetNodes(cpiConfig)
+				Expect(err).ToNot(HaveOccurred())
+
+				idleNodes := rejectNodesRunningWorkflows(allNodes)
+				t := time.Now()
+				rand.Seed(t.Unix())
+
+				i := rand.Intn(len(idleNodes))
+				nodeID := idleNodes[i].ID
+
+				dummyTaskFile, err := os.Open("../spec_assets/dummy_failing_task.json")
+				Expect(err).ToNot(HaveOccurred())
+				defer dummyTaskFile.Close()
+
+				b, err := ioutil.ReadAll(dummyTaskFile)
+				Expect(err).ToNot(HaveOccurred())
+
+				dummyTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(b, &dummyTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				dummyTaskName := fmt.Sprintf("Requests.Test.Dummy.Failure.%s", uuid)
+				dummyTask.Name = dummyTaskName
+
+				err = onrackhttp.PublishTask(cpiConfig, dummyTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				pxeBootTaskTemplate := workflows.SetPxeBootTemplate()
+				pxeBootTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(pxeBootTaskTemplate, &pxeBootTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				pxeBootTask.Name = fmt.Sprintf("Task.Obm.Node.PxeBoot.%s", uuid)
+
+				err = onrackhttp.PublishTask(cpiConfig, pxeBootTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				rebootNodeTemplate := workflows.RebootNodeTemplate()
+				rebootNodeTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(rebootNodeTemplate, &rebootNodeTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				rebootNodeTask.Name = fmt.Sprintf("Task.Obm.Node.Reboot.%s", uuid)
+
+				err = onrackhttp.PublishTask(cpiConfig, rebootNodeTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				bootstrapUbuntuTemplate := workflows.BootstrapUbuntuTaskTemplate()
+				bootstrapUbuntuTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(bootstrapUbuntuTemplate, &bootstrapUbuntuTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				bootstrapUbuntuTask.Name = fmt.Sprintf("Task.Linux.Bootstrap.Ubuntu.%s", uuid)
+
+				err = onrackhttp.PublishTask(cpiConfig, bootstrapUbuntuTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				fakeWorkflowName := fmt.Sprintf("Test.Failure.CF.Fake.%s", uuid)
+				fakeWorkflow := onrackhttp.Workflow{
+					Name:       fakeWorkflowName,
+					UnusedName: onrackhttp.DefaultUnusedName,
+					Tasks: []onrackhttp.WorkflowTask{
+						onrackhttp.WorkflowTask{
+							TaskName: pxeBootTask.Name,
+							Label:    "set-boot-pxe",
+						},
+						onrackhttp.WorkflowTask{
+							TaskName: rebootNodeTask.Name,
+							Label:    "reboot",
+							WaitOn: map[string]string{
+								"set-boot-pxe": "finished",
+							},
+						},
+						onrackhttp.WorkflowTask{
+							TaskName: bootstrapUbuntuTask.Name,
+							Label:    "bootstrap-ubuntu",
+							WaitOn: map[string]string{
+								"reboot": "succeeded",
+							},
+						},
+						onrackhttp.WorkflowTask{
+							TaskName: dummyTaskName,
+							Label:    "fake-failure-task-label",
+							WaitOn: map[string]string{
+								"bootstrap-ubuntu": "succeeded",
+							},
+						},
+					},
+				}
+				err = onrackhttp.PublishWorkflow(cpiConfig, fakeWorkflow)
+				Expect(err).ToNot(HaveOccurred())
+
+				body := onrackhttp.RunWorkflowRequestBody{
+					Name: fakeWorkflowName,
+				}
+
+				err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when the workflow does not complete in the configurable timeout", func() {
+			It("returns an error", func() {
+				rejectNodesRunningWorkflows := func(nodes []onrackhttp.Node) []onrackhttp.Node {
+					var n []onrackhttp.Node
+					for i := range nodes {
+						if len(nodes[i].Workflows) == 0 {
+							n = append(n, nodes[i])
+						}
+					}
+					return n
+				}
+
+				apiServer := os.Getenv("ON_RACK_API_URI")
+				Expect(apiServer).ToNot(BeEmpty())
+
+				uuidObj, err := uuid.NewV4()
+				Expect(err).ToNot(HaveOccurred())
+				uuid := uuidObj.String()
+				cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 60}
+
+				allNodes, err := onrackhttp.GetNodes(cpiConfig)
+				Expect(err).ToNot(HaveOccurred())
+
+				idleNodes := rejectNodesRunningWorkflows(allNodes)
+				t := time.Now()
+				rand.Seed(t.Unix())
+
+				i := rand.Intn(len(idleNodes))
+				nodeID := idleNodes[i].ID
+
+				dummyTaskFile, err := os.Open("../spec_assets/dummy_timeout_task.json")
+				Expect(err).ToNot(HaveOccurred())
+				defer dummyTaskFile.Close()
+
+				b, err := ioutil.ReadAll(dummyTaskFile)
+				Expect(err).ToNot(HaveOccurred())
+
+				dummyTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(b, &dummyTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				dummyTaskName := fmt.Sprintf("Requests.Test.Dummy.Timeout.%s", uuid)
+				dummyTask.Name = dummyTaskName
+
+				err = onrackhttp.PublishTask(cpiConfig, dummyTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				pxeBootTaskTemplate := workflows.SetPxeBootTemplate()
+				pxeBootTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(pxeBootTaskTemplate, &pxeBootTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				pxeBootTask.Name = fmt.Sprintf("Task.Obm.Node.PxeBoot.%s", uuid)
+
+				err = onrackhttp.PublishTask(cpiConfig, pxeBootTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				rebootNodeTemplate := workflows.RebootNodeTemplate()
+				rebootNodeTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(rebootNodeTemplate, &rebootNodeTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				rebootNodeTask.Name = fmt.Sprintf("Task.Obm.Node.Reboot.%s", uuid)
+
+				err = onrackhttp.PublishTask(cpiConfig, rebootNodeTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				bootstrapUbuntuTemplate := workflows.BootstrapUbuntuTaskTemplate()
+				bootstrapUbuntuTask := onrackhttp.Task{}
+
+				err = json.Unmarshal(bootstrapUbuntuTemplate, &bootstrapUbuntuTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				bootstrapUbuntuTask.Name = fmt.Sprintf("Task.Linux.Bootstrap.Ubuntu.%s", uuid)
+
+				err = onrackhttp.PublishTask(cpiConfig, bootstrapUbuntuTask)
+				Expect(err).ToNot(HaveOccurred())
+
+				fakeWorkflowName := fmt.Sprintf("Test.Timeout.CF.Fake.%s", uuid)
+				fakeWorkflow := onrackhttp.Workflow{
+					Name:       fakeWorkflowName,
+					UnusedName: onrackhttp.DefaultUnusedName,
+					Tasks: []onrackhttp.WorkflowTask{
+						onrackhttp.WorkflowTask{
+							TaskName: pxeBootTask.Name,
+							Label:    "set-boot-pxe",
+						},
+						onrackhttp.WorkflowTask{
+							TaskName: rebootNodeTask.Name,
+							Label:    "reboot",
+							WaitOn: map[string]string{
+								"set-boot-pxe": "finished",
+							},
+						},
+						onrackhttp.WorkflowTask{
+							TaskName: bootstrapUbuntuTask.Name,
+							Label:    "bootstrap-ubuntu",
+							WaitOn: map[string]string{
+								"reboot": "succeeded",
+							},
+						},
+						onrackhttp.WorkflowTask{
+							TaskName: dummyTaskName,
+							Label:    "fake-timeout-task-label",
+							WaitOn: map[string]string{
+								"bootstrap-ubuntu": "succeeded",
+							},
+						},
+					},
+				}
+				err = onrackhttp.PublishWorkflow(cpiConfig, fakeWorkflow)
+				Expect(err).ToNot(HaveOccurred())
+
+				body := onrackhttp.RunWorkflowRequestBody{
+					Name: fakeWorkflowName,
+				}
+
+				err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body)
+				Expect(err).To(HaveOccurred())
+
+				Eventually(func() int {
+					url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/active", cpiConfig.ApiServer, nodeID)
+					resp, err := http.Get(url)
+					Expect(err).ToNot(HaveOccurred())
+					defer resp.Body.Close()
+
+					return resp.StatusCode
+				}, 10*time.Second, time.Second).Should(Equal(204))
+			})
 		})
 	})
 })

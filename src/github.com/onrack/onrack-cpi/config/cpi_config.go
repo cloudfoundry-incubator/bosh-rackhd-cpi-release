@@ -7,9 +7,13 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"time"
 )
 
-const defaultMaxCreateVMAttempts = 5
+const (
+	defaultMaxCreateVMAttempts       = 5
+	defaultRunWorkflowTimeoutSeconds = 20 * 60
+)
 
 func DefaultMaxCreateVMAttempts() int { return defaultMaxCreateVMAttempts }
 
@@ -42,6 +46,11 @@ func New(config io.Reader) (Cpi, error) {
 		cpi.MaxCreateVMAttempt = defaultMaxCreateVMAttempts
 	}
 
+	if cpi.RunWorkflowTimeoutSeconds == 0 {
+		log.Printf("No RunWorkflowTimeoutSecounds was set, set to default value %d", defaultRunWorkflowTimeoutSeconds)
+		cpi.RunWorkflowTimeoutSeconds = defaultRunWorkflowTimeoutSeconds
+	}
+
 	if !isAgentConfigValid(cpi.Agent) {
 		log.Printf("Agent config invalid %v", cpi.Agent)
 		return Cpi{}, fmt.Errorf("Agent config invalid %v", cpi.Agent)
@@ -64,9 +73,10 @@ func isAgentConfigValid(config AgentConfig) bool {
 }
 
 type Cpi struct {
-	ApiServer          string      `json:"apiserver"`
-	Agent              AgentConfig `json:"agent"`
-	MaxCreateVMAttempt int         `json:"max_create_vm_attempts"`
+	ApiServer                 string        `json:"apiserver"`
+	Agent                     AgentConfig   `json:"agent"`
+	MaxCreateVMAttempt        int           `json:"max_create_vm_attempts"`
+	RunWorkflowTimeoutSeconds time.Duration `json:"run_workflow_timeout"`
 }
 
 type AgentConfig struct {

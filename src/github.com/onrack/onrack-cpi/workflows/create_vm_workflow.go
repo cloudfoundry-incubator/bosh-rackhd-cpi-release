@@ -160,7 +160,7 @@ func GenerateProvisionNodeTask(uuid string) (task onrackhttp.Task) {
 	return
 }
 
-func InitiateCreateVMWorkflow(cpiConfig config.Cpi, uuid string, nodeID string, options onrackhttp.UploadAgentSettingsOptions) (err error) {
+func RunCreateVMWorkflow(cpiConfig config.Cpi, uuid string, nodeID string, options onrackhttp.UploadAgentSettingsOptions) (err error) {
 	var body onrackhttp.RunWorkflowRequestBody
 	if options.DownloadDir != "" {
 		body = onrackhttp.RunWorkflowRequestBody{
@@ -192,6 +192,6 @@ func InitiateCreateVMWorkflow(cpiConfig config.Cpi, uuid string, nodeID string, 
 			},
 		}
 	}
-	err = onrackhttp.InitiateWorkflow(cpiConfig, nodeID, body)
+	err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body)
 	return
 }

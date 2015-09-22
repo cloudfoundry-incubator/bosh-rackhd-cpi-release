@@ -1,0 +1,11 @@
+{
+"friendlyName" : "",
+"injectableName" : "",
+"implementsTask": "Task.Base.Linux.Commands",
+"options": {
+  "commands":[
+    "true"
+  ]
+ },
+ "properties": {}
+}

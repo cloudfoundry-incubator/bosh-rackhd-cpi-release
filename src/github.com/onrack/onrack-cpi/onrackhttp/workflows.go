@@ -18,14 +18,20 @@ type Workflow struct {
 	UnusedName string                 `json:"friendlyName"`
 	Tasks      []WorkflowTask         `json:"tasks"`
 	Options    map[string]interface{} `json:"options"`
-	Status     string                 `json:"_status,omitempty"`
+}
+
+type WorkflowResponse struct {
+	Name    string                  `json:"injectableName"`
+	Tasks   map[string]TaskResponse `json:"tasks"`
+	Options map[string]interface{}  `json:"options"`
+	Status  string                  `json:"_status"`
 }
 
 type WorkflowTask struct {
 	TaskName      string            `json:"taskName"`
 	Label         string            `json:"label"`
 	WaitOn        map[string]string `json:"waitOn,omitempty"`
-	IgnoreFailure bool              `json:"ignoreFailure,omitempty"`
+	IgnoreFailure bool              `json:"ignoreFailure"`
 }
 
 type UploadAgentSettingsOptions struct {
@@ -46,8 +52,14 @@ type UploadAgentSettingsRequest struct {
 type Task struct {
 	ImplementsTask string                 `json:"implementsTask,omitempty"`
 	Name           string                 `json:"injectableName"`
+	UnusedName     string                 `json:"friendlyName"`
 	Options        map[string]interface{} `json:"options"`
 	Properties     map[string]interface{} `json:"properties"`
+}
+
+type TaskResponse struct {
+	Name  string `json:"name"`
+	State string `json:"state"`
 }
 
 type RunWorkflowRequestBody struct {

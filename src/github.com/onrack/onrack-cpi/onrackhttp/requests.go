@@ -123,8 +123,10 @@ func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
 	return nodeCatalog, nil
 }
 
-func PublishTask(c config.Cpi, task Task) error {
-	body, err := json.Marshal(task)
+func PublishTask(c config.Cpi, t Task) error {
+	t.UnusedName = DefaultUnusedName
+
+	body, err := json.Marshal(t)
 	if err != nil {
 		log.Println("error marshalling createVMWorkflow")
 		return errors.New("error marshalling createVMWorkflow")
@@ -148,6 +150,23 @@ func PublishTask(c config.Cpi, task Task) error {
 		msg, _ := ioutil.ReadAll(resp.Body)
 		log.Printf("error publishing task: response code is %d: %s", resp.StatusCode, string(msg))
 		return fmt.Errorf("Failed publishing task with status: %s, message: %s", resp.Status, string(msg))
+	}
+
+	publishedTasks, err := RetrieveTasks(c)
+	if err != nil {
+		return err
+	}
+
+	var uploadedTask *Task
+	for i := range publishedTasks {
+		if publishedTasks[i].Name == t.Name {
+			uploadedTask = &publishedTasks[i]
+		}
+	}
+
+	if uploadedTask == nil {
+		log.Println("task was not successfully uploaded to server")
+		return errors.New("task was not successfully uploaded to server")
 	}
 
 	return nil
@@ -266,10 +285,113 @@ func RetrieveWorkflows(c config.Cpi) ([]Workflow, error) {
 	return workflows, nil
 }
 
-// TODO: remove after RunWorkflow completed
-func InitiateWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequestBody) (err error) {
+func killActiveWorkflows(c config.Cpi, nodeID string) error {
+	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
+	request, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		log.Printf("error: %s  building http request to delete active workflows against node: %s\n", err, nodeID)
+		return fmt.Errorf("error: %s building http request to delete active workflows against node: %s", err, nodeID)
+	}
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		fmt.Printf("Error: %s deleting active workflows on node: %s\n", err, nodeID)
+		return fmt.Errorf("Error: %s deleting active workflows on node: %s", err, nodeID)
+	}
+
+	defer resp.Body.Close()
+
+	msg, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Error: %s reading response body from abort workflows request against node: %s\n", err, nodeID)
+		return fmt.Errorf("Error: %s reading response body from abort workflows request against node: %s", err, nodeID)
+	}
+
+	if resp.StatusCode != 200 {
+		log.Printf("Failed deleting active workflows against node: %s with status: %s, message: %s", nodeID, resp.Status, string(msg))
+		return fmt.Errorf("Failed deleting active workflows against node: %s with status: %s, message: %s", nodeID, resp.Status, string(msg))
+	}
+
+	return nil
+}
+
+func getActiveWorkflows(c config.Cpi, nodeID string) ([]Workflow, error) {
+	var workflows []Workflow
+
+	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
+		return []Workflow{}, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+		return []Workflow{}, fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(body, &workflows)
+	if err != nil {
+		log.Printf("Error unmarshalling active workflows: %s", err)
+		return []Workflow{}, fmt.Errorf("Error unmarshalling active workflows: %s", err)
+	}
+
+	return workflows, nil
+}
+
+const (
+	workflowValidStatus      = "valid"
+	worfklowSuccessfulStatus = "succeeded"
+	workflowFailedStatus     = "failed"
+	workflowCancelledStatus  = "cancelled"
+)
+
+func getWorkflowStatus(c config.Cpi, nodeID string, workflowName string) (string, error) {
+	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows", c.ApiServer, nodeID)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+		return "", fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	var workflows []WorkflowResponse
+	err = json.Unmarshal(body, &workflows)
+	if err != nil {
+		log.Printf("Error unmarshalling active workflows: %s", err)
+		return "", fmt.Errorf("Error unmarshalling active workflows: %s", err)
+	}
+
+	var w *WorkflowResponse
+	for i := range workflows {
+		if workflows[i].Name == workflowName {
+			w = &workflows[i]
+		}
+	}
+
+	if w == nil {
+		log.Printf("could not find workflow with name: %s on node: %s", workflowName, nodeID)
+		return "", fmt.Errorf("could not find workflow with name: %s on node: %s", workflowName, nodeID)
+	}
+
+	return w.Status, nil
+}
+
+func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (err error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/", c.ApiServer, nodeID)
-	body, err := json.Marshal(bodyStruct)
+	body, err := json.Marshal(req)
 	if err != nil {
 		log.Printf("error marshalling workflow request body")
 		return
@@ -289,35 +411,48 @@ func InitiateWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequest
 
 	if resp.StatusCode != 201 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("error response code is %d: %s\n,with body: ", resp.StatusCode, string(msg), string(body))
+		log.Printf("error response code is %d: %s, with body: %s", resp.StatusCode, string(msg), string(body))
 		return fmt.Errorf("Failed running workflow at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
 	}
-	return
-}
 
-func KillActiveWorkflowsOnVM(c config.Cpi, nodeID string) (err error) {
-	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
-	request, err := http.NewRequest("DELETE", url, nil)
-	if err != nil {
-		log.Printf("error building http request to delete active workflows on url %s", url)
-		return
+	timeoutChan := time.NewTimer(time.Second * c.RunWorkflowTimeoutSeconds).C
+	retryChan := time.NewTicker(time.Second * 10).C
+
+	for {
+		select {
+		case <-timeoutChan:
+			err := killActiveWorkflows(c, nodeID)
+			if err != nil {
+				log.Printf("Could not abort timed out workflow on node: %s\n", nodeID)
+				return fmt.Errorf("Could not abort timed out workflow on node: %s", nodeID)
+			}
+
+			log.Printf("Timed out running workflow: %s on node: %s", req.Name, nodeID)
+			return fmt.Errorf("Timed out running workflow: %s on node: %s", req.Name, nodeID)
+		case <-retryChan:
+			status, err := getWorkflowStatus(c, nodeID, req.Name)
+			if err != nil {
+				log.Printf("Unable to fetch workflow status: %s\n", err)
+				return err
+			}
+
+			switch status {
+			case workflowValidStatus:
+				log.Printf("workflow: %s is still running against node: %s", req.Name, nodeID)
+				continue
+			case worfklowSuccessfulStatus:
+				log.Printf("workflow: %s completed successfully against node: %s", req.Name, nodeID)
+				return nil
+			case workflowFailedStatus:
+				log.Printf("workflow: %s failed against node: %s", req.Name, nodeID)
+				return fmt.Errorf("workflow: %s failed against node: %s", req.Name, nodeID)
+			case workflowCancelledStatus:
+				log.Printf("workflow: %s was cancelled against node: %s", req.Name, nodeID)
+				return nil
+			default:
+				log.Printf("workflow: %s has unexpected status on node: %s", req.Name, nodeID)
+				return fmt.Errorf("workflow: %s has unexpected status %s on node: %s", req.Name, status, nodeID)
+			}
+		}
 	}
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		fmt.Printf("Error deleting active workflows on node at url: %s, msg: %s", url, err)
-		return
-	}
-
-	if resp.StatusCode != 200 {
-		msg, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("error response code is %d: %s\n,with body: ", resp.StatusCode, string(msg))
-		return fmt.Errorf("Failed deleting active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
-	}
-	return
 }
-
-func RunWorkflow(c config.Cpi, nodeID string, bodyStruct RunWorkflowRequestBody) (err error) {
-	return
-}
-
-// func pollActiveWorkflows()
