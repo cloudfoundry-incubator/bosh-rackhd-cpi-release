@@ -14,6 +14,7 @@ import (
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
 	"github.com/onrack/onrack-cpi/workflows"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -248,57 +249,24 @@ var _ = Describe("Requests", func() {
 				err = onrackhttp.PublishTask(cpiConfig, dummyTask)
 				Expect(err).ToNot(HaveOccurred())
 
-				pxeBootTaskTemplate := workflows.SetPxeBootTemplate()
-				pxeBootTask := onrackhttp.Task{}
-
-				err = json.Unmarshal(pxeBootTaskTemplate, &pxeBootTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				pxeBootTask.Name = fmt.Sprintf("Task.Obm.Node.PxeBoot.%s", uuid)
-
-				err = onrackhttp.PublishTask(cpiConfig, pxeBootTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				rebootNodeTemplate := workflows.RebootNodeTemplate()
-				rebootNodeTask := onrackhttp.Task{}
-
-				err = json.Unmarshal(rebootNodeTemplate, &rebootNodeTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				rebootNodeTask.Name = fmt.Sprintf("Task.Obm.Node.Reboot.%s", uuid)
-
-				err = onrackhttp.PublishTask(cpiConfig, rebootNodeTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				bootstrapUbuntuTemplate := workflows.BootstrapUbuntuTaskTemplate()
-				bootstrapUbuntuTask := onrackhttp.Task{}
-
-				err = json.Unmarshal(bootstrapUbuntuTemplate, &bootstrapUbuntuTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				bootstrapUbuntuTask.Name = fmt.Sprintf("Task.Linux.Bootstrap.Ubuntu.%s", uuid)
-
-				err = onrackhttp.PublishTask(cpiConfig, bootstrapUbuntuTask)
-				Expect(err).ToNot(HaveOccurred())
-
 				fakeWorkflowName := fmt.Sprintf("Test.Success.CF.Fake.%s", uuid)
 				fakeWorkflow := onrackhttp.Workflow{
 					Name:       fakeWorkflowName,
 					UnusedName: onrackhttp.DefaultUnusedName,
 					Tasks: []onrackhttp.WorkflowTask{
 						onrackhttp.WorkflowTask{
-							TaskName: pxeBootTask.Name,
+							TaskName: workflows.SetPxeBootTaskName,
 							Label:    "set-boot-pxe",
 						},
 						onrackhttp.WorkflowTask{
-							TaskName: rebootNodeTask.Name,
+							TaskName: workflows.RebootNodeTaskName,
 							Label:    "reboot",
 							WaitOn: map[string]string{
 								"set-boot-pxe": "finished",
 							},
 						},
 						onrackhttp.WorkflowTask{
-							TaskName: bootstrapUbuntuTask.Name,
+							TaskName: workflows.BootstrapUbuntuTaskName,
 							Label:    "bootstrap-ubuntu",
 							WaitOn: map[string]string{
 								"reboot": "succeeded",
@@ -373,57 +341,24 @@ var _ = Describe("Requests", func() {
 				err = onrackhttp.PublishTask(cpiConfig, dummyTask)
 				Expect(err).ToNot(HaveOccurred())
 
-				pxeBootTaskTemplate := workflows.SetPxeBootTemplate()
-				pxeBootTask := onrackhttp.Task{}
-
-				err = json.Unmarshal(pxeBootTaskTemplate, &pxeBootTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				pxeBootTask.Name = fmt.Sprintf("Task.Obm.Node.PxeBoot.%s", uuid)
-
-				err = onrackhttp.PublishTask(cpiConfig, pxeBootTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				rebootNodeTemplate := workflows.RebootNodeTemplate()
-				rebootNodeTask := onrackhttp.Task{}
-
-				err = json.Unmarshal(rebootNodeTemplate, &rebootNodeTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				rebootNodeTask.Name = fmt.Sprintf("Task.Obm.Node.Reboot.%s", uuid)
-
-				err = onrackhttp.PublishTask(cpiConfig, rebootNodeTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				bootstrapUbuntuTemplate := workflows.BootstrapUbuntuTaskTemplate()
-				bootstrapUbuntuTask := onrackhttp.Task{}
-
-				err = json.Unmarshal(bootstrapUbuntuTemplate, &bootstrapUbuntuTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				bootstrapUbuntuTask.Name = fmt.Sprintf("Task.Linux.Bootstrap.Ubuntu.%s", uuid)
-
-				err = onrackhttp.PublishTask(cpiConfig, bootstrapUbuntuTask)
-				Expect(err).ToNot(HaveOccurred())
-
 				fakeWorkflowName := fmt.Sprintf("Test.Failure.CF.Fake.%s", uuid)
 				fakeWorkflow := onrackhttp.Workflow{
 					Name:       fakeWorkflowName,
 					UnusedName: onrackhttp.DefaultUnusedName,
 					Tasks: []onrackhttp.WorkflowTask{
 						onrackhttp.WorkflowTask{
-							TaskName: pxeBootTask.Name,
+							TaskName: workflows.SetPxeBootTaskName,
 							Label:    "set-boot-pxe",
 						},
 						onrackhttp.WorkflowTask{
-							TaskName: rebootNodeTask.Name,
+							TaskName: workflows.RebootNodeTaskName,
 							Label:    "reboot",
 							WaitOn: map[string]string{
 								"set-boot-pxe": "finished",
 							},
 						},
 						onrackhttp.WorkflowTask{
-							TaskName: bootstrapUbuntuTask.Name,
+							TaskName: workflows.BootstrapUbuntuTaskName,
 							Label:    "bootstrap-ubuntu",
 							WaitOn: map[string]string{
 								"reboot": "succeeded",
@@ -498,57 +433,24 @@ var _ = Describe("Requests", func() {
 				err = onrackhttp.PublishTask(cpiConfig, dummyTask)
 				Expect(err).ToNot(HaveOccurred())
 
-				pxeBootTaskTemplate := workflows.SetPxeBootTemplate()
-				pxeBootTask := onrackhttp.Task{}
-
-				err = json.Unmarshal(pxeBootTaskTemplate, &pxeBootTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				pxeBootTask.Name = fmt.Sprintf("Task.Obm.Node.PxeBoot.%s", uuid)
-
-				err = onrackhttp.PublishTask(cpiConfig, pxeBootTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				rebootNodeTemplate := workflows.RebootNodeTemplate()
-				rebootNodeTask := onrackhttp.Task{}
-
-				err = json.Unmarshal(rebootNodeTemplate, &rebootNodeTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				rebootNodeTask.Name = fmt.Sprintf("Task.Obm.Node.Reboot.%s", uuid)
-
-				err = onrackhttp.PublishTask(cpiConfig, rebootNodeTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				bootstrapUbuntuTemplate := workflows.BootstrapUbuntuTaskTemplate()
-				bootstrapUbuntuTask := onrackhttp.Task{}
-
-				err = json.Unmarshal(bootstrapUbuntuTemplate, &bootstrapUbuntuTask)
-				Expect(err).ToNot(HaveOccurred())
-
-				bootstrapUbuntuTask.Name = fmt.Sprintf("Task.Linux.Bootstrap.Ubuntu.%s", uuid)
-
-				err = onrackhttp.PublishTask(cpiConfig, bootstrapUbuntuTask)
-				Expect(err).ToNot(HaveOccurred())
-
 				fakeWorkflowName := fmt.Sprintf("Test.Timeout.CF.Fake.%s", uuid)
 				fakeWorkflow := onrackhttp.Workflow{
 					Name:       fakeWorkflowName,
 					UnusedName: onrackhttp.DefaultUnusedName,
 					Tasks: []onrackhttp.WorkflowTask{
 						onrackhttp.WorkflowTask{
-							TaskName: pxeBootTask.Name,
+							TaskName: workflows.SetPxeBootTaskName,
 							Label:    "set-boot-pxe",
 						},
 						onrackhttp.WorkflowTask{
-							TaskName: rebootNodeTask.Name,
+							TaskName: workflows.RebootNodeTaskName,
 							Label:    "reboot",
 							WaitOn: map[string]string{
 								"set-boot-pxe": "finished",
 							},
 						},
 						onrackhttp.WorkflowTask{
-							TaskName: bootstrapUbuntuTask.Name,
+							TaskName: workflows.BootstrapUbuntuTaskName,
 							Label:    "bootstrap-ubuntu",
 							WaitOn: map[string]string{
 								"reboot": "succeeded",
