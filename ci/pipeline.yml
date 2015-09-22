@@ -8,7 +8,7 @@ jobs:
 - name: baremetal_cpi_test_suite
   plan:
   - aggregate:
-    - {trigger: false, get: bosh-cpi-release,     resource: bosh-cpi-release-in}
+    - {trigger: true, get: bosh-cpi-release,     resource: bosh-cpi-release-in}
 
   - task: test
     file: bosh-cpi-release/ci/tasks/baremetal_cpi_test_suite.yml
