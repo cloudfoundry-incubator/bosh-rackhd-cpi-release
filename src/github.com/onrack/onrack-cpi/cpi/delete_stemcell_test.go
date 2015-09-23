@@ -21,13 +21,13 @@ var _ = Describe("DeleteStemcell", func() {
 
 			config := config.Cpi{ApiServer: apiServerIP}
 
-			var createInput bosh.ExternalInput
+			var createInput bosh.MethodArguments
 			createInput = append(createInput, "../spec_assets/image")
 
 			baseName, err := cpi.CreateStemcell(config, createInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			var deleteInput bosh.ExternalInput
+			var deleteInput bosh.MethodArguments
 			deleteInput = append(deleteInput, baseName)
 			err = cpi.DeleteStemcell(config, deleteInput)
 			Expect(err).ToNot(HaveOccurred())
@@ -48,7 +48,7 @@ var _ = Describe("DeleteStemcell", func() {
 
 			config := config.Cpi{ApiServer: apiServerIP}
 
-			var deleteInput bosh.ExternalInput
+			var deleteInput bosh.MethodArguments
 			deleteInput = append(deleteInput, map[string]string{"invalid": "true"})
 			err := cpi.DeleteStemcell(config, deleteInput)
 			Expect(err).To(MatchError("Received unexpected type for stemcell cid"))

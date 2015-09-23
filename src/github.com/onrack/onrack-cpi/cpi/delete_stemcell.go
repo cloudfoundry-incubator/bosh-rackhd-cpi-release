@@ -10,7 +10,7 @@ import (
 	"github.com/onrack/onrack-cpi/onrackhttp"
 )
 
-func DeleteStemcell(c config.Cpi, extInput bosh.ExternalInput) error {
+func DeleteStemcell(c config.Cpi, extInput bosh.MethodArguments) error {
 	var cid string
 
 	if reflect.TypeOf(extInput[0]) != reflect.TypeOf(cid) {

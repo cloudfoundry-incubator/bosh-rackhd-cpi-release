@@ -38,7 +38,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				},
 				[],
 				{}]`)
-			var extInput bosh.ExternalInput
+			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 			agentID, vmCID, publicKey, networks, err := parseCreateVMInput(extInput)
@@ -58,7 +58,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-			var extInput bosh.ExternalInput
+			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -82,7 +82,7 @@ var _ = Describe("The VM Creation Workflow", func() {
     		[],
     		{}]`)
 
-			var extInput bosh.ExternalInput
+			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -106,7 +106,7 @@ var _ = Describe("The VM Creation Workflow", func() {
     		[],
     		{}]`)
 
-			var extInput bosh.ExternalInput
+			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -130,7 +130,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-			var extInput bosh.ExternalInput
+			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -150,7 +150,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				},
 				[],
 				{}]`)
-			var extInput bosh.ExternalInput
+			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 			_, _, _, _, err = parseCreateVMInput(extInput)
@@ -173,7 +173,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-				var extInput bosh.ExternalInput
+				var extInput bosh.MethodArguments
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -196,7 +196,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-				var extInput bosh.ExternalInput
+				var extInput bosh.MethodArguments
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -219,7 +219,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-				var extInput bosh.ExternalInput
+				var extInput bosh.MethodArguments
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -340,7 +340,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				[],
 				{}]`)
 
-			var extInput bosh.ExternalInput
+			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 

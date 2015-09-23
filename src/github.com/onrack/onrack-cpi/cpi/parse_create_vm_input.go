@@ -10,7 +10,7 @@ import (
 	"github.com/onrack/onrack-cpi/bosh"
 )
 
-func parseCreateVMInput(extInput bosh.ExternalInput) (string, string, string, map[string]bosh.Network, error) {
+func parseCreateVMInput(extInput bosh.MethodArguments) (string, string, string, map[string]bosh.Network, error) {
 	networkSpecs := map[string]bosh.Network{}
 	agentIDInput := extInput[0]
 	var agentID string

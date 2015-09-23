@@ -1,4 +1,4 @@
-package cli_test
+package bosh_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestCli(t *testing.T) {
+func TestBosh(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cli Suite")
+	RunSpecs(t, "Bosh Suite")
 }

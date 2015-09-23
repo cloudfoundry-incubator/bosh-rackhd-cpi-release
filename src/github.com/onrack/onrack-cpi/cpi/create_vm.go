@@ -16,7 +16,7 @@ import (
 	"github.com/onrack/onrack-cpi/onrackhttp"
 )
 
-func CreateVM(c config.Cpi, extInput bosh.ExternalInput) (string, error) {
+func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	agentID, stemcellCID, publicKey, boshNetworks, err := parseCreateVMInput(extInput)
 	if err != nil {
 		return "", err

@@ -25,7 +25,7 @@ var _ = Describe("CreateStemcell", func() {
 
 			config := config.Cpi{ApiServer: apiServerIP}
 
-			var input bosh.ExternalInput
+			var input bosh.MethodArguments
 			input = append(input, "../spec_assets/image")
 
 			uuid, err := cpi.CreateStemcell(config, input)
@@ -58,7 +58,7 @@ var _ = Describe("CreateStemcell", func() {
 		It("Returns an error", func() {
 			config := config.Cpi{}
 
-			var input bosh.ExternalInput
+			var input bosh.MethodArguments
 			input = append(input, map[string]string{"foo": "bar"})
 
 			uuid, err := cpi.CreateStemcell(config, input)

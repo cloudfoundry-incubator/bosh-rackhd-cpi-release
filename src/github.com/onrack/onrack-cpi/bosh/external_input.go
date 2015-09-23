@@ -5,4 +5,9 @@ package bosh
 	input interface, namely a valid JSON map, however, at this time we have an
 	 array with heterogeneous elements
 */
-type ExternalInput []interface{}
+type MethodArguments []interface{}
+
+type CpiRequest struct {
+	Method    string          `json:"method"`
+	Arugments MethodArguments `json:"arguments"`
+}

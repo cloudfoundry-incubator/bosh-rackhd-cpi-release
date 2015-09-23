@@ -12,7 +12,7 @@ import (
 	"github.com/onrack/onrack-cpi/onrackhttp"
 )
 
-func CreateStemcell(c config.Cpi, extInput bosh.ExternalInput) (string, error) {
+func CreateStemcell(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	var imagePath string
 
 	if reflect.TypeOf(extInput[0]) == reflect.TypeOf(imagePath) {
