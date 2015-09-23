@@ -16,7 +16,7 @@
     "tasks": [
       {
         "label": "provision-node",
-        "taskName": "Task.Os.Install.CF.Stemcell"
+        "taskName": "Task.Os.Provision.BOSH.Node"
       },
       {
         "label": "set-id-and-reboot",
