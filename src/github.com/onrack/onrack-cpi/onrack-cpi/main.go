@@ -76,13 +76,19 @@ func main() {
 
 	switch req.Method {
 	case cpi.CREATE_STEMCELL:
-		cid, err := cpi.CreateStemcell(cpiConfig, req.Arugments)
+		cid, err := cpi.CreateStemcell(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithError(fmt.Errorf("Error running CreateStemcell: %s", err))
 		}
 		exitWithResult(cid)
+	case cpi.CREATE_VM:
+		vmcid, err := cpi.CreateVM(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithError(fmt.Errorf("Error running CreateStemcell: %s", err))
+		}
+		exitWithResult(vmcid)
 	case cpi.DELETE_STEMCELL:
-		err = cpi.DeleteStemcell(cpiConfig, req.Arugments)
+		err = cpi.DeleteStemcell(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithError(fmt.Errorf("Error running DeleteStemcell: %s", err))
 		}

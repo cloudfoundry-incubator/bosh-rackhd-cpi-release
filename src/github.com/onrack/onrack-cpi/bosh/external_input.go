@@ -9,5 +9,5 @@ type MethodArguments []interface{}
 
 type CpiRequest struct {
 	Method    string          `json:"method"`
-	Arugments MethodArguments `json:"arguments"`
+	Arguments MethodArguments `json:"arguments"`
 }
