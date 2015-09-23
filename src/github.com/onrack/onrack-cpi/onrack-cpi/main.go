@@ -60,7 +60,7 @@ func main() {
 	}
 
 	req := bosh.CpiRequest{}
-	err = json.Unmarshal(reqBytes, req)
+	err = json.Unmarshal(reqBytes, &req)
 	if err != nil {
 		exitWithError(err)
 	}
