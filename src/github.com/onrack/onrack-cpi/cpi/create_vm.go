@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"strings"
 	"time"
 
+	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/workflows"
 )
 
 func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
@@ -21,9 +22,10 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	nodeID, err := selectNodeFromOnRack(c)
+
+	nodeID, err := tryReservation(c, selectNodeFromOnRack, reserveNodeFromOnRack)
 	if err != nil {
-		return "", fmt.Errorf("error getting a node from onrack %s", err)
+		return "", err
 	}
 
 	var netSpec bosh.Network
@@ -91,10 +93,10 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	}
 	log.Printf("Succeeded uploading public key, got '%s' as uuid", keyUUID)
 
-	uploadReq := onrackhttp.UploadAgentSettingsRequest{
+	createVMReq := onrackhttp.RunWorkflowRequestBody{
 		Name: onrackhttp.OnrackCreateVMGraphName,
-		Options: map[string]onrackhttp.UploadAgentSettingsOptions{
-			"defaults": onrackhttp.UploadAgentSettingsOptions{
+		Options: map[string]interface{}{
+			"defaults": workflows.UploadAgentSettingsOptions{
 				AgentSettingsFile:    nodeID,
 				AgentSettingsPath:    onrackhttp.OnrackEnvPath,
 				CID:                  vmCID,
@@ -106,25 +108,9 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		},
 	}
 
-	//refactor pending on workflow uploading
-	createVMURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s/workflows", c.ApiServer, nodeID)
-	createVMBytes, err := json.Marshal(uploadReq)
+	err = onrackhttp.RunWorkflow(c, nodeID, createVMReq)
 	if err != nil {
-		return "", fmt.Errorf("error marshalling agent env %s", err)
-	}
-	createVMReader := bytes.NewReader(createVMBytes)
-	createVMReq, err := http.NewRequest("POST", createVMURL, createVMReader)
-	if err != nil {
-		return "", fmt.Errorf("error creating request for create vm %s", err)
-	}
-	createVMReq.Header.Set("Content-Type", "application/json")
-	createVMResp, err := http.DefaultClient.Do(createVMReq)
-	if err != nil {
-		return "", fmt.Errorf("error making request start create vm workflow %s", err)
-	}
-
-	if createVMResp.StatusCode != 201 {
-		return "", fmt.Errorf("error creating vm workflow %s", err)
+		return "", err
 	}
 
 	return vmCID, nil
@@ -195,6 +181,29 @@ func tryReservation(c config.Cpi, choose selectionFunc, reserve reservationFunc)
 	}
 
 	return reserved, nil
+}
+
+func reserveNodeFromOnRack(c config.Cpi, nodeID string) (string, error) {
+	uuid, err := uuid.NewV4()
+	if err != nil {
+		return "", errors.New("error generating UUID")
+	}
+
+	workflowReq := onrackhttp.RunWorkflowRequestBody{
+		Name: onrackhttp.OnrackReserveVMGraphName,
+		Options: map[string]interface{}{
+			"defaults": workflows.ReserveVMOptions{
+				UUID: uuid.String(),
+			},
+		},
+	}
+
+	err = onrackhttp.RunWorkflow(c, nodeID, workflowReq)
+	if err != nil {
+		return "", fmt.Errorf("error reserving node %s", err)
+	}
+
+	return nodeID, nil
 }
 
 func selectNodeFromOnRack(c config.Cpi) (string, error) {

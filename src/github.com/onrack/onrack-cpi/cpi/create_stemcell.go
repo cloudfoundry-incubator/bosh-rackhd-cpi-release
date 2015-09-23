@@ -2,6 +2,7 @@ package cpi
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -23,8 +24,8 @@ func CreateStemcell(c config.Cpi, extInput bosh.MethodArguments) (string, error)
 
 	stemcellFile, err := os.Open(imagePath)
 	if err != nil {
-		log.Println("Error obtaining stemcell file handle")
-		return "", errors.New("Error obtaining stemcell file handle")
+		log.Printf("Error obtaining stemcell file handle %s", err)
+		return "", fmt.Errorf("Error obtaining stemcell file handle %s", err)
 	}
 
 	defer stemcellFile.Close()
