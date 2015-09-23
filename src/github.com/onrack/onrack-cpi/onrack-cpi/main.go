@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
+	"strings"
 
 	"encoding/json"
 	"io/ioutil"
@@ -24,6 +26,13 @@ func exitWithResult(result interface{}) {
 }
 
 func main() {
+	log.SetOutput(ioutil.Discard)
+	loggingEnabled := os.Getenv("ONRACK_CPI_ENABLE_LOGGING")
+
+	if strings.ToLower(loggingEnabled) == "true" {
+		log.SetOutput(os.Stderr)
+	}
+
 	configPath := flag.String("configPath", "", "Path to configuration file")
 	flag.Parse()
 
