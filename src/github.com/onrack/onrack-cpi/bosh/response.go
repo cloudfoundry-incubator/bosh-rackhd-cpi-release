@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	DefaultErrorType = "Bosh::Clouds::CloudError"
+	DefaultErrorType = "OnRackCpiError"
 )
 
 type ResponseError struct {
