@@ -54,6 +54,7 @@ var _ = Describe("CreateStemcell", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+
 	Context("With invalid CPI v1 input", func() {
 		It("Returns an error", func() {
 			config := config.Cpi{}
