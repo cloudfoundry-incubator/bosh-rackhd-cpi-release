@@ -30,17 +30,17 @@ var _ = Describe("Requests", func() {
 
 			uuid, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())
+			baseName := uuid.String()
 
-			url := fmt.Sprintf("http://%s:8080/api/common/files/metadata/%s", c.ApiServer, uuid.String())
+			url := fmt.Sprintf("http://%s:8080/api/common/files/metadata/%s", c.ApiServer, baseName)
 			resp, err := http.Get(url)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(404))
 
-			onrackUUID, err := onrackhttp.UploadFile(c, uuid.String(), dummyFile, int64(len(dummyStr)))
+			onrackUUID, err := onrackhttp.UploadFile(c, baseName, dummyFile, int64(len(dummyStr)))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(onrackUUID).ToNot(BeEmpty())
 
-			url = fmt.Sprintf("http://%s:8080/api/common/files/metadata/%s", c.ApiServer, uuid.String())
 			getResp, err := http.Get(url)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -56,12 +56,11 @@ var _ = Describe("Requests", func() {
 			Expect(fileMetadataResp).To(HaveLen(1))
 
 			fileMetadata := fileMetadataResp[0]
-			Expect(fileMetadata.Basename).To(Equal(uuid.String()))
+			Expect(fileMetadata.Basename).To(Equal(baseName))
 
-			err = onrackhttp.DeleteFile(c, onrackUUID)
+			err = onrackhttp.DeleteFile(c, baseName)
 			Expect(err).ToNot(HaveOccurred())
 
-			url = fmt.Sprintf("http://%s:8080/api/common/files/metadata/%s", c.ApiServer, uuid.String())
 			resp, err = http.Get(url)
 			Expect(err).ToNot(HaveOccurred())
 

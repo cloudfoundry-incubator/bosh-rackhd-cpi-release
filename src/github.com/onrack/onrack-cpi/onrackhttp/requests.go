@@ -44,8 +44,34 @@ func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64)
 	return string(bodyBytes), nil
 }
 
-func DeleteFile(c config.Cpi, uuid string) error {
-	url := fmt.Sprintf("http://%s:8080/api/common/files/%s", c.ApiServer, uuid)
+func DeleteFile(c config.Cpi, baseName string) error {
+	url := fmt.Sprintf("http://%s:8080/api/common/files/metadata/%s", c.ApiServer, baseName)
+	metadataResp, err := http.Get(url)
+	if err != nil {
+		log.Printf("error getting file metadata: %s", err)
+		return fmt.Errorf("error getting file metadata: %s", err)
+	}
+	defer metadataResp.Body.Close()
+
+	if metadataResp.StatusCode == 404 {
+		log.Printf("File with basename: %s has already been deleted", baseName)
+		return nil
+	}
+
+	metadataBytes, err := ioutil.ReadAll(metadataResp.Body)
+	if err != nil {
+		log.Printf("error reading metadata response body %s", err)
+		return fmt.Errorf("error reading metadata response body %s", err)
+	}
+
+	metadata := FileMetadataResponse{}
+	err = json.Unmarshal(metadataBytes, &metadata)
+	if err != nil {
+		log.Printf("error unmarshalling metadata response: %s", err)
+		return fmt.Errorf("error unmarshalling metadata response: %s", err)
+	}
+
+	url = fmt.Sprintf("http://%s:8080/api/common/files/%s", c.ApiServer, metadata[0].UUID)
 	deleteReq, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return fmt.Errorf("error creating delete request %s", err)
@@ -56,8 +82,13 @@ func DeleteFile(c config.Cpi, uuid string) error {
 		return fmt.Errorf("error performing delete request %s", err)
 	}
 
+	if deleteResp.StatusCode == 404 {
+		log.Printf("File with basename: %s has already been deleted", baseName)
+		return nil
+	}
+
 	if deleteResp.StatusCode != 204 {
-		return fmt.Errorf("Failed deleting %s with status: %s", uuid, deleteResp.Status)
+		return fmt.Errorf("Failed deleting: %s with status: %s", baseName, deleteResp.Status)
 	}
 
 	return nil
