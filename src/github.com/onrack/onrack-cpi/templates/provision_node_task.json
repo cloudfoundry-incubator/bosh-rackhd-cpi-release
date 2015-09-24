@@ -1,7 +1,7 @@
 {
+  "injectableName": "Task.BOSH.Provision.Node",
   "friendlyName": "Provision Node",
   "implementsTask": "Task.Base.Linux.Commands",
-  "injectableName": "Task.Os.Provision.BOSH.Node",
   "options": {
     "agentSettingsFile": null,
     "agentSettingsMd5Uri": "{{ api.files }}/md5/{{ options.agentSettingsFile }}/latest",

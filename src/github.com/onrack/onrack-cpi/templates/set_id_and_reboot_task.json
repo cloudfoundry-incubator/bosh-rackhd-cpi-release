@@ -1,13 +1,13 @@
 {
-"friendlyName" : "Set Id and Reboot VM",
-"injectableName" : "Task.Os.SetId.VM",
-"implementsTask": "Task.Base.Linux.Commands",
-"options": {
-  "cid": null,
-  "commands":[
-    "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'",
-    "sudo reboot"
-  ]
- },
- "properties": {}
+  "friendlyName" : "Set Id and Reboot VM",
+  "injectableName" : "Task.Os.SetId.VM",
+  "implementsTask": "Task.Base.Linux.Commands",
+  "options": {
+    "cid": null,
+    "commands":[
+      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'",
+      "sudo reboot"
+    ]
+  },
+  "properties": {}
 }

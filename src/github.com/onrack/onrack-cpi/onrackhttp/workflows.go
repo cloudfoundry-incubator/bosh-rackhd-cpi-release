@@ -21,6 +21,11 @@ type Workflow struct {
 	Options    map[string]interface{} `json:"options"`
 }
 
+type WorkflowStub struct {
+	Name       string `json:"injectableName"`
+	UnusedName string `json:"friendlyName"`
+}
+
 type WorkflowResponse struct {
 	Name    string                  `json:"injectableName"`
 	Tasks   map[string]TaskResponse `json:"tasks"`
@@ -32,7 +37,7 @@ type WorkflowTask struct {
 	TaskName      string            `json:"taskName"`
 	Label         string            `json:"label"`
 	WaitOn        map[string]string `json:"waitOn,omitempty"`
-	IgnoreFailure bool              `json:"ignoreFailure"`
+	IgnoreFailure bool              `json:"ignoreFailure,omitempty"`
 }
 
 type Task struct {
@@ -41,6 +46,20 @@ type Task struct {
 	UnusedName     string                 `json:"friendlyName"`
 	Options        map[string]interface{} `json:"options"`
 	Properties     map[string]interface{} `json:"properties"`
+}
+
+type TaskStub struct {
+	Name           string `json:"injectableName"`
+	UnusedName     string `json:"friendlyName"`
+	ImplementsTask string `json:"implementsTask,omitempty"`
+}
+
+type PropertyContainer struct {
+	Properties interface{} `json:"properties"`
+}
+
+type OptionContainer struct {
+	Options interface{} `json:"options"`
 }
 
 type TaskResponse struct {

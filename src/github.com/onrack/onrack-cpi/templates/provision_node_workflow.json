@@ -1,6 +1,6 @@
 {
-    "friendlyName": "CF Create VM",
-    "injectableName": "Graph.CF.CreateVM",
+    "friendlyName": "BOSH Provision Node",
+    "injectableName": "Graph.BOSH.ProvisionNode",
     "options": {
       "defaults": {
         "agentSettingsFile": null,
@@ -16,11 +16,11 @@
     "tasks": [
       {
         "label": "provision-node",
-        "taskName": "Task.Os.Provision.BOSH.Node"
+        "taskName": "Task.Provision.BOSH.Node"
       },
       {
         "label": "set-id-and-reboot",
-        "taskName": "Task.Os.SetId.VM",
+        "taskName": "Task.SetId.VM",
         "waitOn": {
           "provision-node": "succeeded"
         }
