@@ -416,7 +416,22 @@ var _ = Describe("The VM Creation Workflow", func() {
 			onRackID, err := selectNonReservedNode(nodes)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(onRackID).To(Equal("55e79ea54e66816f6152fff9"))
+		})
 
+		It("return an error if all nodes are created vms with cids", func() {
+			dummyResponseFile, err := os.Open("../spec_assets/dummy_all_nodes_are_vms.json")
+			Expect(err).ToNot(HaveOccurred())
+			defer dummyResponseFile.Close()
+
+			dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
+			Expect(err).ToNot(HaveOccurred())
+
+			nodes := []onrackhttp.Node{}
+			err = json.Unmarshal(dummyResponseBytes, &nodes)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = selectNonReservedNode(nodes)
+			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 	})
 

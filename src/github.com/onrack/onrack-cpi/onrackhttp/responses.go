@@ -47,4 +47,5 @@ type Node struct {
 	Workflows []interface{} `json:"workflows"`
 	Reserved  string        `json:"reserved"`
 	ID        string        `json:"id"`
+	CID       string        `json:"cid"`
 }

@@ -246,7 +246,7 @@ func rejectReservedNodes(nodes []onrackhttp.Node) []onrackhttp.Node {
 	var n []onrackhttp.Node
 
 	for i := range nodes {
-		if nodes[i].Reserved == "" {
+		if nodes[i].Reserved == "" && nodes[i].CID == "" {
 			n = append(n, nodes[i])
 		}
 	}
