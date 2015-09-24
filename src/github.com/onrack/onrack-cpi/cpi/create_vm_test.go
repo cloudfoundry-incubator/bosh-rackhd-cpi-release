@@ -13,7 +13,10 @@ package cpi
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -229,6 +232,34 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 	})
 
+	Describe("unreserving a node", func() {
+		It("return a node with reserved flag unset", func() {
+			apiServerIP := os.Getenv("ON_RACK_API_URI")
+			Expect(apiServerIP).ToNot(BeEmpty())
+			c := config.Cpi{ApiServer: apiServerIP}
+
+			nodes, err := onrackhttp.GetNodes(c)
+			Expect(err).ToNot(HaveOccurred())
+			targetNodeID := nodes[0].ID
+			log.Printf("targetNodeId: %s", targetNodeID)
+			err = onrackhttp.ReleaseNode(c, targetNodeID)
+			Expect(err).ToNot(HaveOccurred())
+			nodeURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, targetNodeID)
+
+			resp, err := http.Get(nodeURL)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(200))
+
+			nodeBytes, err := ioutil.ReadAll(resp.Body)
+			Expect(err).ToNot(HaveOccurred())
+
+			var node onrackhttp.Node
+			err = json.Unmarshal(nodeBytes, &node)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(node.Reserved).To(Equal(""))
+		})
+	})
+
 	Describe("building the BOSH agent networking spec", func() {
 		It("returns an error if no active networks can be found", func() {
 			dummyCatalogfile, err := os.Open("../spec_assets/dummy_node_catalog_all_interface_down_response.json")
@@ -320,7 +351,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 				netSpec, err := attachMAC(nodeCatalog.Data.NetworkData.Networks, prevSpec)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(netSpec.MAC).To(Equal("00:1E:67:C4:E1:A0"))
+				Expect(netSpec.MAC).To(Equal("00:1e:67:c4:e1:a0"))
 			})
 		})
 	})

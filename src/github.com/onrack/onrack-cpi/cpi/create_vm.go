@@ -28,6 +28,8 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
+	defer onrackhttp.ReleaseNode(c, nodeID)
+
 	var netSpec bosh.Network
 	var netName string
 	for k, v := range boshNetworks {
