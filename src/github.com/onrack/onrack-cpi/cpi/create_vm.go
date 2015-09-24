@@ -152,7 +152,7 @@ func attachMAC(nodeNetworks map[string]onrackhttp.Network, oldSpec bosh.Network)
 		IP:          oldSpec.IP,
 		Default:     oldSpec.Default,
 		DNS:         oldSpec.DNS,
-		MAC:         nodeMac,
+		MAC:         strings.ToLower(nodeMac),
 	}
 
 	return net, nil
@@ -166,11 +166,13 @@ func tryReservation(c config.Cpi, choose selectionFunc, reserve reservationFunc)
 	for i := 0; i < c.MaxCreateVMAttempt; i++ {
 		nodeID, err := choose(c)
 		if err != nil {
+			log.Printf("retry %d: error choosing node %s", i, err)
 			continue
 		}
 
 		reserved, err = reserve(c, nodeID)
 		if err != nil {
+			log.Printf("retry %d: error reserving node %s", i, err)
 			continue
 		}
 
@@ -206,6 +208,7 @@ func reserveNodeFromOnRack(c config.Cpi, nodeID string) (string, error) {
 		return "", fmt.Errorf("error reserving node %s", err)
 	}
 
+	log.Printf("reserved node %s", nodeID)
 	return nodeID, nil
 }
 
@@ -220,6 +223,7 @@ func selectNodeFromOnRack(c config.Cpi) (string, error) {
 		return "", err
 	}
 
+	log.Printf("selected node %s", nodeID)
 	return nodeID, nil
 }
 

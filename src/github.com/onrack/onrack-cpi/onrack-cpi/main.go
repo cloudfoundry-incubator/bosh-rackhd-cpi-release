@@ -26,11 +26,11 @@ func exitWithResult(result interface{}) {
 }
 
 func main() {
-	log.SetOutput(ioutil.Discard)
 	loggingEnabled := os.Getenv("ONRACK_CPI_ENABLE_LOGGING")
-
 	if strings.ToLower(loggingEnabled) == "true" {
 		log.SetOutput(os.Stderr)
+	} else {
+		log.SetOutput(ioutil.Discard)
 	}
 
 	configPath := flag.String("configPath", "", "Path to configuration file")
@@ -40,16 +40,11 @@ func main() {
 	defer file.Close()
 
 	if err != nil {
+		log.Printf("unable to open configuration file %s", err)
 		exitWithError(err)
 	}
 
-	fileBody, err := ioutil.ReadAll(file)
-	if err != nil {
-		exitWithError(err)
-	}
-
-	var cpiConfig config.Cpi
-	err = json.Unmarshal(fileBody, &cpiConfig)
+	cpiConfig, err := config.New(file)
 	if err != nil {
 		exitWithError(err)
 	}
@@ -84,7 +79,7 @@ func main() {
 	case cpi.CREATE_VM:
 		vmcid, err := cpi.CreateVM(cpiConfig, req.Arguments)
 		if err != nil {
-			exitWithError(fmt.Errorf("Error running CreateStemcell: %s", err))
+			exitWithError(fmt.Errorf("Error running CreateVM: %s", err))
 		}
 		exitWithResult(vmcid)
 	case cpi.DELETE_STEMCELL:

@@ -1,0 +1,14 @@
+{
+    "default": {
+        "cloud_properties": {},
+        "default": [
+            "dns",
+            "gateway"
+        ],
+        "dns": null,
+        "gateway": "",
+        "ip": "",
+        "netmask": "255.255.252.0",
+        "type": "manual"
+    }
+}
