@@ -72,6 +72,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer onrackhttp.DeleteFile(c, nodeID)
 
 	agentRegistryName := fmt.Sprintf("agent-%s", vmCID)
 	regBytes, err := json.Marshal(bosh.DefaultAgentRegistrySettings())
@@ -83,6 +84,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer onrackhttp.DeleteFile(c, agentRegistryName)
 	log.Printf("Succeeded uploading agent registry, got '%s' as uuid", regUUID)
 
 	publicKeyName := fmt.Sprintf("key-%s", vmCID)
@@ -91,6 +93,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer onrackhttp.DeleteFile(c, publicKeyName)
 	log.Printf("Succeeded uploading public key, got '%s' as uuid", keyUUID)
 
 	createVMReq := onrackhttp.RunWorkflowRequestBody{
