@@ -1,0 +1,37 @@
+{
+  "friendlyName": "BOSH Reserve Node",
+  "injectableName": "Graph.BOSH.ReserveNode",
+  "options": {
+    "defaults": {
+      "uuid": null
+    }
+  },
+  "tasks": [
+    {
+      "label": "set-boot-pxe",
+      "taskName": "Task.Obm.Node.PxeBoot",
+      "ignoreFailure": true
+    },
+    {
+      "label": "reboot",
+      "taskName": "Task.Obm.Node.Reboot",
+      "waitOn": {
+        "set-boot-pxe": "finished"
+      }
+    },
+    {
+      "label": "bootstrap-ubuntu",
+      "taskName": "Task.Linux.Bootstrap.Ubuntu",
+      "waitOn": {
+        "reboot": "succeeded"
+      }
+    },
+    {
+      "label": "reserve-node",
+      "taskName": "Task.BOSH.Reserve.Node",
+      "waitOn": {
+        "bootstrap-ubuntu": "succeeded"
+      }
+    }
+  ]
+}
