@@ -22,8 +22,8 @@ import (
 var _ = Describe("ReserveNodeTasks", func() {
 	Describe("ReserveNodeTemplate", func() {
 		It("has the expected stucture", func() {
-			vendoredTask := ReserveNodeTask{}
-			err := json.Unmarshal(reserveNodeTemplate, &vendoredTask)
+			vendoredTask := reserveNodeTask{}
+			err := json.Unmarshal(reserveNodeTaskTemplate, &vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
 			reserveNodeTaskFile, err := os.Open("../templates/reserve_node_task.json")
@@ -33,7 +33,7 @@ var _ = Describe("ReserveNodeTasks", func() {
 			b, err := ioutil.ReadAll(reserveNodeTaskFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedTask := ReserveNodeTask{}
+			expectedTask := reserveNodeTask{}
 			err = json.Unmarshal(b, &expectedTask)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -41,8 +41,8 @@ var _ = Describe("ReserveNodeTasks", func() {
 		})
 
 		It("marshalls into the expected JSON document", func() {
-			vendoredTask := ReserveNodeTask{}
-			err := json.Unmarshal(reserveNodeTemplate, &vendoredTask)
+			vendoredTask := reserveNodeTask{}
+			err := json.Unmarshal(reserveNodeTaskTemplate, &vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
 			vendoredTaskJSON, err := json.Marshal(vendoredTask)

@@ -98,24 +98,28 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	defer onrackhttp.DeleteFile(c, publicKeyName)
 	log.Printf("Succeeded uploading public key, got '%s' as uuid", keyUUID)
 
-	createVMReq := onrackhttp.RunWorkflowRequestBody{
-		Name: onrackhttp.OnrackCreateVMGraphName,
-		Options: map[string]interface{}{
-			"defaults": workflows.UploadAgentSettingsOptions{
-				AgentSettingsFile:    nodeID,
-				AgentSettingsPath:    onrackhttp.OnrackEnvPath,
-				CID:                  vmCID,
-				PublicKeyFile:        publicKeyName,
-				RegistrySettingsFile: agentRegistryName,
-				RegistrySettingsPath: onrackhttp.OnrackRegistryPath,
-				StemcellFile:         stemcellCID,
-			},
-		},
+	workflowName, err := workflows.PublishProvisionNodeWorkflow(c, vmCID)
+	if err != nil {
+		log.Printf("error publishing provision workflow: %s", err)
+		return "", fmt.Errorf("error publishing provision workflow: %s", err)
 	}
 
-	err = onrackhttp.RunWorkflow(c, nodeID, createVMReq)
+	envPath := onrackhttp.OnrackEnvPath
+	regPath := onrackhttp.OnrackRegistryPath
+	options := workflows.ProvisionNodeWorkflowOptions{
+		AgentSettingsFile:    &nodeID,
+		AgentSettingsPath:    &envPath,
+		CID:                  &vmCID,
+		PublicKeyFile:        &publicKeyName,
+		RegistrySettingsFile: &agentRegistryName,
+		RegistrySettingsPath: &regPath,
+		StemcellFile:         &stemcellCID,
+	}
+
+	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, options)
 	if err != nil {
-		return "", err
+		log.Printf("error running provision workflow: %s", err)
+		return "", fmt.Errorf("error running provision workflow: %s", err)
 	}
 
 	return vmCID, nil
@@ -191,23 +195,24 @@ func tryReservation(c config.Cpi, choose selectionFunc, reserve reservationFunc)
 }
 
 func reserveNodeFromOnRack(c config.Cpi, nodeID string) (string, error) {
-	uuid, err := uuid.NewV4()
+	u, err := uuid.NewV4()
 	if err != nil {
 		return "", errors.New("error generating UUID")
 	}
+	uStr := u.String()
 
-	workflowReq := onrackhttp.RunWorkflowRequestBody{
-		Name: onrackhttp.OnrackReserveVMGraphName,
-		Options: map[string]interface{}{
-			"defaults": workflows.ReserveVMOptions{
-				UUID: uuid.String(),
-			},
-		},
+	worflowName, err := workflows.PublishReserveNodeWorkflow(c, u.String())
+	if err != nil {
+		log.Printf("error publishing reserve workflow: %s", err)
+		return "", fmt.Errorf("error publishing reserve workflow: %s", err)
 	}
 
-	err = onrackhttp.RunWorkflow(c, nodeID, workflowReq)
+	o := workflows.ReserveNodeWorkflowOptions{UUID: &uStr}
+
+	err = workflows.RunReserveNodeWorkflow(c, nodeID, worflowName, o)
 	if err != nil {
-		return "", fmt.Errorf("error reserving node %s", err)
+		log.Printf("error running reserve workflow: %s", err)
+		return "", fmt.Errorf("error running reserve workflow: %s", err)
 	}
 
 	log.Printf("reserved node %s", nodeID)

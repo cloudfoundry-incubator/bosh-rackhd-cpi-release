@@ -1,6 +1,6 @@
 {
   "friendlyName" : "Reserve Node",
-  "injectableName" : "Task.Os.Reserve.CF.VM",
+  "injectableName" : "Task.BOSH.Reserve.Node",
   "implementsTask": "Task.Base.Linux.Commands",
   "options": {
     "uuid": null,

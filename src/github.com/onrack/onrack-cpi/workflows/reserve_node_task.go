@@ -2,44 +2,24 @@ package workflows
 
 import "github.com/onrack/onrack-cpi/onrackhttp"
 
-type UploadAgentSettingsOptions struct {
-	AgentSettingsFile    string `json:"agentSettingsFile"`
-	AgentSettingsPath    string `json:"agentSettingsPath"`
-	CID                  string `json:"cid"`
-	DownloadDir          string `json:"downloadDir,omitempty"`
-	PublicKeyFile        string `json:"publicKeyFile"`
-	RegistrySettingsFile string `json:"registrySettingsFile"`
-	RegistrySettingsPath string `json:"registrySettingsPath"`
-	StemcellFile         string `json:"stemcellFile"`
-}
-
-type ReserveVMOptions struct {
-	UUID string `json:"uuid"`
-}
-
-type SetIdAndRebootOptions struct {
-	CID      string   `json:"cid"`
-	Commands []string `json:"commands"`
-}
-
-type ReserveNodeOptions struct {
+type reserveNodeTaskOptions struct {
 	UUID     *string  `json:"uuid"`
 	Commands []string `json:"commands"`
 }
 
-type ReserveNodeTask struct {
+type reserveNodeTask struct {
 	*onrackhttp.TaskStub
 	*onrackhttp.PropertyContainer
-	*ReserveNodeOptionsContainer
+	*reserveNodeTaskOptionsContainer
 }
 
-type ReserveNodeOptionsContainer struct {
-	Options ReserveNodeOptions `json:"options"`
+type reserveNodeTaskOptionsContainer struct {
+	Options reserveNodeTaskOptions `json:"options"`
 }
 
-var reserveNodeTemplate = []byte(`{
+var reserveNodeTaskTemplate = []byte(`{
   "friendlyName" : "Reserve Node",
-  "injectableName" : "Task.Os.Reserve.CF.VM",
+  "injectableName" : "Task.BOSH.Reserve.Node",
   "implementsTask": "Task.Base.Linux.Commands",
   "options": {
     "uuid": null,

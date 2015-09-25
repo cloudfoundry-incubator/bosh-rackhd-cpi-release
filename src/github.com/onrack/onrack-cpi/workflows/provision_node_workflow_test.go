@@ -67,7 +67,7 @@ var _ = Describe("ProvisionNodeWorkflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			uID := u.String()
 
-			tasksBytes, wBytes, err := GenerateProvisionNodeWorkflow(uID)
+			tasksBytes, wBytes, err := generateProvisionNodeWorkflow(uID)
 			Expect(err).ToNot(HaveOccurred())
 
 			p := provisionNodeTask{}
@@ -83,7 +83,6 @@ var _ = Describe("ProvisionNodeWorkflow", func() {
 			w := provisionNodeWorkflow{}
 			err = json.Unmarshal(wBytes, &w)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(w.Tasks).To(HaveLen(2))
 
 			Expect(w.Name).To(ContainSubstring(uID))
 			Expect(w.Tasks).To(HaveLen(2))

@@ -9,12 +9,17 @@ import (
 	"github.com/onrack/onrack-cpi/onrackhttp"
 )
 
-//eg: poll workflow library, retry w/ timeout
-//func PublishCreateVMWorkflow(config cpi.Config, uuid string)
-//func PublishDeleteVMWorkflow(config cpi.Config, uuid string)
+func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, options ProvisionNodeWorkflowOptions) error {
+	req := onrackhttp.RunWorkflowRequestBody{
+		Name:    workflowName,
+		Options: map[string]interface{}{"defaults": options},
+	}
+
+	return onrackhttp.RunWorkflow(c, nodeID, req)
+}
 
 func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, error) {
-	tasks, workflow, err := GenerateProvisionNodeWorkflow(uuid)
+	tasks, workflow, err := generateProvisionNodeWorkflow(uuid)
 	if err != nil {
 		return "", err
 	}
@@ -41,7 +46,7 @@ func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, er
 	return w.Name, nil
 }
 
-func GenerateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
+func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	p := provisionNodeTask{}
 	err := json.Unmarshal(provisionNodeTemplate, &p)
 	if err != nil {
@@ -117,7 +122,6 @@ type provisionNodeWorkflowDefaultOptionsContainer struct {
 
 type provisionNodeWorkflow struct {
 	*onrackhttp.WorkflowStub
-	*onrackhttp.PropertyContainer
 	*provisionNodeWorkflowOptionsContainer
 	Tasks []onrackhttp.WorkflowTask `json:"tasks"`
 }
