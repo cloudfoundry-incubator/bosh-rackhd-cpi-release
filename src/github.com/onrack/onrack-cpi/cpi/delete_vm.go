@@ -2,13 +2,13 @@ package cpi
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"reflect"
 
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/workflows"
 )
 
 func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
@@ -36,17 +36,10 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 		return errors.New("cid was not found")
 	}
 
-	workflowReq := onrackhttp.RunWorkflowRequestBody{
-		Name: onrackhttp.OnrackDeleteVMGraphName,
-		Options: map[string]interface{}{
-			"defaults": nil,
-		},
-	}
-
-	err = onrackhttp.RunWorkflow(c, nodeID, workflowReq)
+	workflowName, err := workflows.PublishDeprovisionNodeWorkflow(c, cid)
 	if err != nil {
-		return fmt.Errorf("error reserving node %s", err)
+		return err
 	}
 
-	return nil
+	return workflows.RunDeprovisionNodeWorkflow(c, nodeID, workflowName)
 }
