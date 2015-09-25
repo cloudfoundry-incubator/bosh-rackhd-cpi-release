@@ -2,7 +2,7 @@ package workflows
 
 import "github.com/onrack/onrack-cpi/onrackhttp"
 
-type ProvisionNodeOptions struct {
+type provisionNodeOptions struct {
 	AgentSettingsFile      *string  `json:"agentSettingsFile"`
 	AgentSettingsMd5Uri    string   `json:"agentSettingsMd5Uri"`
 	AgentSettingsPath      *string  `json:"agentSettingsPath"`
@@ -22,14 +22,14 @@ type ProvisionNodeOptions struct {
 	StemcellURI            string   `json:"stemcellUri"`
 }
 
-type ProvisionNodeTask struct {
+type provisionNodeTask struct {
 	*onrackhttp.TaskStub
 	*onrackhttp.PropertyContainer
 	*provisionNodeOptionsContainer
 }
 
 type provisionNodeOptionsContainer struct {
-	Options ProvisionNodeOptions `json:"options"`
+	Options provisionNodeOptions `json:"options"`
 }
 
 var provisionNodeTemplate = []byte(`{
@@ -84,20 +84,6 @@ var provisionNodeTemplate = []byte(`{
     "stemcellFile": null,
     "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
     "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest"
-  },
-  "properties": {}
-}`)
-
-var setNodeIDThenRebootTemplate = []byte(`{
-  "friendlyName" : "Set Id and Reboot VM",
-  "injectableName" : "Task.Os.SetId.VM",
-  "implementsTask": "Task.Base.Linux.Commands",
-  "options": {
-    "cid": null,
-    "commands":[
-      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'",
-      "sudo reboot"
-    ]
   },
   "properties": {}
 }`)

@@ -16,11 +16,11 @@
     "tasks": [
       {
         "label": "provision-node",
-        "taskName": "Task.Provision.BOSH.Node"
+        "taskName": "Task.BOSH.Provision.Node"
       },
       {
         "label": "set-id-and-reboot",
-        "taskName": "Task.SetId.VM",
+        "taskName": "Task.BOSH.SetNodeId",
         "waitOn": {
           "provision-node": "succeeded"
         }

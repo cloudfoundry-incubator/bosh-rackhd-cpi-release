@@ -1,6 +1,6 @@
 {
   "friendlyName" : "Set Id and Reboot VM",
-  "injectableName" : "Task.Os.SetId.VM",
+  "injectableName" : "Task.BOSH.SetNodeId",
   "implementsTask": "Task.Base.Linux.Commands",
   "options": {
     "cid": null,

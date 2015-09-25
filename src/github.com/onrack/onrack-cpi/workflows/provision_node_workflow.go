@@ -1,27 +1,99 @@
 package workflows
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
+
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
 )
 
-//make sure they block until finished
 //eg: poll workflow library, retry w/ timeout
 //func PublishCreateVMWorkflow(config cpi.Config, uuid string)
 //func PublishDeleteVMWorkflow(config cpi.Config, uuid string)
-//func UnpublishWorkflow(config cpi.Config, uuid string)
-//func RunCreateVMWorkflow(config cpi.Config, nodeID string, uuid string)
-//func RunDeleteVMWorkflow(config cpi.Config, nodeID string, uuid string)
-//func KillActiveWorkflowsOnVM(config cpi.Config, nodeID string)
 
-func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) error {
+func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, error) {
+	tasks, workflow, err := GenerateProvisionNodeWorkflow(uuid)
+	if err != nil {
+		return "", err
+	}
 
-	return nil
+	for i := range tasks {
+		err = onrackhttp.PublishTask(cpiConfig, tasks[i])
+		if err != nil {
+			return "", err
+		}
+	}
+
+	w := provisionNodeWorkflow{}
+	err = json.Unmarshal(workflow, &w)
+	if err != nil {
+		log.Printf("error umarshalling workflow: %s", err)
+		return "", err
+	}
+
+	err = onrackhttp.PublishWorkflow(cpiConfig, workflow)
+	if err != nil {
+		return "", err
+	}
+
+	return w.Name, nil
 }
 
-func GenerateProvisionNodeWorkflow(uuid string) onrackhttp.Workflow {
+func GenerateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
+	p := provisionNodeTask{}
+	err := json.Unmarshal(provisionNodeTemplate, &p)
+	if err != nil {
+		log.Printf("error unmarshalling provision node task template: %s\n", err)
+		return nil, nil, fmt.Errorf("error unmarshalling provision node task template: %s\n", err)
+	}
 
-	return onrackhttp.Workflow{}
+	p.Name = fmt.Sprintf("%s.%s", p.Name, uuid)
+	p.UnusedName = fmt.Sprintf("%s.%s", p.UnusedName, "UPLOADED_BY_ONRACK_CPI")
+
+	pBytes, err := json.Marshal(p)
+	if err != nil {
+		log.Printf("error marshalling provision node task template: %s\n", err)
+		return nil, nil, fmt.Errorf("error marshalling provision node task template: %s\n", err)
+	}
+
+	s := setNodeIDThenRebootTask{}
+	err = json.Unmarshal(setNodeIDThenRebootTemplate, &s)
+	if err != nil {
+		log.Printf("error unmarshalling set node id task template: %s\n", err)
+		return nil, nil, fmt.Errorf("error unmarshalling set node id task template: %s\n", err)
+	}
+
+	s.Name = fmt.Sprintf("%s.%s", s.Name, uuid)
+	s.UnusedName = fmt.Sprintf("%s.%s", s.UnusedName, "UPLOADED_BY_ONRACK_CPI")
+
+	sBytes, err := json.Marshal(s)
+	if err != nil {
+		log.Printf("error marshalling set node id task template: %s\n", err)
+		return nil, nil, fmt.Errorf("error marshalling set node id task template: %s\n", err)
+	}
+
+	w := provisionNodeWorkflow{}
+	err = json.Unmarshal(provisionNodeWorkflowTemplate, &w)
+	if err != nil {
+		log.Printf("error unmarshalling provision node workflow template: %s\n", err)
+		return nil, nil, fmt.Errorf("error unmarshalling provision node workflow template: %s\n", err)
+	}
+
+	w.Name = fmt.Sprintf("%s.%s", w.Name, uuid)
+	w.UnusedName = fmt.Sprintf("%s.%s", w.UnusedName, "UPLOADED_BY_ONRACK_CPI")
+	for i := range w.Tasks {
+		w.Tasks[i].TaskName = fmt.Sprintf("%s.%s", w.Tasks[i].TaskName, uuid)
+	}
+
+	wBytes, err := json.Marshal(w)
+	if err != nil {
+		log.Printf("error marshalling provision node workflow template: %s\n", err)
+		return nil, nil, fmt.Errorf("error marshalling provision node workflow template: %s\n", err)
+	}
+
+	return [][]byte{pBytes, sBytes}, wBytes, nil
 }
 
 type ProvisionNodeWorkflowOptions struct {
@@ -43,15 +115,11 @@ type provisionNodeWorkflowDefaultOptionsContainer struct {
 	Defaults ProvisionNodeWorkflowOptions `json:"defaults"`
 }
 
-type provisionNodeTasksContainer struct {
-	TaskList []onrackhttp.WorkflowTask `json:"tasks"`
-}
-
-type ProvisionNodeWorkflow struct {
+type provisionNodeWorkflow struct {
 	*onrackhttp.WorkflowStub
 	*onrackhttp.PropertyContainer
 	*provisionNodeWorkflowOptionsContainer
-	*provisionNodeTasksContainer
+	Tasks []onrackhttp.WorkflowTask `json:"tasks"`
 }
 
 var provisionNodeWorkflowTemplate = []byte(`{
@@ -72,11 +140,11 @@ var provisionNodeWorkflowTemplate = []byte(`{
   "tasks": [
     {
       "label": "provision-node",
-      "taskName": "Task.Provision.BOSH.Node"
+      "taskName": "Task.BOSH.Provision.Node"
     },
     {
       "label": "set-id-and-reboot",
-      "taskName": "Task.SetId.VM",
+      "taskName": "Task.BOSH.SetNodeId",
       "waitOn": {
         "provision-node": "succeeded"
       }

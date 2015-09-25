@@ -1,12 +1,52 @@
 package workflows
 
+import "github.com/onrack/onrack-cpi/onrackhttp"
+
 const (
 	SetPxeBootTaskName      = "Task.Obm.Node.PxeBoot"
 	RebootNodeTaskName      = "Task.Obm.Node.Reboot"
 	BootstrapUbuntuTaskName = "Task.Linux.Bootstrap.Ubuntu"
 )
 
-var bootstrapUbuntuTaskTemplate []byte = []byte(`
+type bootstrapUbuntuTaskOptions struct {
+	Kernelversion string `json:"kernelversion"`
+	Kernel        string `json:"kernel"`
+	Initrd        string `json:"initrd"`
+	Basefs        string `json:"basefs"`
+	Overlayfs     string `json:"overlayfs"`
+	Profile       string `json:"profile"`
+	Comport       string `json:"comport"`
+}
+
+type bootstrapUbuntuTaskOptionsContainer struct {
+	Options bootstrapUbuntuTaskOptions `json:"options"`
+}
+
+type bootstrapUbuntuTaskProperties struct {
+	OS boostrapUbuntuTaskOsProperties `json:"os"`
+}
+
+type boostrapUbuntuTaskOsProperties struct {
+	Linux boostrapUbuntuTaskOsLinuxProperties `json:"linux"`
+}
+
+type boostrapUbuntuTaskOsLinuxProperties struct {
+	Distribution string `json:"distribution"`
+	Release      string `json:"release"`
+	Kernel       string `json:"kernel"`
+}
+
+type bootstrapUbuntuTaskPropertiesContainer struct {
+	Properties bootstrapUbuntuTaskProperties `json:"properties"`
+}
+
+type bootstrapUbuntuTask struct {
+	*onrackhttp.TaskStub
+	*bootstrapUbuntuTaskOptionsContainer
+	*bootstrapUbuntuTaskPropertiesContainer
+}
+
+var bootstrapUbuntuTaskTemplate = []byte(`
 	{
 	  "friendlyName": "Bootstrap Ubuntu",
 	  "injectableName": "Task.Linux.Bootstrap.Ubuntu",
@@ -31,7 +71,30 @@ var bootstrapUbuntuTaskTemplate []byte = []byte(`
 	  }
 	}`)
 
-var setPxeBootTemplate []byte = []byte(`
+type obmServiceOptions struct {
+	Action         string `json:"action"`
+	ObmServiceName string `json:"obmServiceName"`
+}
+
+type setPxeBootTaskOptionsContainer struct {
+	Options obmServiceOptions `json:"options"`
+}
+
+type setPxeBootTaskProperties struct {
+	Power map[string]string `json:"power"`
+}
+
+type setPxeBootTaskPropertiesContainer struct {
+	Properties setPxeBootTaskProperties `json:"properties"`
+}
+
+type setPxeBootTask struct {
+	*onrackhttp.TaskStub
+	*setPxeBootTaskOptionsContainer
+	*setPxeBootTaskPropertiesContainer
+}
+
+var setPxeBootTemplate = []byte(`
 	{
   	"friendlyName": "Set Node Pxeboot",
   	"implementsTask": "Task.Base.Obm.Node",
@@ -45,7 +108,25 @@ var setPxeBootTemplate []byte = []byte(`
    	}
 	}`)
 
-var rebootNodeTemplate []byte = []byte(`
+type rebootNodeTaskOptionsContainer struct {
+	Options obmServiceOptions `json:"options"`
+}
+
+type rebootNodeTaskProperties struct {
+	Power map[string]string `json:"power"`
+}
+
+type rebootNodeTaskPropertiesContainer struct {
+	Properties rebootNodeTaskProperties `json:"properties"`
+}
+
+type rebootNodeTask struct {
+	*onrackhttp.TaskStub
+	*rebootNodeTaskOptionsContainer
+	*rebootNodeTaskPropertiesContainer
+}
+
+var rebootNodeTemplate = []byte(`
 	{
 	  "friendlyName": "Reboot Node",
 	  "implementsTask": "Task.Base.Obm.Node",

@@ -22,7 +22,7 @@ import (
 var _ = Describe("CreateVmTasks", func() {
 	Describe("ProvisionNodeTemplate", func() {
 		It("has the expected stucture", func() {
-			vendoredTask := ProvisionNodeTask{}
+			vendoredTask := provisionNodeTask{}
 			err := json.Unmarshal(provisionNodeTemplate, &vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -33,7 +33,7 @@ var _ = Describe("CreateVmTasks", func() {
 			b, err := ioutil.ReadAll(provisionNodeTaskFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedTask := ProvisionNodeTask{}
+			expectedTask := provisionNodeTask{}
 			err = json.Unmarshal(b, &expectedTask)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -41,7 +41,7 @@ var _ = Describe("CreateVmTasks", func() {
 		})
 
 		It("marshalls into the expected JSON document", func() {
-			vendoredTask := ProvisionNodeTask{}
+			vendoredTask := provisionNodeTask{}
 			err := json.Unmarshal(provisionNodeTemplate, &vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
