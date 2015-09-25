@@ -1,12 +1,7 @@
 {
-  "friendlyName": "CF Delete VM",
-  "injectableName": "Graph.CF.DeleteVM",
-  "options": {
-    "defaults": {},
-    "bootstrap-ubuntu": {
-      "overlayfs": "common/overlayfs_all_files.cf.cpio.gz"
-    }
-  },
+  "friendlyName": "BOSH Deprovision Node",
+  "injectableName": "Graph.BOSH.DeprovisionNode",
+  "options": {},
   "tasks": [
     {
       "label": "set-boot-pxe",
@@ -29,7 +24,7 @@
     },
     {
       "label": "wipe-machine",
-      "taskName": "Task.Os.Delete.CF.VM",
+      "taskName": "Task.BOSH.Deprovision.Node",
       "waitOn": {
         "bootstrap-ubuntu": "succeeded"
       }

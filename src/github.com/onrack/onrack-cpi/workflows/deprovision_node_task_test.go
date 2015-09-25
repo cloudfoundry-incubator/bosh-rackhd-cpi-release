@@ -19,21 +19,21 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ProvisionNode", func() {
-	Describe("ProvisionNodeTemplate", func() {
+var _ = Describe("DeprovisionNodeTask", func() {
+	Describe("DeprovisionNodeTaskTemplate", func() {
 		It("has the expected structure", func() {
-			vendoredTask := provisionNodeTask{}
-			err := json.Unmarshal(provisionNodeTemplate, &vendoredTask)
+			vendoredTask := deprovisionNodeTask{}
+			err := json.Unmarshal(deprovisionNodeTaskTemplate, &vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
-			provisionNodeTaskFile, err := os.Open("../templates/provision_node_task.json")
+			deprovisionNodeTaskFile, err := os.Open("../templates/deprovision_node_task.json")
 			Expect(err).ToNot(HaveOccurred())
-			defer provisionNodeTaskFile.Close()
+			defer deprovisionNodeTaskFile.Close()
 
-			b, err := ioutil.ReadAll(provisionNodeTaskFile)
+			b, err := ioutil.ReadAll(deprovisionNodeTaskFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedTask := provisionNodeTask{}
+			expectedTask := deprovisionNodeTask{}
 			err = json.Unmarshal(b, &expectedTask)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -41,18 +41,18 @@ var _ = Describe("ProvisionNode", func() {
 		})
 
 		It("marshalls into the expected JSON document", func() {
-			vendoredTask := provisionNodeTask{}
-			err := json.Unmarshal(provisionNodeTemplate, &vendoredTask)
+			vendoredTask := deprovisionNodeTask{}
+			err := json.Unmarshal(deprovisionNodeTaskTemplate, &vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
 			vendoredTaskJSON, err := json.Marshal(vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
-			provisionNodeTaskFile, err := os.Open("../templates/provision_node_task.json")
+			deprovisionNodeTaskFile, err := os.Open("../templates/deprovision_node_task.json")
 			Expect(err).ToNot(HaveOccurred())
-			defer provisionNodeTaskFile.Close()
+			defer deprovisionNodeTaskFile.Close()
 
-			expectedTaskJSON, err := ioutil.ReadAll(provisionNodeTaskFile)
+			expectedTaskJSON, err := ioutil.ReadAll(deprovisionNodeTaskFile)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(vendoredTaskJSON).To(MatchJSON(expectedTaskJSON))

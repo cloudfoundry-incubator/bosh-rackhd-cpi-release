@@ -91,7 +91,7 @@ var _ = Describe("ProvisionNodeWorkflow", func() {
 		})
 	})
 
-	Describe("publishing generated provision node workflow and tasks", func() {
+	Describe("publishing generated provision node tasks and workflow", func() {
 		It("publishes the tasks and workflow", func() {
 			u, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())

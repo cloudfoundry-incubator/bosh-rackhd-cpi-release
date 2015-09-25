@@ -1,7 +1,7 @@
 {
-  "friendlyName": "Delete VM",
+  "friendlyName": "Deprovision Node",
   "implementsTask": "Task.Base.Linux.Commands",
-  "injectableName": "Task.Os.Delete.CF.VM",
+  "injectableName": "Task.BOSH.DeprovisionNode",
   "options": {
     "type": "quick",
     "commands": [
