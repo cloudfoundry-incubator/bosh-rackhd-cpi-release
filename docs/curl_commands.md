@@ -38,6 +38,11 @@ curl -X DELETE http://$ON_RACK_API_URI:8080/api/common/nodes/55e79ea54e66816f615
 curl -X POST -H "Content-Type: application/json" http://$ON_RACK_API_URI:8080/api/common/nodes/55e79eb14e66816f6152fffb/workflows -d '{"name":"Graph.CF.CreateReserveVM","options":{"defaults": {"agentSettingsFile": "env-234567", "agentSettingsPath": "/var/vcap/bosh/baremetal-cpi-agent-env.json", "cid": "vm-1234","downloadDir": "/opt/downloads","registrySettingsFile": "agent-123456", "registrySettingsPath": "/var/vcap/bosh/agent.json", "stemcellFile": "raw-image"}}}'
 ```
 
+### Submitting DeleteVM workflow
+```
+curl -X POST -H "Content-Type: application/json" http://$ON_RACK_API_URI:8080/api/common/nodes/.../workflows -d '{"name":"Graph.CF.DeleteVM","options":{"defaults": {}}}'
+```
+
 ## Node Handling
 
 ### Running workflow against node

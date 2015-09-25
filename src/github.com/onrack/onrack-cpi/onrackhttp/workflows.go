@@ -124,8 +124,23 @@ func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (err e
 		return fmt.Errorf("Failed running workflow at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
 	}
 
+	wfRespBytes, err := ioutil.ReadAll(resp.Body)
+	log.Printf("body response is %s", string(wfRespBytes))
+	if err != nil {
+		log.Printf("error reading workflow response body %s", err)
+		return fmt.Errorf("error reading workflow response body %s", err)
+	}
+
+	workflowResp := WorkflowResponse{}
+	err = json.Unmarshal(wfRespBytes, &workflowResp)
+	if err != nil {
+		log.Printf("error unmarshalling /common/node/workflows response %s", err)
+		return fmt.Errorf("error unmarshalling /common/node/workflows response %s", err)
+	}
+
+	log.Printf("workflow response %v", workflowResp)
 	timeoutChan := time.NewTimer(time.Second * c.RunWorkflowTimeoutSeconds).C
-	retryChan := time.NewTicker(time.Millisecond * 100).C
+	retryChan := time.NewTicker(time.Millisecond * 750).C
 
 	for {
 		select {
@@ -139,7 +154,7 @@ func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (err e
 			log.Printf("Timed out running workflow: %s on node: %s", req.Name, nodeID)
 			return fmt.Errorf("Timed out running workflow: %s on node: %s", req.Name, nodeID)
 		case <-retryChan:
-			status, err := getWorkflowStatus(c, nodeID, req.Name)
+			status, err := getWorkflowStatus(c, nodeID, workflowResp.ID)
 			if err != nil {
 				log.Printf("Unable to fetch workflow status: %s\n", err)
 				return err
@@ -224,7 +239,7 @@ func getActiveWorkflows(c config.Cpi, nodeID string) ([]WorkflowResponse, error)
 	return workflows, nil
 }
 
-func getWorkflowStatus(c config.Cpi, nodeID string, workflowName string) (string, error) {
+func getWorkflowStatus(c config.Cpi, nodeID string, workflowID string) (string, error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows", c.ApiServer, nodeID)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -250,14 +265,14 @@ func getWorkflowStatus(c config.Cpi, nodeID string, workflowName string) (string
 
 	var w *WorkflowResponse
 	for i := range workflows {
-		if workflows[i].Name == workflowName {
+		if workflows[i].ID == workflowID {
 			w = &workflows[i]
 		}
 	}
 
 	if w == nil {
-		log.Printf("could not find workflow with name: %s on node: %s", workflowName, nodeID)
-		return "", fmt.Errorf("could not find workflow with name: %s on node: %s", workflowName, nodeID)
+		log.Printf("could not find workflow with name: %s on node: %s", workflowID, nodeID)
+		return "", fmt.Errorf("could not find workflow with name: %s on node: %s", workflowID, nodeID)
 	}
 
 	return w.Status, nil
@@ -265,7 +280,8 @@ func getWorkflowStatus(c config.Cpi, nodeID string, workflowName string) (string
 
 const (
 	OnrackReserveVMGraphName = "Graph.CF.ReserveVM"
-	OnrackCreateVMGraphName  = "Graph.CF.CreateVM"
+	OnrackCreateVMGraphName  = "Graph.BOSH.ProvisionNode"
+	OnrackDeleteVMGraphName  = "Graph.CF.DeleteVM"
 	OnrackEnvPath            = "/var/vcap/bosh/onrack-cpi-agent-env.json"
 	OnrackRegistryPath       = "/var/vcap/bosh/agent.json"
 	DefaultUnusedName        = "UPLOADED_BY_ONRACK_CPI"
@@ -298,10 +314,10 @@ type WorkflowStub struct {
 }
 
 type WorkflowResponse struct {
-	Name    string                  `json:"injectableName"`
-	Tasks   map[string]TaskResponse `json:"tasks"`
-	Options map[string]interface{}  `json:"options"`
-	Status  string                  `json:"_status"`
+	Name   string                  `json:"injectableName"`
+	Tasks  map[string]TaskResponse `json:"tasks"`
+	Status string                  `json:"_status"`
+	ID     string                  `json:"id"`
 }
 
 type PropertyContainer struct {

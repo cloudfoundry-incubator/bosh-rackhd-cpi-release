@@ -37,4 +37,13 @@ cat > create_vm_request <<EOF
 EOF
 
 cat create_vm_request
-cat create_vm_request | ./onrack-cpi -configPath=${CONFIG_PATH} 2>&1
+vm_cid=$(cat create_vm_request | ./onrack-cpi -configPath=${CONFIG_PATH} | jq .result)
+
+echo "got vm cid: $vm_cid"
+
+cat > delete_vm_request <<EOF
+{"method":"delete_vm", "arguments": [${vm_cid}]}
+EOF
+
+cat delete_vm_request
+cat delete_vm_request | ./onrack-cpi -configPath=${CONFIG_PATH} 2>&1

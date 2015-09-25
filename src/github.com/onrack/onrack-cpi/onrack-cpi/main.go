@@ -88,6 +88,12 @@ func main() {
 			exitWithError(fmt.Errorf("Error running DeleteStemcell: %s", err))
 		}
 		exitWithResult("")
+	case cpi.DELETE_VM:
+		err = cpi.DeleteVM(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithError(fmt.Errorf("Error running DeleteVM: %s", err))
+		}
+		exitWithResult("")
 	default:
 		exitWithError(fmt.Errorf("Unexpected command: %s dispatched...aborting", req.Method))
 	}
