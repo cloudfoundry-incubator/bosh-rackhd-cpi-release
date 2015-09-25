@@ -1,4 +1,3 @@
-onrack-cpi
 .idea
 .DS_Store
 *.swp
@@ -27,10 +26,6 @@ releases/**/*.tgz
 
 pkg
 bin
-src/github.com/onrack/onrack-cpi/onrack-cpi/onrack-cpi
-
-# We modify this manually so ignore updates
-src/github.com/onrack/onrack-cpi/templates/cpi.json
 
 # installed by atom go-plus package
 src/9fans.net/
