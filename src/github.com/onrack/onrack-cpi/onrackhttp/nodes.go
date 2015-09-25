@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/onrack/onrack-cpi/config"
 )
@@ -38,6 +39,35 @@ func GetNodes(c config.Cpi) ([]Node, error) {
 	}
 
 	return nodes, nil
+}
+
+func ReleaseNode(c config.Cpi, nodeID string) error {
+	url := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, nodeID)
+	reserveFlag := `{"reserved" : ""}`
+	body := ioutil.NopCloser(strings.NewReader(reserveFlag))
+	defer body.Close()
+
+	request, err := http.NewRequest("PATCH", url, body)
+	if err != nil {
+		log.Printf("Error building request to api server: %s", err)
+		return err
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+	request.ContentLength = int64(len(reserveFlag))
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		log.Printf("Error making request to api server: %s", err)
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		log.Printf("Failed uploading with status: %s", resp.Status)
+		return fmt.Errorf("Failed uploading with status: %s", resp.Status)
+	}
+
+	return nil
 }
 
 func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
