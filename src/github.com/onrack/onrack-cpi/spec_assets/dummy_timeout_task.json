@@ -1,5 +1,5 @@
 {
-"friendlyName" : "",
+"friendlyName" : "OnRack CPI Test Timing Out Task",
 "injectableName" : "",
 "implementsTask": "Task.Base.Linux.Commands",
 "options": {

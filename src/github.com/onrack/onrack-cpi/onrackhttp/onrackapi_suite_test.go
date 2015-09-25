@@ -16,5 +16,5 @@ func TestRequests(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "OnRack HTTP Suite")
+	RunSpecs(t, "OnRack API Suite")
 }

@@ -1,5 +1,5 @@
 {
-"friendlyName" : "",
+"friendlyName" : "OnRack CPI Test Succeeding Task",
 "injectableName" : "",
 "implementsTask": "Task.Base.Linux.Commands",
 "options": {
