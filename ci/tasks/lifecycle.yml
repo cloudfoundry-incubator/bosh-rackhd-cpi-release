@@ -10,3 +10,5 @@ params:
   ON_RACK_API_URI:              replace-me
   AGENT_PUBLIC_KEY:             replace-me
   STATIC_IP:                    replace-me
+  GATEWAY:                      replace-me
+  ONRACK_CPI_ENABLE_LOGGING:    true

@@ -14,6 +14,8 @@ check_param() {
 check_param ON_RACK_API_URI
 check_param AGENT_PUBLIC_KEY
 check_param STATIC_IP
+check_param GATEWAY
+check_param ONRACK_CPI_ENABLE_LOGGING
 
 sudo apt-get update
 sudo apt-get -y install jq uuid-runtime
@@ -56,6 +58,7 @@ if [ -z "${stemcell_id}" ] || [ ${stemcell_id} == null ]; then
   echo "can not retrieve stemcell id"
   exit 1
 fi
+echo "got stemcell id: ${stemcell_id}"
 
 cat > bosh_networks <<EOF
 {
@@ -66,7 +69,7 @@ cat > bosh_networks <<EOF
       "gateway"
     ],
     "dns": null,
-    "gateway": "",
+    "gateway": "${GATEWAY}",
     "ip": "${STATIC_IP}",
     "netmask": "255.255.252.0",
     "type": "manual"
@@ -82,11 +85,10 @@ EOF
 cat create_vm_request
 
 vm_cid=$(cat create_vm_request | ./onrack-cpi -configPath=${config_path} | jq .result)
-if [ -z "${vm_cid}" ] || [ ${vm_cid} == null]; then
+if [ -z "${vm_cid}" ] || [ ${vm_cid} == null ]; then
   echo "can not retrieve vm cid"
   exit 1
 fi
-
 echo "got vm cid: ${vm_cid}"
 
 cat > delete_vm_request <<EOF

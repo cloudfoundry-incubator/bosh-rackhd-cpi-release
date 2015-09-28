@@ -31,7 +31,7 @@ jobs:
         ON_RACK_API_URI:              {{onrack_server_ip}}
         AGENT_PUBLIC_KEY:             {{agent_publick_key}}
         STATIC_IP:                    {{static_ip}}
-
+        GATEWAY:                      {{gateway}}
 
 resources:
 - name: bosh-cpi-release-in
