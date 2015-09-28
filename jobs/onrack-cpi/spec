@@ -1,27 +1,27 @@
 ---
-name: baremetal_cpi
+name: onrack-cpi
 
 templates:
   cpi.erb: bin/cpi
   cpi.json.erb: config/cpi.json
 
 packages:
-- baremetal_cpi
+- onrack-cpi
 
 properties:
-  baremetal_cpi.apiserver:
+  onrack-cpi.apiserver:
     description: "API endpoint ip"
     example: "10.10.10.10"
 
-  baremetal_cpi.agent.mbus:
+  onrack-cpi.agent.mbus:
     description: "Mbus URL used by deployed BOSH agents"
     example: "nats://nats:nats-password@10.254.50.4:4222"
-  baremetal_cpi.agent.ntp:
+  onrack-cpi.agent.ntp:
     description: "NTP configuration used by deployed BOSH agents"
     default: []
-  baremetal_cpi.agent.blobstore.provider:
+  onrack-cpi.agent.blobstore.provider:
     description: "Provider type for the blobstore used by deployed BOSH agents (e.g. dav, s3)"
     default: "dav"
-  baremetal_cpi.agent.blobstore.options:
+  onrack-cpi.agent.blobstore.options:
     description: "Options for the blobstore used by deployed BOSH agents"
     default: {}

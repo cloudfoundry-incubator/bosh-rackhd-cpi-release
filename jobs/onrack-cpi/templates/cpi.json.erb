@@ -1,0 +1,12 @@
+<%=
+
+JSON.dump(
+    "apiserver" => p("onrack-cpi.apiserver"),
+
+    "agent" => {
+      "blobstore" => p("onrack-cpi.agent.blobstore"),
+      "mbus" => p("onrack-cpi.agent.mbus"),
+      "ntp"  => p("onrack-cpi.agent.ntp"),
+    },
+)
+%>

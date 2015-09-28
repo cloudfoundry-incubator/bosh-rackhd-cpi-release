@@ -1,5 +1,5 @@
 ---
-name: baremetal_cpi
+name: onrack-cpi
 
 dependencies:
 - golang
