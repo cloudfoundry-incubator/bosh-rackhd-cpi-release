@@ -1,0 +1,12 @@
+---
+platform: linux
+image: docker:///boshcpi/cmd-cpi-release
+inputs:
+- name: bosh-cpi-release
+- name: stemcell
+run:
+  path: bosh-cpi-release/ci/tasks/lifecycle.sh
+params:
+  ON_RACK_API_URI:              replace-me
+  AGENT_PUBLIC_KEY:             replace-me
+  STATIC_IP:                    replace-me

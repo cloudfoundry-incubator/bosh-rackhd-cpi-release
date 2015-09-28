@@ -21,4 +21,4 @@ go install github.com/onsi/ginkgo/ginkgo
 cd src/github.com/onrack/onrack-cpi
 ginkgo -r
 
-echo "Test suite complete."
+echo "ingegration test complete."

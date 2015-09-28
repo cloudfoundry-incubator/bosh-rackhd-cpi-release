@@ -4,6 +4,6 @@ image: docker:///boshcpi/cmd-cpi-release
 inputs:
 - name: bosh-cpi-release
 run:
-  path: bosh-cpi-release/ci/tasks/baremetal_cpi_test_suite.sh
+  path: bosh-cpi-release/ci/tasks/integration.sh
 params:
   ON_RACK_API_URI:         replace-me

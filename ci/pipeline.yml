@@ -2,19 +2,36 @@
 groups:
   - name: bosh-baremetal-cpi
     jobs:
-      - baremetal_cpi_test_suite
+      - integration
+      - lifecycle
 
 jobs:
-- name: baremetal_cpi_test_suite
+- name: integration
+  serial: true
   plan:
   - aggregate:
     - {trigger: true, get: bosh-cpi-release,     resource: bosh-cpi-release-in}
 
   - task: test
-    file: bosh-cpi-release/ci/tasks/baremetal_cpi_test_suite.yml
+    file: bosh-cpi-release/ci/tasks/integration.yml
     config:
       params:
-        ON_RACK_API_URI: {{onrack_server_ip}}
+        ON_RACK_API_URI:              {{onrack_server_ip}}
+
+- name: lifecycle
+  serial: true
+  plan:
+  - aggregate:
+    - {trigger: false, get: bosh-cpi-release,   resource: bosh-cpi-release-in}
+    - {trigger: false, get: stemcell,           resource: baremetal-openstack-stemcell}
+  - task: test
+    file: bosh-cpi-release/ci/tasks/lifecycle.yml
+    config:
+      params:
+        ON_RACK_API_URI:              {{onrack_server_ip}}
+        AGENT_PUBLIC_KEY:             {{publick_key}}
+        STATIC_IP:                    {{static_ip}}
+
 
 resources:
 - name: bosh-cpi-release-in
@@ -26,3 +43,8 @@ resources:
     ignore_paths:
       - .final_builds/**/*.yml
       - releases/**/*.yml
+
+- name: baremetal-openstack-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
