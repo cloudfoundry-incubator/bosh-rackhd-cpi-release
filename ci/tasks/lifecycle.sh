@@ -15,6 +15,8 @@ check_param ON_RACK_API_URI
 check_param AGENT_PUBLIC_KEY
 check_param STATIC_IP
 
+sudo apt-get -y install jq
+
 pushd ${PWD}/stemcell/
 tar -zxvf stemcell.tgz
 pwd
