@@ -15,12 +15,11 @@ check_param ON_RACK_API_URI
 check_param AGENT_PUBLIC_KEY
 check_param STATIC_IP
 
-sudo apt-get -y install jq
+sudo apt-get update
+sudo apt-get -y install jq uuid-runtime
 
 pushd ${PWD}/stemcell/
 tar -zxvf stemcell.tgz
-pwd
-ls
 stemcell_path=${PWD}/image
 popd
 
@@ -62,7 +61,7 @@ cat bosh_networks
 
 agent_id=$(uuidgen)
 cat > create_vm_request <<EOF
-{"method":"create_vm", "arguments": ["${agent_id}", ${stemcell_id}, {"public_key": "${AGENT_PUBLIC_KEY}"}, $(bosh_networks)]}
+{"method":"create_vm", "arguments": ["${agent_id}", ${stemcell_id}, {"public_key": "${AGENT_PUBLIC_KEY}"}, $(cat bosh_networks)]}
 EOF
 cat create_vm_request
 
