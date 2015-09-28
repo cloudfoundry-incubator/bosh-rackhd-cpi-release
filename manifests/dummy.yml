@@ -4,7 +4,7 @@ director_uuid: 65810174-b70b-4278-b988-7c86e5cf9d5f
 
 releases:
 - name: emc_baremetal
-  url: file://~/workspace/emc_baremetal/dev_releases/emc_baremetal/emc_baremetal-0+dev.1.tgz
+  url: file://~/workspace/emc_baremetal/dev_releases/onrack-cpi/onrack-cpi-0+dev.1.tgz
 - name: redis
   url: file://~/workspace/emc_baremetal/redis-bosh-release.tgz
 
@@ -21,9 +21,9 @@ networks:
 resource_pools:
 - name: default
   network: default
+  cloud_properties:
+    public_key: ${PUBLIC_KEY}
   stemcell:
-    name: bosh-warden-boshlite-ubuntu-trusty-go_agent
-    version: latest
     url: file://~/Downloads/bosh-stemcell-3042-vsphere-esxi-ubuntu-trusty-go_agent.tgz
 
 compilation:
@@ -52,14 +52,13 @@ jobs:
       port: 6379
 
 cloud_provider:
-  template: {name: baremetal_cpi, release: emc_baremetal}
+  template: {name: onrack-cpi, release: onrack-cpi}
 
   mbus: https://mbus:Pbc7ssdfh8w2@${NODE_IP}:6868
 
-#figure out needed baremetal properties
   properties:
-    baremetal_cpi:
-      apiserver: ${BAREMETAL_API}
+    onrack-cpi:
+      apiserver: ${ONRACK_API}
       agent:
         mbus: "https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868"
         blobstore:
