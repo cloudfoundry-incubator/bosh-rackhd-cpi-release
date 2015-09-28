@@ -68,6 +68,11 @@ func isAgentConfigValid(config AgentConfig) bool {
 		return false
 	}
 
+	_, providerExist := config.Blobstore["provider"]
+	if !providerExist {
+		return false
+	}
+
 	// ntp is optional
 	return true
 }

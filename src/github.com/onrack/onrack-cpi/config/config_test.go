@@ -27,8 +27,14 @@ var _ = Describe("Creating a config", func() {
 		Expect(err).To(MatchError(`Agent config invalid {map[] localhost []}`))
 	})
 
+	It("checks that the agent configuration includes a blobstore provider section", func() {
+		jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"mbus":"localhost","blobstore":{"some": "options"}}}`)
+		_, err := config.New(jsonReader)
+		Expect(err).To(MatchError(`Agent config invalid {map[some:options] localhost []}`))
+	})
+
 	It("sets a default for max_create_vm_attmpts if not provided", func() {
-		jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"some": "options"}, "mbus":"localhost"}}`)
+		jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider": "local", "some": "options"}, "mbus":"localhost"}}`)
 		c, err := config.New(jsonReader)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(c.MaxCreateVMAttempt).To(Equal(config.DefaultMaxCreateVMAttempts()))
