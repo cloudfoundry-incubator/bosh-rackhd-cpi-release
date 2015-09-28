@@ -23,7 +23,6 @@ tar -zxvf stemcell.tgz
 stemcell_path=${PWD}/image
 popd
 
-
 pushd ${PWD}/bosh-cpi-release/
 source .envrc
 go build github.com/onrack/onrack-cpi/onrack-cpi
@@ -38,6 +37,8 @@ cat > create_stemcell_request <<EOF
 {"method":"create_stemcell", "arguments": ["${stemcell_path}"]}
 EOF
 cat create_stemcell_request
+
+echo $(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path})
 
 stemcell_id=$(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path} | jq .result)
 
