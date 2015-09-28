@@ -29,7 +29,7 @@ go build github.com/onrack/onrack-cpi/onrack-cpi
 
 cat > config_file <<EOF
 {
-  "apiserver": "${ON_RACK_API_URI}"
+  "apiserver": "${ON_RACK_API_URI}",
   "agent": {
     "blobstore":{
       "provider": "local",
@@ -49,10 +49,10 @@ cat > create_stemcell_request <<EOF
 EOF
 cat create_stemcell_request
 
-echo $(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path})
-
-stemcell_id=$(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path} | jq .result)
-if [ -z "${stemcell_id}"]; then
+response=$(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path})
+echo ${response}
+stemcell_id=$(echo ${response} | jq .result)
+if [ -z "${stemcell_id}" ] || [ ${stemcell_id} == null ]; then
   echo "can not retrieve stemcell id"
   exit 1
 fi
@@ -82,7 +82,7 @@ EOF
 cat create_vm_request
 
 vm_cid=$(cat create_vm_request | ./onrack-cpi -configPath=${config_path} | jq .result)
-if [ -z "${vm_cid}"]; then
+if [ -z "${vm_cid}" ] || [ ${vm_cid} == null]; then
   echo "can not retrieve vm cid"
   exit 1
 fi
