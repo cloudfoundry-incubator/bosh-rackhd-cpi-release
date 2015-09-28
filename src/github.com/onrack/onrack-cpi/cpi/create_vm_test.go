@@ -437,7 +437,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("retrying node reservation", func() {
 		It("return a node if selection is successful", func() {
-			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":3}`)
+			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":3}`)
 			c, err := config.New(jsonReader)
 			Expect(err).ToNot(HaveOccurred())
 			nodeID, err := tryReservation(
@@ -450,7 +450,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 
 		It("returns an error if selection continually fails", func() {
-			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":3}`)
+			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":3}`)
 			c, err := config.New(jsonReader)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -464,7 +464,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 
 		It("retries and eventually returns a node when selection is successful", func() {
-			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":3}`)
+			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":3}`)
 			c, err := config.New(jsonReader)
 			Expect(err).ToNot(HaveOccurred())
 
