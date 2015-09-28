@@ -15,23 +15,23 @@ check_param ON_RACK_API_URI
 check_param AGENT_PUBLIC_KEY
 check_param STATIC_IP
 
-cd bosh-cpi-release/
-source .envrc
-
-go build github.com/onrack/onrack-cpi/onrack-cpi
-
-cat > config <<EOF
-{"apiserver": "${ON_RACK_API_URI}"}
-EOF
-cat config
-config_path=./config
-
 pushd ${PWD}/stemcell/
 tar -zxvf stemcell.tgz
 pwd
 ls
+stemcell_path=${PWD}/image
 popd
-stemcell_path=${PWD}/stemcell/image
+
+
+pushd ${PWD}/bosh-cpi-release/
+source .envrc
+go build github.com/onrack/onrack-cpi/onrack-cpi
+
+cat > config_file <<EOF
+{"apiserver": "${ON_RACK_API_URI}"}
+EOF
+cat config_file
+config_path=${PWD}/config_file
 
 cat > create_stemcell_request <<EOF
 {"method":"create_stemcell", "arguments": ["${stemcell_path}"]}

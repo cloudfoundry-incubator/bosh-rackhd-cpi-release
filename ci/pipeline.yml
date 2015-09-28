@@ -22,14 +22,14 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: false, get: bosh-cpi-release,   resource: bosh-cpi-release-in}
-    - {trigger: false, get: stemcell,           resource: baremetal-openstack-stemcell}
+    - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-cpi-release-in}
+    - {trigger: false,                         get: stemcell,           resource: baremetal-openstack-stemcell}
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
       params:
         ON_RACK_API_URI:              {{onrack_server_ip}}
-        AGENT_PUBLIC_KEY:             {{publick_key}}
+        AGENT_PUBLIC_KEY:             {{agent_publick_key}}
         STATIC_IP:                    {{static_ip}}
 
 
