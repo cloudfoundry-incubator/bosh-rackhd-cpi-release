@@ -28,7 +28,18 @@ source .envrc
 go build github.com/onrack/onrack-cpi/onrack-cpi
 
 cat > config_file <<EOF
-{"apiserver": "${ON_RACK_API_URI}"}
+{
+  "apiserver": "${ON_RACK_API_URI}"
+  "agent": {
+    "blobstore":{
+      "provider": "local",
+      "options": {
+        "blobstore_path": "/var/vcap/micro_bosh/data/cache"
+      }
+    },
+    "mbus":"https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868"
+  }
+}
 EOF
 cat config_file
 config_path=${PWD}/config_file
@@ -37,8 +48,6 @@ cat > create_stemcell_request <<EOF
 {"method":"create_stemcell", "arguments": ["${stemcell_path}"]}
 EOF
 cat create_stemcell_request
-
-echo $(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path})
 
 stemcell_id=$(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path} | jq .result)
 
