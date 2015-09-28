@@ -49,7 +49,13 @@ cat > create_stemcell_request <<EOF
 EOF
 cat create_stemcell_request
 
+echo $(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path})
+
 stemcell_id=$(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path} | jq .result)
+if [ -z "${stemcell_id}"]; then
+  echo "can not retrieve stemcell id"
+  exit 1
+fi
 
 cat > bosh_networks <<EOF
 {
@@ -76,6 +82,10 @@ EOF
 cat create_vm_request
 
 vm_cid=$(cat create_vm_request | ./onrack-cpi -configPath=${config_path} | jq .result)
+if [ -z "${vm_cid}"]; then
+  echo "can not retrieve vm cid"
+  exit 1
+fi
 
 echo "got vm cid: ${vm_cid}"
 
