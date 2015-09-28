@@ -115,7 +115,7 @@ var deprovisionNodeWorkflowTemplate = []byte(`{
     },
     {
       "label": "wipe-machine",
-      "taskName": "Task.BOSH.Deprovision.Node",
+      "taskName": "Task.BOSH.DeprovisionNode",
       "waitOn": {
         "bootstrap-ubuntu": "succeeded"
       }
