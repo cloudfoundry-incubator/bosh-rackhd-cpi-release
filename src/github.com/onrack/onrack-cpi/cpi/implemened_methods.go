@@ -32,7 +32,7 @@ var cpiMethods = map[string]bool{
 	DELETE_VM:          true,
 	HAS_VM:             true,
 	REBOOT_VM:          false,
-	SET_VM_METADATA:    false,
+	SET_VM_METADATA:    true,
 	CONFIGURE_NETWORKS: false,
 	CREATE_STEMCELL:    true,
 	DELETE_STEMCELL:    true,

@@ -3,7 +3,7 @@ package workflows
 import "github.com/onrack/onrack-cpi/onrackhttp"
 
 type deprovisionNodeTaskOptions struct {
-	Type     string   `json:"type"`
+	Type     string   `json:"type,omitempty"`
 	Commands []string `json:"commands"`
 }
 

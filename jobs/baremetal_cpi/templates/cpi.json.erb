@@ -1,9 +1,10 @@
 <%=
 
 JSON.dump(
-    "api_server" => p("baremetal_cpi.apiserver"),
+    "apiserver" => p("baremetal_cpi.apiserver"),
 
     "agent" => {
+      "blobstore" => p("baremetal_cpi.agent.blobstore"),
       "mbus" => p("baremetal_cpi.agent.mbus"),
       "ntp"  => p("baremetal_cpi.agent.ntp"),
     },

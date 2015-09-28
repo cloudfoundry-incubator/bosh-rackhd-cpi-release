@@ -14,4 +14,4 @@ mkdir ../src && cp -a * ../src/ && mv ../src ./src
 
 mkdir $BOSH_INSTALL_TARGET/bin
 
-go build -o $BOSH_INSTALL_TARGET/bin/cpi src/github.com/cppforlife/baremetal_cpi/main/*.go
+go build -o $BOSH_INSTALL_TARGET/bin/cpi src/github.com/onrack/onrack-cpi/onrack-cpi/*.go

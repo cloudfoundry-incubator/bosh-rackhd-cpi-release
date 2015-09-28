@@ -106,7 +106,7 @@ type ProvisionNodeWorkflowOptions struct {
 	AgentSettingsPath    *string `json:"agentSettingsPath"`
 	PublicKeyFile        *string `json:"publicKeyFile"`
 	CID                  *string `json:"cid"`
-	DownloadDir          string  `json:"downloadDir"`
+	DownloadDir          string  `json:"downloadDir,omitempty"`
 	RegistrySettingsFile *string `json:"registrySettingsFile"`
 	RegistrySettingsPath *string `json:"registrySettingsPath"`
 	StemcellFile         *string `json:"stemcellFile"`

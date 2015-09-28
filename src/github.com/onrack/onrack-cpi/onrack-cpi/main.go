@@ -94,6 +94,14 @@ func main() {
 			exitWithError(fmt.Errorf("Error running DeleteVM: %s", err))
 		}
 		exitWithResult("")
+	case cpi.SET_VM_METADATA:
+		exitWithResult("")
+	case cpi.HAS_VM:
+		hasVM, err := cpi.HasVM(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithError(fmt.Errorf("Error running HasVM: %s", err))
+		}
+		exitWithResult(hasVM)
 	default:
 		exitWithError(fmt.Errorf("Unexpected command: %s dispatched...aborting", req.Method))
 	}
