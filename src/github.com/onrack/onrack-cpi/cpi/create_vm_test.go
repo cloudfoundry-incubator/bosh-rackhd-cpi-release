@@ -484,5 +484,68 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(nodeID).To(Equal("node-1234"))
 		})
+
+		It("cleans up reservation flag after failing to reserve", func() {
+			apiServerIP := os.Getenv("ON_RACK_API_URI")
+			Expect(apiServerIP).ToNot(BeEmpty())
+			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, apiServerIP))
+			c, err := config.New(jsonReader)
+			Expect(err).ToNot(HaveOccurred())
+
+			var testNodeID string
+			flakeyReservationFunc := func(c config.Cpi, nodeID string) (string, error) {
+				testNodeID = nodeID
+				url := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, nodeID)
+				reserveFlag := `{"reserved" : "fake-uuid"}`
+				body := ioutil.NopCloser(strings.NewReader(reserveFlag))
+				defer body.Close()
+
+				request, err := http.NewRequest("PATCH", url, body)
+				Expect(err).ToNot(HaveOccurred())
+
+				request.Header.Set("Content-Type", "application/json")
+				request.ContentLength = int64(len(reserveFlag))
+
+				resp, err := http.DefaultClient.Do(request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(resp.StatusCode).To(Equal(200))
+
+				nodeURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, testNodeID)
+				nodeResp, err := http.Get(nodeURL)
+				Expect(err).ToNot(HaveOccurred())
+
+				nodeBytes, err := ioutil.ReadAll(nodeResp.Body)
+				Expect(err).ToNot(HaveOccurred())
+				defer nodeResp.Body.Close()
+
+				var node onrackhttp.Node
+				err = json.Unmarshal(nodeBytes, &node)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(node.Reserved).To(Equal("fake-uuid"))
+
+				return "", errors.New("fake error doing reservation")
+			}
+
+			_, err = tryReservation(
+				c,
+				selectNodeFromOnRack,
+				flakeyReservationFunc,
+			)
+
+			Expect(err).To(MatchError("unable to reserve node"))
+			nodeURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, testNodeID)
+			resp, err := http.Get(nodeURL)
+			Expect(err).ToNot(HaveOccurred())
+
+			nodeBytes, err := ioutil.ReadAll(resp.Body)
+			Expect(err).ToNot(HaveOccurred())
+			defer resp.Body.Close()
+
+			var node onrackhttp.Node
+			err = json.Unmarshal(nodeBytes, &node)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(node.Reserved).To(Equal(""))
+		})
 	})
 })

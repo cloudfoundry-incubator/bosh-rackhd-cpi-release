@@ -179,6 +179,10 @@ func tryReservation(c config.Cpi, choose selectionFunc, reserve reservationFunc)
 		reserved, err = reserve(c, nodeID)
 		if err != nil {
 			log.Printf("retry %d: error reserving node %s", i, err)
+			err = onrackhttp.ReleaseNode(c, nodeID)
+			if err != nil {
+				log.Printf("error releasing node %s, %s", nodeID, err)
+			}
 			continue
 		}
 
