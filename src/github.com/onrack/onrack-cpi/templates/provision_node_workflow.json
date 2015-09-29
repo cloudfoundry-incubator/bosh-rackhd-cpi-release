@@ -1,29 +1,40 @@
 {
-    "friendlyName": "BOSH Provision Node",
-    "injectableName": "Graph.BOSH.ProvisionNode",
-    "options": {
-      "defaults": {
-        "agentSettingsFile": null,
-        "agentSettingsPath": null,
-        "publicKeyFile": null,
-        "cid": null,
-        "downloadDir": "/opt/downloads",
-        "registrySettingsFile": null,
-        "registrySettingsPath": null,
-        "stemcellFile": null
+  "friendlyName": "BOSH Provision Node",
+  "injectableName": "Graph.BOSH.ProvisionNode",
+  "options": {
+    "defaults": {
+      "agentSettingsFile": null,
+      "agentSettingsPath": null,
+      "publicKeyFile": null,
+      "cid": null,
+      "downloadDir": "/opt/downloads",
+      "registrySettingsFile": null,
+      "registrySettingsPath": null,
+      "stemcellFile": null
+    }
+  },
+  "tasks": [
+		{
+			"label": "bootstrap-ubuntu",
+			"taskName": "Task.Linux.Bootstrap.Ubuntu"
+		},
+    {
+      "label": "provision-node",
+      "taskName": "Task.BOSH.Provision.Node"
+    },
+    {
+      "label": "set-id",
+      "taskName": "Task.BOSH.SetNodeId",
+      "waitOn": {
+        "provision-node": "succeeded"
       }
     },
-    "tasks": [
-      {
-        "label": "provision-node",
-        "taskName": "Task.BOSH.Provision.Node"
-      },
-      {
-        "label": "set-id-and-reboot",
-        "taskName": "Task.BOSH.SetNodeId",
-        "waitOn": {
-          "provision-node": "succeeded"
-        }
-      }
-    ]
+		{
+			"label": "reboot",
+			"taskName": "Task.ProcShellReboot",
+			"waitOn": {
+				"set-id": "succeeded"
+			}
+		}
+  ]
 }

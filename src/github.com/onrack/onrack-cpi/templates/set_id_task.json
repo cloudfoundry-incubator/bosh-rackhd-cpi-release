@@ -5,8 +5,7 @@
   "options": {
     "cid": null,
     "commands":[
-      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'",
-      "sudo reboot"
+      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'"
     ]
   },
   "properties": {}

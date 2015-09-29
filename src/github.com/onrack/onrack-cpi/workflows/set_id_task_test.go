@@ -22,18 +22,18 @@ import (
 var _ = Describe("SetIdAndRebootTask", func() {
 	Describe("SetIdAndReboot", func() {
 		It("has the expected stucture", func() {
-			vendoredTask := setNodeIDThenRebootTask{}
-			err := json.Unmarshal(setNodeIDThenRebootTemplate, &vendoredTask)
+			vendoredTask := setNodeIDTask{}
+			err := json.Unmarshal(setNodeIDTemplate, &vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
-			setNodeIDThenRebootTaskFile, err := os.Open("../templates/set_id_and_reboot_task.json")
+			setNodeIDTaskFile, err := os.Open("../templates/set_id_task.json")
 			Expect(err).ToNot(HaveOccurred())
-			defer setNodeIDThenRebootTaskFile.Close()
+			defer setNodeIDTaskFile.Close()
 
-			b, err := ioutil.ReadAll(setNodeIDThenRebootTaskFile)
+			b, err := ioutil.ReadAll(setNodeIDTaskFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedTask := setNodeIDThenRebootTask{}
+			expectedTask := setNodeIDTask{}
 			err = json.Unmarshal(b, &expectedTask)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -41,18 +41,18 @@ var _ = Describe("SetIdAndRebootTask", func() {
 		})
 
 		It("marshalls into the expected JSON document", func() {
-			vendoredTask := setNodeIDThenRebootTask{}
-			err := json.Unmarshal(setNodeIDThenRebootTemplate, &vendoredTask)
+			vendoredTask := setNodeIDTask{}
+			err := json.Unmarshal(setNodeIDTemplate, &vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
 			vendoredTaskJSON, err := json.Marshal(vendoredTask)
 			Expect(err).ToNot(HaveOccurred())
 
-			setNodeIDThenRebootTaskFile, err := os.Open("../templates/set_id_and_reboot_task.json")
+			setNodeIDTaskFile, err := os.Open("../templates/set_id_task.json")
 			Expect(err).ToNot(HaveOccurred())
-			defer setNodeIDThenRebootTaskFile.Close()
+			defer setNodeIDTaskFile.Close()
 
-			expectedTaskJSON, err := ioutil.ReadAll(setNodeIDThenRebootTaskFile)
+			expectedTaskJSON, err := ioutil.ReadAll(setNodeIDTaskFile)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(vendoredTaskJSON).To(MatchJSON(expectedTaskJSON))

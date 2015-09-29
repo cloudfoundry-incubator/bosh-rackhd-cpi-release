@@ -75,7 +75,7 @@ var _ = Describe("ProvisionNodeWorkflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(p.Name).To(ContainSubstring(uID))
 
-			s := setNodeIDThenRebootTask{}
+			s := setNodeIDTask{}
 			err = json.Unmarshal(tasksBytes[1], &s)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(s.Name).To(ContainSubstring(uID))
@@ -85,9 +85,11 @@ var _ = Describe("ProvisionNodeWorkflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(w.Name).To(ContainSubstring(uID))
-			Expect(w.Tasks).To(HaveLen(2))
-			Expect(w.Tasks[0].TaskName).To(Equal(p.Name))
-			Expect(w.Tasks[1].TaskName).To(Equal(s.Name))
+			Expect(w.Tasks).To(HaveLen(4))
+			Expect(w.Tasks[0].TaskName).To(Equal("Task.Linux.Bootstrap.Ubuntu"))
+			Expect(w.Tasks[1].TaskName).To(Equal(p.Name))
+			Expect(w.Tasks[2].TaskName).To(Equal(s.Name))
+			Expect(w.Tasks[3].TaskName).To(Equal("Task.ProcShellReboot"))
 		})
 	})
 

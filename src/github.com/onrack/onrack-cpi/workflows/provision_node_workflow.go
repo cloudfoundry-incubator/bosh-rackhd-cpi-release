@@ -63,8 +63,8 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 		return nil, nil, fmt.Errorf("error marshalling provision node task template: %s\n", err)
 	}
 
-	s := setNodeIDThenRebootTask{}
-	err = json.Unmarshal(setNodeIDThenRebootTemplate, &s)
+	s := setNodeIDTask{}
+	err = json.Unmarshal(setNodeIDTemplate, &s)
 	if err != nil {
 		log.Printf("error unmarshalling set node id task template: %s\n", err)
 		return nil, nil, fmt.Errorf("error unmarshalling set node id task template: %s\n", err)
@@ -88,9 +88,8 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	w.Name = fmt.Sprintf("%s.%s", w.Name, uuid)
 	w.UnusedName = fmt.Sprintf("%s.%s", w.UnusedName, "UPLOADED_BY_ONRACK_CPI")
-	for i := range w.Tasks {
-		w.Tasks[i].TaskName = fmt.Sprintf("%s.%s", w.Tasks[i].TaskName, uuid)
-	}
+	w.Tasks[1].TaskName = fmt.Sprintf("%s.%s", w.Tasks[1].TaskName, uuid)
+	w.Tasks[2].TaskName = fmt.Sprintf("%s.%s", w.Tasks[2].TaskName, uuid)
 
 	wBytes, err := json.Marshal(w)
 	if err != nil {
@@ -142,16 +141,27 @@ var provisionNodeWorkflowTemplate = []byte(`{
     }
   },
   "tasks": [
+		{
+			"label": "bootstrap-ubuntu",
+			"taskName": "Task.Linux.Bootstrap.Ubuntu"
+		},
     {
       "label": "provision-node",
       "taskName": "Task.BOSH.Provision.Node"
     },
     {
-      "label": "set-id-and-reboot",
+      "label": "set-id",
       "taskName": "Task.BOSH.SetNodeId",
       "waitOn": {
         "provision-node": "succeeded"
       }
-    }
+    },
+		{
+			"label": "reboot",
+			"taskName": "Task.ProcShellReboot",
+			"waitOn": {
+				"set-id": "succeeded"
+			}
+		}
   ]
 }`)
