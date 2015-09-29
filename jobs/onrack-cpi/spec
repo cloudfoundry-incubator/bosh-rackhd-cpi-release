@@ -12,7 +12,6 @@ properties:
   onrack-cpi.apiserver:
     description: "API endpoint ip"
     example: "10.10.10.10"
-
   onrack-cpi.agent.mbus:
     description: "Mbus URL used by deployed BOSH agents"
     example: "nats://nats:nats-password@10.254.50.4:4222"
@@ -25,3 +24,9 @@ properties:
   onrack-cpi.agent.blobstore.options:
     description: "Options for the blobstore used by deployed BOSH agents"
     default: {}
+  onrack-cpi.max_create_vm_attempts:
+    description: "maximum number of attempts to create a vm"
+    example: "5"
+  onrack-cpi.run_workflow_timeout:
+    description: "timeout for running a workflow in seconds"
+    example: "1200"

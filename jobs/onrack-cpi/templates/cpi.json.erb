@@ -8,5 +8,8 @@ JSON.dump(
       "mbus" => p("onrack-cpi.agent.mbus"),
       "ntp"  => p("onrack-cpi.agent.ntp"),
     },
+
+    "max_create_vm_attempts" => p("onrack-cpi.max_create_vm_attempts", 5),
+    "run_workflow_timeout" => p("onrack-cpi.run_workflow_timeout", 1200),
 )
 %>

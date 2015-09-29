@@ -64,3 +64,5 @@ cloud_provider:
         blobstore:
           provider: local
           options: {blobstore_path: /var/vcap/micro_bosh/data/cache}
+      max_create_vm_attempts: 10
+      run_workflow_timeout: 2400
