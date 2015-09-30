@@ -246,7 +246,6 @@ func getWorkflowStatus(c config.Cpi, nodeID string, workflowID string) (string, 
 		log.Printf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
 		return "", err
 	}
-
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
@@ -267,6 +266,9 @@ func getWorkflowStatus(c config.Cpi, nodeID string, workflowID string) (string, 
 	for i := range workflows {
 		if workflows[i].ID == workflowID {
 			w = &workflows[i]
+			if w.Status == workflowValidStatus && len(w.PendingTasks) == 0 {
+				return worfklowSuccessfulStatus, nil
+			}
 		}
 	}
 
@@ -314,10 +316,11 @@ type WorkflowStub struct {
 }
 
 type WorkflowResponse struct {
-	Name   string                  `json:"injectableName"`
-	Tasks  map[string]TaskResponse `json:"tasks"`
-	Status string                  `json:"_status"`
-	ID     string                  `json:"id"`
+	Name   					string                  	`json:"injectableName"`
+	Tasks  					map[string]TaskResponse 	`json:"tasks"`
+	Status 					string                  	`json:"_status"`
+	ID     					string                   	`json:"id"`
+	PendingTasks		[]interface{} 						`json:"pendingTasks"`
 }
 
 type PropertyContainer struct {
