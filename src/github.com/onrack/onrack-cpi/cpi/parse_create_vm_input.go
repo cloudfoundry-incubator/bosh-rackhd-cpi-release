@@ -1,6 +1,7 @@
 package cpi
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -49,14 +50,21 @@ func parseCreateVMInput(extInput bosh.MethodArguments) (string, string, string, 
 
 	cloudProperties = cloudPropertiesInput.(map[string]interface{})
 
-	var publicKey string
+	var encodedPublicKey string
 	if publicKeyInput, keyExist := cloudProperties["public_key"]; keyExist {
-		if reflect.TypeOf(publicKeyInput) != reflect.TypeOf(publicKey) {
+		if reflect.TypeOf(publicKeyInput) != reflect.TypeOf(encodedPublicKey) {
 			log.Printf("public key has unexpected type: %s. Expecting a string", reflect.TypeOf(publicKeyInput))
 			return "", "", "", networkSpecs, fmt.Errorf("public key has unexpected type: %s. Expecting a string", reflect.TypeOf(publicKeyInput))
 		}
-		publicKey = publicKeyInput.(string)
+		encodedPublicKey = publicKeyInput.(string)
 	}
+
+	publicKeyBytes, err := base64.StdEncoding.DecodeString(encodedPublicKey)
+	if err != nil {
+		log.Println("unable to decode public key (base64) to string")
+		return "", "", "", networkSpecs, fmt.Errorf("unable to decode public key (base64) to string %s", err)
+	}
+	publicKey := string(publicKeyBytes)
 
 	if publicKey == "" {
 		log.Println("warning: public key is empty. You may not be able to log in to the machine")

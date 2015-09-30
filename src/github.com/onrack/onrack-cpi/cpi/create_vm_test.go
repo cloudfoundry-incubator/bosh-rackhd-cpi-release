@@ -33,7 +33,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			jsonInput := []byte(`[
 				"4149ba0f-38d9-4485-476f-1581be36f290",
 				"vm-478585",
-				{"public_key": "1234"},
+				{"public_key": "MTIzNA=="},
 				{
 						"private": {
 								"type": "dynamic"
