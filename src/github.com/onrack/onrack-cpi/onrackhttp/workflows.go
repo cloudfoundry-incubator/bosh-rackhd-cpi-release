@@ -99,7 +99,48 @@ func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
 	return body, nil
 }
 
-func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (err error) {
+func FetchWorkflowImpl(c config.Cpi, nodeID string, workflowID string) (WorkflowResponse, error) {
+	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows", c.ApiServer, nodeID)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
+		return WorkflowResponse{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+		return WorkflowResponse{}, fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	var workflows []WorkflowResponse
+	err = json.Unmarshal(body, &workflows)
+	if err != nil {
+		log.Printf("Error unmarshalling active workflows: %s", err)
+		return WorkflowResponse{}, fmt.Errorf("Error unmarshalling active workflows: %s", err)
+	}
+
+	var w *WorkflowResponse
+	for i := range workflows {
+		if workflows[i].ID == workflowID {
+			w = &workflows[i]
+			break
+		}
+	}
+
+	if w == nil {
+		log.Printf("could not find workflow with name: %s on node: %s", workflowID, nodeID)
+		return WorkflowResponse{}, fmt.Errorf("could not find workflow with name: %s on node: %s", workflowID, nodeID)
+	}
+
+	return *w, nil
+}
+
+type FetchWorkflow func(config.Cpi, string, string) (WorkflowResponse, error)
+
+func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody, fetch FetchWorkflow) (err error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/", c.ApiServer, nodeID)
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -141,7 +182,7 @@ func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (err e
 
 	log.Info(fmt.Sprintf("workflow response %v", workflowResp))
 	timeoutChan := time.NewTimer(time.Second * c.RunWorkflowTimeoutSeconds).C
-	retryChan := time.NewTicker(time.Millisecond * 750).C
+	retryChan := time.NewTicker(time.Second * 5).C
 
 	for {
 		select {
@@ -155,14 +196,18 @@ func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (err e
 			log.Info(fmt.Sprintf("Timed out running workflow: %s on node: %s", req.Name, nodeID))
 			return fmt.Errorf("Timed out running workflow: %s on node: %s", req.Name, nodeID)
 		case <-retryChan:
-			status, err := getWorkflowStatus(c, nodeID, workflowResp.ID)
+			workflowResponse, err := fetch(c, nodeID, workflowResp.ID)
 			if err != nil {
 				log.Error(fmt.Sprintf("Unable to fetch workflow status: %s\n", err))
 				return err
 			}
 
-			switch status {
+			switch workflowResponse.Status {
 			case workflowValidStatus:
+				if len(workflowResponse.PendingTasks) == 0 {
+					log.Info(fmt.Sprintf("workflow: %s completed with valid state against node: %s", req.Name, nodeID))
+					return nil
+				}
 				log.Debug(fmt.Sprintf("workflow: %s is still running against node: %s", req.Name, nodeID))
 				continue
 			case worfklowSuccessfulStatus:
@@ -176,7 +221,7 @@ func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (err e
 				return nil
 			default:
 				log.Error(fmt.Sprintf("workflow: %s has unexpected status on node: %s", req.Name, nodeID))
-				return fmt.Errorf("workflow: %s has unexpected status %s on node: %s", req.Name, status, nodeID)
+				return fmt.Errorf("workflow: %s has unexpected status %s on node: %s", req.Name, workflowResponse.Status, nodeID)
 			}
 		}
 	}
@@ -240,47 +285,6 @@ func getActiveWorkflows(c config.Cpi, nodeID string) ([]WorkflowResponse, error)
 	return workflows, nil
 }
 
-func getWorkflowStatus(c config.Cpi, nodeID string, workflowID string) (string, error) {
-	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows", c.ApiServer, nodeID)
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Error(fmt.Sprintf("Error requesting active workflows on node at url: %s, msg: %s", url, err))
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		msg, _ := ioutil.ReadAll(resp.Body)
-		log.Error(fmt.Sprintf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg)))
-		return "", fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	var workflows []WorkflowResponse
-	err = json.Unmarshal(body, &workflows)
-	if err != nil {
-		log.Error(fmt.Sprintf("Error unmarshalling active workflows: %s", err))
-		return "", fmt.Errorf("Error unmarshalling active workflows: %s", err)
-	}
-
-	var w *WorkflowResponse
-	for i := range workflows {
-		if workflows[i].ID == workflowID {
-			w = &workflows[i]
-			if w.Status == workflowValidStatus && len(w.PendingTasks) == 0 {
-				return worfklowSuccessfulStatus, nil
-			}
-		}
-	}
-
-	if w == nil {
-		log.Error(fmt.Sprintf("could not find workflow with name: %s on node: %s", workflowID, nodeID))
-		return "", fmt.Errorf("could not find workflow with name: %s on node: %s", workflowID, nodeID)
-	}
-
-	return w.Status, nil
-}
-
 const (
 	OnrackReserveVMGraphName = "Graph.CF.ReserveVM"
 	OnrackCreateVMGraphName  = "Graph.BOSH.ProvisionNode"
@@ -317,11 +321,11 @@ type WorkflowStub struct {
 }
 
 type WorkflowResponse struct {
-	Name   					string                  	`json:"injectableName"`
-	Tasks  					map[string]TaskResponse 	`json:"tasks"`
-	Status 					string                  	`json:"_status"`
-	ID     					string                   	`json:"id"`
-	PendingTasks		[]interface{} 						`json:"pendingTasks"`
+	Name         string                  `json:"injectableName"`
+	Tasks        map[string]TaskResponse `json:"tasks"`
+	Status       string                  `json:"_status"`
+	ID           string                  `json:"id"`
+	PendingTasks []interface{}           `json:"pendingTasks"`
 }
 
 type PropertyContainer struct {

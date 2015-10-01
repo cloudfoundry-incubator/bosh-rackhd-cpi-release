@@ -16,7 +16,7 @@ func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string
 		Options: map[string]interface{}{},
 	}
 
-	return onrackhttp.RunWorkflow(c, nodeID, req)
+	return onrackhttp.RunWorkflow(c, nodeID, req, onrackhttp.FetchWorkflowImpl)
 }
 
 func PublishDeprovisionNodeWorkflow(c config.Cpi, uuid string) (string, error) {

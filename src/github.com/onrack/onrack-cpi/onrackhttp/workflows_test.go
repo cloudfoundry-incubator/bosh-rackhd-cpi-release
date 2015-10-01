@@ -140,7 +140,7 @@ var _ = Describe("Workflows", func() {
 						Name: fakeWorkflowName,
 					}
 
-					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body)
+					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body, onrackhttp.FetchWorkflowImpl)
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})
@@ -247,7 +247,7 @@ var _ = Describe("Workflows", func() {
 						Name: fakeWorkflowName,
 					}
 
-					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body)
+					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body, onrackhttp.FetchWorkflowImpl)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -354,7 +354,7 @@ var _ = Describe("Workflows", func() {
 						Name: fakeWorkflowName,
 					}
 
-					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body)
+					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body, onrackhttp.FetchWorkflowImpl)
 					Expect(err).To(HaveOccurred())
 
 					Eventually(func() int {
@@ -365,6 +365,77 @@ var _ = Describe("Workflows", func() {
 
 						return resp.StatusCode
 					}, 10*time.Second, time.Second).Should(Equal(204))
+				})
+			})
+		})
+
+		Context("when the workflow completes with valid status", func() {
+			Describe("SLOW_TEST", func() {
+				It("returns", func() {
+					rejectNodesRunningWorkflows := func(nodes []onrackhttp.Node) []onrackhttp.Node {
+						var n []onrackhttp.Node
+						for i := range nodes {
+							if len(nodes[i].Workflows) == 0 {
+								n = append(n, nodes[i])
+							}
+						}
+						return n
+					}
+
+					apiServer := os.Getenv("ON_RACK_API_URI")
+					Expect(apiServer).ToNot(BeEmpty())
+
+					uuidObj, err := uuid.NewV4()
+					Expect(err).ToNot(HaveOccurred())
+					uuid := uuidObj.String()
+					cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
+
+					allNodes, err := onrackhttp.GetNodes(cpiConfig)
+					Expect(err).ToNot(HaveOccurred())
+
+					idleNodes := rejectNodesRunningWorkflows(allNodes)
+					t := time.Now()
+					rand.Seed(t.Unix())
+
+					i := rand.Intn(len(idleNodes))
+					nodeID := idleNodes[i].ID
+
+					fakeWorkflowName := fmt.Sprintf("Test.Success.CF.Fake.%s", uuid)
+					fakeTasks := []onrackhttp.WorkflowTask{
+						onrackhttp.WorkflowTask{
+							TaskName: workflows.SetPxeBootTaskName,
+							Label:    "set-boot-pxe",
+						},
+					}
+
+					fakeWorkflowStub := onrackhttp.WorkflowStub{
+						Name:       fakeWorkflowName,
+						UnusedName: onrackhttp.DefaultUnusedName,
+						Tasks:      fakeTasks,
+					}
+
+					fakeWorkflowStubBytes, err := json.Marshal(fakeWorkflowStub)
+					Expect(err).ToNot(HaveOccurred())
+
+					err = onrackhttp.PublishWorkflow(cpiConfig, fakeWorkflowStubBytes)
+					Expect(err).ToNot(HaveOccurred())
+
+					body := onrackhttp.RunWorkflowRequestBody{
+						Name: fakeWorkflowName,
+					}
+
+					fakeFetchWorkflow := func(config.Cpi, string, string) (onrackhttp.WorkflowResponse, error) {
+						return onrackhttp.WorkflowResponse{
+							Status:       "valid",
+							PendingTasks: make([]interface{}, 0),
+							Name:         "fakeWorkflowName",
+							Tasks:        make(map[string]onrackhttp.TaskResponse),
+							ID:           "fakeworkflowId",
+						}, nil
+					}
+
+					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body, fakeFetchWorkflow)
+					Expect(err).ToNot(HaveOccurred())
 				})
 			})
 		})

@@ -16,7 +16,7 @@ func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string, op
 		Options: map[string]interface{}{"defaults": options},
 	}
 
-	return onrackhttp.RunWorkflow(c, nodeID, req)
+	return onrackhttp.RunWorkflow(c, nodeID, req, onrackhttp.FetchWorkflowImpl)
 }
 
 func PublishReserveNodeWorkflow(c config.Cpi, uuid string) (string, error) {
