@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 const (
@@ -20,39 +21,39 @@ func DefaultMaxCreateVMAttempts() int { return defaultMaxCreateVMAttempts }
 func New(config io.Reader) (Cpi, error) {
 	b, err := ioutil.ReadAll(config)
 	if err != nil {
-		log.Printf("Error reading config file %s", err)
+		log.Error(fmt.Sprintf("Error reading config file %s", err))
 		return Cpi{}, err
 	}
 
 	var cpi Cpi
 	err = json.Unmarshal(b, &cpi)
 	if err != nil {
-		log.Printf("Error unmarshalling cpi config %s", err)
+		log.Error(fmt.Sprintf("Error unmarshalling cpi config %s", err))
 		return Cpi{}, err
 	}
 
 	if cpi.ApiServer == "" {
-		log.Printf("ApiServer IP is not set")
+		log.Error("ApiServer IP is not set")
 		return Cpi{}, errors.New("ApiServer IP is not set")
 	}
 
 	if cpi.MaxCreateVMAttempt < 0 {
-		log.Println("Invalid config. MaxCreateVMAttempt cannot be negative")
+		log.Error("Invalid config. MaxCreateVMAttempt cannot be negative")
 		return Cpi{}, errors.New("Invalid config. MaxCreateVMAttempt cannot be negative")
 	}
 
 	if cpi.MaxCreateVMAttempt == 0 {
-		log.Printf("No MaxCreateVMAttempt was set, set to default value %d", defaultMaxCreateVMAttempts)
+		log.Error(fmt.Sprintf("No MaxCreateVMAttempt was set, set to default value %d", defaultMaxCreateVMAttempts))
 		cpi.MaxCreateVMAttempt = defaultMaxCreateVMAttempts
 	}
 
 	if cpi.RunWorkflowTimeoutSeconds == 0 {
-		log.Printf("No RunWorkflowTimeoutSecounds was set, set to default value %d", defaultRunWorkflowTimeoutSeconds)
+		log.Error(fmt.Sprintf("No RunWorkflowTimeoutSecounds was set, set to default value %d", defaultRunWorkflowTimeoutSeconds))
 		cpi.RunWorkflowTimeoutSeconds = defaultRunWorkflowTimeoutSeconds
 	}
 
 	if !isAgentConfigValid(cpi.Agent) {
-		log.Printf("Agent config invalid %v", cpi.Agent)
+		log.Error(fmt.Sprintf("Agent config invalid %v", cpi.Agent))
 		return Cpi{}, fmt.Errorf("Agent config invalid %v", cpi.Agent)
 	}
 

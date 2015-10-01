@@ -3,7 +3,8 @@ package workflows
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
@@ -34,7 +35,7 @@ func PublishReserveNodeWorkflow(c config.Cpi, uuid string) (string, error) {
 	w := reserveNodeWorkflow{}
 	err = json.Unmarshal(workflow, &w)
 	if err != nil {
-		log.Printf("error umarshalling workflow: %s", err)
+		log.Error(fmt.Sprintf("error umarshalling workflow: %s", err))
 		return "", err
 	}
 
@@ -50,7 +51,7 @@ func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	reserve := reserveNodeTask{}
 	err := json.Unmarshal(reserveNodeTaskTemplate, &reserve)
 	if err != nil {
-		log.Printf("error unmarshalling reserve node task template: %s\n", err)
+		log.Error(fmt.Sprintf("error unmarshalling reserve node task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling reserve node task template: %s\n", err)
 	}
 
@@ -59,14 +60,14 @@ func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	reserveBytes, err := json.Marshal(reserve)
 	if err != nil {
-		log.Printf("error marshalling reserve node task template: %s\n", err)
+		log.Error(fmt.Sprintf("error marshalling reserve node task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error reserve provision node task template: %s\n", err)
 	}
 
 	w := reserveNodeWorkflow{}
 	err = json.Unmarshal(reserveNodeWorkflowTemplate, &w)
 	if err != nil {
-		log.Printf("error unmarshalling reserve node workflow template: %s\n", err)
+		log.Error(fmt.Sprintf("error unmarshalling reserve node workflow template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling reserve node workflow template: %s\n", err)
 	}
 
@@ -76,7 +77,7 @@ func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	wBytes, err := json.Marshal(w)
 	if err != nil {
-		log.Printf("error marshalling reserve node workflow template: %s\n", err)
+		log.Error(fmt.Sprintf("error marshalling reserve node workflow template: %s\n", err))
 		return nil, nil, fmt.Errorf("error marshalling reserve node workflow template: %s\n", err)
 	}
 

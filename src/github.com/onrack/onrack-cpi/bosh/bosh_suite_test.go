@@ -2,7 +2,8 @@ package bosh_test
 
 import (
 	"io/ioutil"
-	"log"
+
+	log "github.com/Sirupsen/logrus"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

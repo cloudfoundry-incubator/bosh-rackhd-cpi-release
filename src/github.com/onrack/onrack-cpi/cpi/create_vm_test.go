@@ -15,10 +15,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
@@ -241,7 +242,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			nodes, err := onrackhttp.GetNodes(c)
 			Expect(err).ToNot(HaveOccurred())
 			targetNodeID := nodes[0].ID
-			log.Printf("targetNodeId: %s", targetNodeID)
+			log.Info(fmt.Sprintf("targetNodeId: %s", targetNodeID))
 			err = onrackhttp.ReleaseNode(c, targetNodeID)
 			Expect(err).ToNot(HaveOccurred())
 			nodeURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, targetNodeID)

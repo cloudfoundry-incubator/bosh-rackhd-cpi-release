@@ -3,7 +3,8 @@ package workflows
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
@@ -34,7 +35,7 @@ func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, er
 	w := provisionNodeWorkflow{}
 	err = json.Unmarshal(workflow, &w)
 	if err != nil {
-		log.Printf("error umarshalling workflow: %s", err)
+		log.Errorf(fmt.Sprintf("error umarshalling workflow: %s", err))
 		return "", err
 	}
 
@@ -50,7 +51,7 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	p := provisionNodeTask{}
 	err := json.Unmarshal(provisionNodeTemplate, &p)
 	if err != nil {
-		log.Printf("error unmarshalling provision node task template: %s\n", err)
+		log.Errorf(fmt.Sprintf("error unmarshalling provision node task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling provision node task template: %s\n", err)
 	}
 
@@ -59,14 +60,14 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	pBytes, err := json.Marshal(p)
 	if err != nil {
-		log.Printf("error marshalling provision node task template: %s\n", err)
+		log.Errorf(fmt.Sprintf("error marshalling provision node task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error marshalling provision node task template: %s\n", err)
 	}
 
 	s := setNodeIDTask{}
 	err = json.Unmarshal(setNodeIDTemplate, &s)
 	if err != nil {
-		log.Printf("error unmarshalling set node id task template: %s\n", err)
+		log.Errorf(fmt.Sprintf("error unmarshalling set node id task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling set node id task template: %s\n", err)
 	}
 
@@ -75,14 +76,14 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	sBytes, err := json.Marshal(s)
 	if err != nil {
-		log.Printf("error marshalling set node id task template: %s\n", err)
+		log.Errorf(fmt.Sprintf("error marshalling set node id task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error marshalling set node id task template: %s\n", err)
 	}
 
 	w := provisionNodeWorkflow{}
 	err = json.Unmarshal(provisionNodeWorkflowTemplate, &w)
 	if err != nil {
-		log.Printf("error unmarshalling provision node workflow template: %s\n", err)
+		log.Errorf(fmt.Sprintf("error unmarshalling provision node workflow template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling provision node workflow template: %s\n", err)
 	}
 
@@ -93,7 +94,7 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	wBytes, err := json.Marshal(w)
 	if err != nil {
-		log.Printf("error marshalling provision node workflow template: %s\n", err)
+		log.Errorf(fmt.Sprintf("error marshalling provision node workflow template: %s\n", err))
 		return nil, nil, fmt.Errorf("error marshalling provision node workflow template: %s\n", err)
 	}
 

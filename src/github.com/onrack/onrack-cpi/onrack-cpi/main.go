@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
-	"strings"
+
+	log "github.com/Sirupsen/logrus"
 
 	"encoding/json"
 	"io/ioutil"
@@ -26,11 +26,22 @@ func exitWithResult(result interface{}) {
 }
 
 func main() {
-	loggingEnabled := os.Getenv("ONRACK_CPI_ENABLE_LOGGING")
-	if strings.ToLower(loggingEnabled) == "true" {
+	logLevel := os.Getenv("ONRACK_CPI_LOG_LEVEL")
+	if logLevel != "" {
 		log.SetOutput(os.Stderr)
 	} else {
 		log.SetOutput(ioutil.Discard)
+	}
+
+	switch logLevel {
+	case "DEBUG":
+		log.SetLevel(log.DebugLevel)
+	case "INFO":
+		log.SetLevel(log.InfoLevel)
+	case "ERROR":
+		log.SetLevel(log.ErrorLevel)
+	case "FATAL":
+		log.SetLevel(log.FatalLevel)
 	}
 
 	configPath := flag.String("configPath", "", "Path to configuration file")
@@ -40,7 +51,7 @@ func main() {
 	defer file.Close()
 
 	if err != nil {
-		log.Printf("unable to open configuration file %s", err)
+		log.Error(fmt.Sprintf("unable to open configuration file %s", err))
 		exitWithError(err)
 	}
 

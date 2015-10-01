@@ -2,9 +2,9 @@ package cpi
 
 import (
 	"errors"
-	"log"
 	"reflect"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
@@ -14,7 +14,7 @@ import (
 func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 	var cid string
 	if reflect.TypeOf(extInput[0]) != reflect.TypeOf(cid) {
-		log.Println("Received unexpected type for vm cid")
+		log.Error("Received unexpected type for vm cid")
 		return errors.New("Received unexpected type for vm cid")
 	}
 

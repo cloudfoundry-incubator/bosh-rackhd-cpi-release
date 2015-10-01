@@ -3,8 +3,9 @@ package workflows
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"reflect"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
@@ -23,7 +24,7 @@ type bootstrapTask struct {
 func BootstrappingTasksExist(c config.Cpi) error {
 	tasksBytes, err := onrackhttp.RetrieveTasks(c)
 	if err != nil {
-		log.Printf("unable to retrieve tasks: %s", err)
+		log.Error(fmt.Sprintf("unable to retrieve tasks: %s", err))
 		return fmt.Errorf("unable to retrieve tasks: %s", err)
 	}
 
@@ -40,13 +41,13 @@ func BootstrappingTasksExist(c config.Cpi) error {
 
 			err = json.Unmarshal(tasks[i].Options, &options)
 			if err != nil {
-				log.Printf("error unmarshalling pxe boot task options: %s\n", err)
+				log.Error(fmt.Sprintf("error unmarshalling pxe boot task options: %s\n", err))
 				return fmt.Errorf("error unmarshalling pxe boot task options: %s\n", err)
 			}
 
 			err = json.Unmarshal(tasks[i].Properties, &properties)
 			if err != nil {
-				log.Printf("error unmarshalling pxe boot task properties: %s\n", err)
+				log.Error(fmt.Sprintf("error unmarshalling pxe boot task properties: %s\n", err))
 				return fmt.Errorf("error unmarshalling pxe boot task properties: %s\n", err)
 			}
 
@@ -64,13 +65,13 @@ func BootstrappingTasksExist(c config.Cpi) error {
 
 			err = json.Unmarshal(tasks[i].Options, &options)
 			if err != nil {
-				log.Printf("error unmarshalling reboot task options: %s\n", err)
+				log.Error(fmt.Sprintf("error unmarshalling reboot task options: %s\n", err))
 				return fmt.Errorf("error unmarshalling reboot task options: %s\n", err)
 			}
 
 			err = json.Unmarshal(tasks[i].Properties, &properties)
 			if err != nil {
-				log.Printf("error unmarshalling pxe boot task properties: %s\n", err)
+				log.Error(fmt.Sprintf("error unmarshalling pxe boot task properties: %s\n", err))
 				return fmt.Errorf("error unmarshalling pxe boot task properties: %s\n", err)
 			}
 
@@ -89,13 +90,13 @@ func BootstrappingTasksExist(c config.Cpi) error {
 
 			err = json.Unmarshal(tasks[i].Options, &options)
 			if err != nil {
-				log.Printf("error unmarshalling bootstrap ubuntu task options: %s\n", err)
+				log.Error(fmt.Sprintf("error unmarshalling bootstrap ubuntu task options: %s\n", err))
 				return fmt.Errorf("error unmarshalling bootstrap ubuntu task options: %s\n", err)
 			}
 
 			err = json.Unmarshal(tasks[i].Properties, &properties)
 			if err != nil {
-				log.Printf("error unmarshalling bootstrap ubuntu task properties: %s\n", err)
+				log.Error(fmt.Sprintf("error unmarshalling bootstrap ubuntu task properties: %s\n", err))
 				return fmt.Errorf("error unmarshalling bootstrap ubuntu task properties: %s\n", err)
 			}
 
@@ -116,22 +117,22 @@ func BootstrappingTasksExist(c config.Cpi) error {
 	}
 
 	if len(foundTasks) != requiredTaskLength {
-		log.Printf("Did not find the expected number of required bootstrapping tasks: %d, found %v", requiredTaskLength, foundTasks)
+		log.Error(fmt.Sprintf("Did not find the expected number of required bootstrapping tasks: %d, found %v", requiredTaskLength, foundTasks))
 		return fmt.Errorf("Did not find the expected number of required bootstrapping tasks: %d, found %v", requiredTaskLength, foundTasks)
 	}
 
 	if !setPxeBootTaskIsExpected(foundTasks[SetPxeBootTaskName].(setPxeBootTask)) {
-		log.Printf("Set PXE boot task has unexpected form: %v\n", foundTasks[SetPxeBootTaskName])
+		log.Error(fmt.Sprintf("Set PXE boot task has unexpected form: %v\n", foundTasks[SetPxeBootTaskName]))
 		return fmt.Errorf("Set PXE boot task has unexpected form: %v", foundTasks[SetPxeBootTaskName])
 	}
 
 	if !rebootNodeTaskIsExpected(foundTasks[RebootNodeTaskName].(rebootNodeTask)) {
-		log.Printf("Reboot node task has unexpected form: %v\n", foundTasks[RebootNodeTaskName])
+		log.Error(fmt.Sprintf("Reboot node task has unexpected form: %v\n", foundTasks[RebootNodeTaskName]))
 		return fmt.Errorf("Reboot node task has unexpected form: %v", foundTasks[RebootNodeTaskName])
 	}
 
 	if !bootstrapUbuntuIsExpected(foundTasks[BootstrapUbuntuTaskName].(bootstrapUbuntuTask)) {
-		log.Printf("Bootstrap Ubuntu task has unexpected form: %v\n", foundTasks[BootstrapUbuntuTaskName])
+		log.Error(fmt.Sprintf("Bootstrap Ubuntu task has unexpected form: %v\n", foundTasks[BootstrapUbuntuTaskName]))
 		return fmt.Errorf("Bootstrap Ubuntu task has unexpected form: %v", foundTasks[BootstrapUbuntuTaskName])
 	}
 
@@ -143,12 +144,12 @@ func setPxeBootTaskIsExpected(t setPxeBootTask) bool {
 
 	err := json.Unmarshal(setPxeBootTemplate, &expectedTask)
 	if err != nil {
-		log.Printf("Error unmarshalling setPxeBootTemplate: %s", err)
+		log.Error(fmt.Sprintf("Error unmarshalling setPxeBootTemplate: %s", err))
 		return false
 	}
 
 	if !reflect.DeepEqual(t, expectedTask) {
-		log.Printf("actual %v, expected %v", t, expectedTask)
+		log.Error(fmt.Sprintf("actual %v, expected %v", t, expectedTask))
 		return false
 	}
 
@@ -159,7 +160,7 @@ func rebootNodeTaskIsExpected(t rebootNodeTask) bool {
 	expectedTask := rebootNodeTask{}
 	err := json.Unmarshal(rebootNodeTemplate, &expectedTask)
 	if err != nil {
-		log.Printf("Error unmarshalling rebootNodeTemplate: %s", err)
+		log.Error(fmt.Sprintf("Error unmarshalling rebootNodeTemplate: %s", err))
 		return false
 	}
 
@@ -174,7 +175,7 @@ func bootstrapUbuntuIsExpected(t bootstrapUbuntuTask) bool {
 	expectedTask := bootstrapUbuntuTask{}
 	err := json.Unmarshal(bootstrapUbuntuTaskTemplate, &expectedTask)
 	if err != nil {
-		log.Printf("Error unmarshalling bootstrapUbuntuTaskTemplate: %s", err)
+		log.Error(fmt.Sprintf("Error unmarshalling bootstrapUbuntuTaskTemplate: %s", err))
 		return false
 	}
 

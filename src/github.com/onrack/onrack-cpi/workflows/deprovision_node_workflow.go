@@ -3,7 +3,8 @@ package workflows
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackhttp"
@@ -34,7 +35,7 @@ func PublishDeprovisionNodeWorkflow(c config.Cpi, uuid string) (string, error) {
 	w := deprovisionNodeWorkflow{}
 	err = json.Unmarshal(workflow, &w)
 	if err != nil {
-		log.Printf("error umarshalling workflow: %s", err)
+		log.Error(fmt.Sprintf("error umarshalling workflow: %s", err))
 		return "", err
 	}
 
@@ -50,7 +51,7 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	deprovisionTask := deprovisionNodeTask{}
 	err := json.Unmarshal(deprovisionNodeTaskTemplate, &deprovisionTask)
 	if err != nil {
-		log.Printf("error unmarshalling Deprovision node task template: %s\n", err)
+		log.Error(fmt.Sprintf("error unmarshalling Deprovision node task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling Deprovision node task template: %s\n", err)
 	}
 
@@ -59,14 +60,14 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	deprovisionTaskBytes, err := json.Marshal(deprovisionTask)
 	if err != nil {
-		log.Printf("error marshalling Deprovision node task template: %s\n", err)
+		log.Error(fmt.Sprintf("error marshalling Deprovision node task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error Deprovision provision node task template: %s\n", err)
 	}
 
 	w := deprovisionNodeWorkflow{}
 	err = json.Unmarshal(deprovisionNodeWorkflowTemplate, &w)
 	if err != nil {
-		log.Printf("error unmarshalling Deprovision node workflow template: %s\n", err)
+		log.Error(fmt.Sprintf("error unmarshalling Deprovision node workflow template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling Deprovision node workflow template: %s\n", err)
 	}
 
@@ -76,7 +77,7 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	wBytes, err := json.Marshal(w)
 	if err != nil {
-		log.Printf("error marshalling Deprovision node workflow template: %s\n", err)
+		log.Error(fmt.Sprintf("error marshalling Deprovision node workflow template: %s\n", err))
 		return nil, nil, fmt.Errorf("error marshalling Deprovision node workflow template: %s\n", err)
 	}
 

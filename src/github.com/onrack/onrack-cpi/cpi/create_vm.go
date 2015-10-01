@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"math/rand"
 	"strings"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/bosh"
@@ -87,7 +88,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 	defer onrackhttp.DeleteFile(c, agentRegistryName)
-	log.Printf("Succeeded uploading agent registry, got '%s' as uuid", regUUID)
+	log.Info(fmt.Sprintf("Succeeded uploading agent registry, got '%s' as uuid", regUUID))
 
 	publicKeyName := fmt.Sprintf("key-%s", vmCID)
 	publicKeyReader := strings.NewReader(publicKey)
@@ -96,11 +97,11 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 	defer onrackhttp.DeleteFile(c, publicKeyName)
-	log.Printf("Succeeded uploading public key, got '%s' as uuid", keyUUID)
+	log.Info(fmt.Sprintf("Succeeded uploading public key, got '%s' as uuid", keyUUID))
 
 	workflowName, err := workflows.PublishProvisionNodeWorkflow(c, vmCID)
 	if err != nil {
-		log.Printf("error publishing provision workflow: %s", err)
+		log.Error(fmt.Sprintf("error publishing provision workflow: %s", err))
 		return "", fmt.Errorf("error publishing provision workflow: %s", err)
 	}
 
@@ -118,7 +119,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 
 	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, options)
 	if err != nil {
-		log.Printf("error running provision workflow: %s", err)
+		log.Error(fmt.Sprintf("error running provision workflow: %s", err))
 		return "", fmt.Errorf("error running provision workflow: %s", err)
 	}
 
@@ -135,12 +136,12 @@ func attachMAC(nodeNetworks map[string]onrackhttp.Network, oldSpec bosh.Network)
 	}
 
 	if len(upNetworks) == 0 {
-		log.Println("node has no active network")
+		log.Error("node has no active network")
 		return bosh.Network{}, errors.New("node has no active network")
 	}
 
 	if len(upNetworks) > 1 {
-		log.Printf("node has %d active networks", len(upNetworks))
+		log.Error(fmt.Sprintf("node has %d active networks", len(upNetworks)))
 		return bosh.Network{}, fmt.Errorf("node has %d active networks", len(upNetworks))
 	}
 
@@ -172,16 +173,16 @@ func tryReservation(c config.Cpi, choose selectionFunc, reserve reservationFunc)
 	for i := 0; i < c.MaxCreateVMAttempt; i++ {
 		nodeID, err := choose(c)
 		if err != nil {
-			log.Printf("retry %d: error choosing node %s", i, err)
+			log.Error(fmt.Sprintf("retry %d: error choosing node %s", i, err))
 			continue
 		}
 
 		reserved, err = reserve(c, nodeID)
 		if err != nil {
-			log.Printf("retry %d: error reserving node %s", i, err)
+			log.Error(fmt.Sprintf("retry %d: error reserving node %s", i, err))
 			err = onrackhttp.ReleaseNode(c, nodeID)
 			if err != nil {
-				log.Printf("error releasing node %s, %s", nodeID, err)
+				log.Error(fmt.Sprintf("error releasing node %s, %s", nodeID, err))
 			}
 			continue
 		}
@@ -207,7 +208,7 @@ func reserveNodeFromOnRack(c config.Cpi, nodeID string) (string, error) {
 
 	worflowName, err := workflows.PublishReserveNodeWorkflow(c, u.String())
 	if err != nil {
-		log.Printf("error publishing reserve workflow: %s", err)
+		log.Error(fmt.Sprintf("error publishing reserve workflow: %s", err))
 		return "", fmt.Errorf("error publishing reserve workflow: %s", err)
 	}
 
@@ -215,11 +216,11 @@ func reserveNodeFromOnRack(c config.Cpi, nodeID string) (string, error) {
 
 	err = workflows.RunReserveNodeWorkflow(c, nodeID, worflowName, o)
 	if err != nil {
-		log.Printf("error running reserve workflow: %s", err)
+		log.Error(fmt.Sprintf("error running reserve workflow: %s", err))
 		return "", fmt.Errorf("error running reserve workflow: %s", err)
 	}
 
-	log.Printf("reserved node %s", nodeID)
+	log.Info(fmt.Sprintf("reserved node %s", nodeID))
 	return nodeID, nil
 }
 
@@ -234,7 +235,7 @@ func selectNodeFromOnRack(c config.Cpi) (string, error) {
 		return "", err
 	}
 
-	log.Printf("selected node %s", nodeID)
+	log.Info(fmt.Sprintf("selected node %s", nodeID))
 	return nodeID, nil
 }
 

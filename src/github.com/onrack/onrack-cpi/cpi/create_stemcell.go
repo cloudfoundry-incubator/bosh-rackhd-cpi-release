@@ -3,9 +3,10 @@ package cpi
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"reflect"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/bosh"
@@ -24,7 +25,7 @@ func CreateStemcell(c config.Cpi, extInput bosh.MethodArguments) (string, error)
 
 	stemcellFile, err := os.Open(imagePath)
 	if err != nil {
-		log.Printf("Error obtaining stemcell file handle %s", err)
+		log.Error(fmt.Sprintf("Error obtaining stemcell file handle %s", err))
 		return "", fmt.Errorf("Error obtaining stemcell file handle %s", err)
 	}
 
