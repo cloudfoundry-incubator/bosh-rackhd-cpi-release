@@ -118,8 +118,9 @@ var _ = Describe("Workflows", func() {
 					fakeWorkflowName := fmt.Sprintf("Test.Success.CF.Fake.%s", uuid)
 					fakeTasks := []onrackhttp.WorkflowTask{
 						onrackhttp.WorkflowTask{
-							TaskName: workflows.SetPxeBootTaskName,
-							Label:    "set-boot-pxe",
+							TaskName:      workflows.SetPxeBootTaskName,
+							Label:         "set-boot-pxe",
+							IgnoreFailure: true,
 						},
 					}
 
