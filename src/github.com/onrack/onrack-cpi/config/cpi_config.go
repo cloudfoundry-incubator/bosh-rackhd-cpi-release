@@ -43,12 +43,12 @@ func New(config io.Reader) (Cpi, error) {
 	}
 
 	if cpi.MaxCreateVMAttempt == 0 {
-		log.Error(fmt.Sprintf("No MaxCreateVMAttempt was set, set to default value %d", defaultMaxCreateVMAttempts))
+		log.Info(fmt.Sprintf("No MaxCreateVMAttempt was set, set to default value %d", defaultMaxCreateVMAttempts))
 		cpi.MaxCreateVMAttempt = defaultMaxCreateVMAttempts
 	}
 
 	if cpi.RunWorkflowTimeoutSeconds == 0 {
-		log.Error(fmt.Sprintf("No RunWorkflowTimeoutSecounds was set, set to default value %d", defaultRunWorkflowTimeoutSeconds))
+		log.Info(fmt.Sprintf("No RunWorkflowTimeoutSecounds was set, set to default value %d", defaultRunWorkflowTimeoutSeconds))
 		cpi.RunWorkflowTimeoutSeconds = defaultRunWorkflowTimeoutSeconds
 	}
 

@@ -180,7 +180,7 @@ func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody, fetch 
 		return fmt.Errorf("error unmarshalling /common/node/workflows response %s", err)
 	}
 
-	log.Info(fmt.Sprintf("workflow response %v", workflowResp))
+	log.Debug(fmt.Sprintf("workflow response %v", workflowResp))
 	timeoutChan := time.NewTimer(time.Second * c.RunWorkflowTimeoutSeconds).C
 	retryChan := time.NewTicker(time.Second * 5).C
 
