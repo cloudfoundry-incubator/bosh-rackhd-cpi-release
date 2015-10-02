@@ -20,7 +20,7 @@ import (
 
 var _ = Describe("Workflows", func() {
 
-	Describe("Publishing workflow", func() {
+	Describe("PublishWorkflow", func() {
 		It("add workflow to library, retrieves updated list of tasks from task library", func() {
 			apiServer := os.Getenv("ON_RACK_API_URI")
 			Expect(apiServer).ToNot(BeEmpty())
@@ -83,6 +83,135 @@ var _ = Describe("Workflows", func() {
 		})
 	})
 
+	Describe("WorkflowPoster", func() {
+		It("post workflow to server and tell server to run it on node", func() {
+			rejectNodesRunningWorkflows := func(nodes []onrackhttp.Node) []onrackhttp.Node {
+				var n []onrackhttp.Node
+				for i := range nodes {
+					if len(nodes[i].Workflows) == 0 {
+						n = append(n, nodes[i])
+					}
+				}
+				return n
+			}
+
+			apiServer := os.Getenv("ON_RACK_API_URI")
+			Expect(apiServer).ToNot(BeEmpty())
+
+			uuidObj, err := uuid.NewV4()
+			Expect(err).ToNot(HaveOccurred())
+			uuid := uuidObj.String()
+			c := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
+
+			allNodes, err := onrackhttp.GetNodes(c)
+			Expect(err).ToNot(HaveOccurred())
+
+			idleNodes := rejectNodesRunningWorkflows(allNodes)
+			t := time.Now()
+			rand.Seed(t.Unix())
+
+			nodeID := idleNodes[rand.Intn(len(idleNodes))].ID
+
+			fakeWorkflowName := fmt.Sprintf("Test.Success.CF.Fake.%s", uuid)
+			fakeTasks := []onrackhttp.WorkflowTask{
+				onrackhttp.WorkflowTask{
+					TaskName:      workflows.SetPxeBootTaskName,
+					Label:         "set-boot-pxe",
+					IgnoreFailure: true,
+				},
+			}
+
+			fakeWorkflowStub := onrackhttp.WorkflowStub{
+				Name:       fakeWorkflowName,
+				UnusedName: onrackhttp.DefaultUnusedName,
+				Tasks:      fakeTasks,
+			}
+
+			fakeWorkflowStubBytes, err := json.Marshal(fakeWorkflowStub)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = onrackhttp.PublishWorkflow(c, fakeWorkflowStubBytes)
+			Expect(err).ToNot(HaveOccurred())
+
+			body := onrackhttp.RunWorkflowRequestBody{
+				Name: fakeWorkflowName,
+			}
+
+			wr, err := onrackhttp.WorkflowPoster(c, nodeID, body)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(wr.Name).To(Equal(fakeWorkflowName))
+			err = onrackhttp.KillActiveWorkflows(c, nodeID)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Describe("WorkflowFetcher", func() {
+		It("fetch the workflow from the server", func() {
+			rejectNodesRunningWorkflows := func(nodes []onrackhttp.Node) []onrackhttp.Node {
+				var n []onrackhttp.Node
+				for i := range nodes {
+					if len(nodes[i].Workflows) == 0 {
+						n = append(n, nodes[i])
+					}
+				}
+				return n
+			}
+
+			apiServer := os.Getenv("ON_RACK_API_URI")
+			Expect(apiServer).ToNot(BeEmpty())
+
+			uuidObj, err := uuid.NewV4()
+			Expect(err).ToNot(HaveOccurred())
+			uuid := uuidObj.String()
+			c := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
+
+			allNodes, err := onrackhttp.GetNodes(c)
+			Expect(err).ToNot(HaveOccurred())
+
+			idleNodes := rejectNodesRunningWorkflows(allNodes)
+			t := time.Now()
+			rand.Seed(t.Unix())
+
+			nodeID := idleNodes[rand.Intn(len(idleNodes))].ID
+
+			fakeWorkflowName := fmt.Sprintf("Test.Success.CF.Fake.%s", uuid)
+			fakeTasks := []onrackhttp.WorkflowTask{
+				onrackhttp.WorkflowTask{
+					TaskName:      workflows.SetPxeBootTaskName,
+					Label:         "set-boot-pxe",
+					IgnoreFailure: true,
+				},
+			}
+
+			fakeWorkflowStub := onrackhttp.WorkflowStub{
+				Name:       fakeWorkflowName,
+				UnusedName: onrackhttp.DefaultUnusedName,
+				Tasks:      fakeTasks,
+			}
+
+			fakeWorkflowStubBytes, err := json.Marshal(fakeWorkflowStub)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = onrackhttp.PublishWorkflow(c, fakeWorkflowStubBytes)
+			Expect(err).ToNot(HaveOccurred())
+
+			body := onrackhttp.RunWorkflowRequestBody{
+				Name: fakeWorkflowName,
+			}
+
+			wr, err := onrackhttp.WorkflowPoster(c, nodeID, body)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(wr.Name).To(Equal(fakeWorkflowName))
+
+			wr, err = onrackhttp.WorkflowFetcher(c, nodeID, wr.ID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(wr.Name).To(Equal(fakeWorkflowName))
+
+			err = onrackhttp.KillActiveWorkflows(c, nodeID)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
 	Describe("RunWorkflow", func() {
 		Context("when the workflow completes successfully", func() {
 			Describe("SLOW_TEST", func() {
@@ -140,7 +269,7 @@ var _ = Describe("Workflows", func() {
 						Name: fakeWorkflowName,
 					}
 
-					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body, onrackhttp.FetchWorkflowImpl)
+					err = onrackhttp.RunWorkflow(onrackhttp.WorkflowPoster, onrackhttp.WorkflowFetcher, cpiConfig, nodeID, body)
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})
@@ -247,7 +376,7 @@ var _ = Describe("Workflows", func() {
 						Name: fakeWorkflowName,
 					}
 
-					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body, onrackhttp.FetchWorkflowImpl)
+					err = onrackhttp.RunWorkflow(onrackhttp.WorkflowPoster, onrackhttp.WorkflowFetcher, cpiConfig, nodeID, body)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -354,7 +483,7 @@ var _ = Describe("Workflows", func() {
 						Name: fakeWorkflowName,
 					}
 
-					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body, onrackhttp.FetchWorkflowImpl)
+					err = onrackhttp.RunWorkflow(onrackhttp.WorkflowPoster, onrackhttp.WorkflowFetcher, cpiConfig, nodeID, body)
 					Expect(err).To(HaveOccurred())
 
 					Eventually(func() int {
@@ -372,69 +501,27 @@ var _ = Describe("Workflows", func() {
 		Context("when the workflow completes with valid status", func() {
 			Describe("SLOW_TEST", func() {
 				It("returns", func() {
-					rejectNodesRunningWorkflows := func(nodes []onrackhttp.Node) []onrackhttp.Node {
-						var n []onrackhttp.Node
-						for i := range nodes {
-							if len(nodes[i].Workflows) == 0 {
-								n = append(n, nodes[i])
-							}
-						}
-						return n
-					}
-
-					apiServer := os.Getenv("ON_RACK_API_URI")
-					Expect(apiServer).ToNot(BeEmpty())
-
-					uuidObj, err := uuid.NewV4()
+					workflowResponseFile, err := os.Open("../spec_assets/dummy_completed_workflow_response.json")
 					Expect(err).ToNot(HaveOccurred())
-					uuid := uuidObj.String()
-					cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
+					defer workflowResponseFile.Close()
 
-					allNodes, err := onrackhttp.GetNodes(cpiConfig)
+					workflowResponseBytes, err := ioutil.ReadAll(workflowResponseFile)
 					Expect(err).ToNot(HaveOccurred())
 
-					idleNodes := rejectNodesRunningWorkflows(allNodes)
-					t := time.Now()
-					rand.Seed(t.Unix())
-
-					i := rand.Intn(len(idleNodes))
-					nodeID := idleNodes[i].ID
-
-					fakeWorkflowName := fmt.Sprintf("Test.Success.CF.Fake.%s", uuid)
-					fakeTasks := []onrackhttp.WorkflowTask{
-						onrackhttp.WorkflowTask{
-							TaskName: workflows.SetPxeBootTaskName,
-							Label:    "set-boot-pxe",
-						},
-					}
-
-					fakeWorkflowStub := onrackhttp.WorkflowStub{
-						Name:       fakeWorkflowName,
-						UnusedName: onrackhttp.DefaultUnusedName,
-						Tasks:      fakeTasks,
-					}
-
-					fakeWorkflowStubBytes, err := json.Marshal(fakeWorkflowStub)
+					var wr onrackhttp.WorkflowResponse
+					err = json.Unmarshal(workflowResponseBytes, &wr)
 					Expect(err).ToNot(HaveOccurred())
 
-					err = onrackhttp.PublishWorkflow(cpiConfig, fakeWorkflowStubBytes)
-					Expect(err).ToNot(HaveOccurred())
-
-					body := onrackhttp.RunWorkflowRequestBody{
-						Name: fakeWorkflowName,
+					fakeWorkflowPoster := func(config.Cpi, string, onrackhttp.RunWorkflowRequestBody) (onrackhttp.WorkflowResponse, error) {
+						return wr, nil
 					}
 
-					fakeFetchWorkflow := func(config.Cpi, string, string) (onrackhttp.WorkflowResponse, error) {
-						return onrackhttp.WorkflowResponse{
-							Status:       "valid",
-							PendingTasks: make([]interface{}, 0),
-							Name:         "fakeWorkflowName",
-							Tasks:        make(map[string]onrackhttp.TaskResponse),
-							ID:           "fakeworkflowId",
-						}, nil
+					fakeWorkflowFetcher := func(config.Cpi, string, string) (onrackhttp.WorkflowResponse, error) {
+						return wr, nil
 					}
 
-					err = onrackhttp.RunWorkflow(cpiConfig, nodeID, body, fakeFetchWorkflow)
+					c := config.Cpi{RunWorkflowTimeoutSeconds: 5}
+					err = onrackhttp.RunWorkflow(fakeWorkflowPoster, fakeWorkflowFetcher, c, "nodeID", onrackhttp.RunWorkflowRequestBody{})
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})

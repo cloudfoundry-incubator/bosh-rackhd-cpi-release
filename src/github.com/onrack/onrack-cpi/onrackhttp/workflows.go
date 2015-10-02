@@ -99,7 +99,7 @@ func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
 	return body, nil
 }
 
-func FetchWorkflowImpl(c config.Cpi, nodeID string, workflowID string) (WorkflowResponse, error) {
+func WorkflowFetcher(c config.Cpi, nodeID string, workflowID string) (WorkflowResponse, error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows", c.ApiServer, nodeID)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -138,56 +138,68 @@ func FetchWorkflowImpl(c config.Cpi, nodeID string, workflowID string) (Workflow
 	return *w, nil
 }
 
-type FetchWorkflow func(config.Cpi, string, string) (WorkflowResponse, error)
-
-func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody, fetch FetchWorkflow) (err error) {
+func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (WorkflowResponse, error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/", c.ApiServer, nodeID)
 	body, err := json.Marshal(req)
 	if err != nil {
 		log.Error("error marshalling workflow request body")
-		return
+		return WorkflowResponse{}, err
 	}
 	request, err := http.NewRequest("POST", url, bytes.NewReader(body))
 	if err != nil {
 		log.Error("error building http request to run workflow")
-		return
+		return WorkflowResponse{}, err
 	}
 	request.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		log.Error(fmt.Sprintf("error running workflow at url %s", url))
-		return
+		return WorkflowResponse{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 201 {
 		msg, _ := ioutil.ReadAll(resp.Body)
 		log.Error(fmt.Sprintf("error response code is %d: %s, with body: %s", resp.StatusCode, string(msg), string(body)))
-		return fmt.Errorf("Failed running workflow at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+		return WorkflowResponse{}, fmt.Errorf("Failed running workflow at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
 	}
 
 	wfRespBytes, err := ioutil.ReadAll(resp.Body)
 	log.Debug(fmt.Sprintf("body response is %s", string(wfRespBytes)))
 	if err != nil {
 		log.Error(fmt.Sprintf("error reading workflow response body %s", err))
-		return fmt.Errorf("error reading workflow response body %s", err)
+		return WorkflowResponse{}, fmt.Errorf("error reading workflow response body %s", err)
 	}
 
 	workflowResp := WorkflowResponse{}
 	err = json.Unmarshal(wfRespBytes, &workflowResp)
 	if err != nil {
 		log.Error(fmt.Sprintf("error unmarshalling /common/node/workflows response %s", err))
-		return fmt.Errorf("error unmarshalling /common/node/workflows response %s", err)
+		return WorkflowResponse{}, fmt.Errorf("error unmarshalling /common/node/workflows response %s", err)
 	}
 
 	log.Debug(fmt.Sprintf("workflow response %v", workflowResp))
+
+	return workflowResp, nil
+}
+
+type workflowFetcherFunc func(config.Cpi, string, string) (WorkflowResponse, error)
+type workflowPosterFunc func(config.Cpi, string, RunWorkflowRequestBody) (WorkflowResponse, error)
+
+func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c config.Cpi, nodeID string, req RunWorkflowRequestBody) error {
+	workflowResponse, err := poster(c, nodeID, req)
+	if err != nil {
+		log.Error(fmt.Sprintf("Failed to post workflow: %s\n", err))
+		return err
+	}
+
 	timeoutChan := time.NewTimer(time.Second * c.RunWorkflowTimeoutSeconds).C
-	retryChan := time.NewTicker(time.Second * 5).C
+	retryChan := time.NewTicker(time.Second * 3).C
 
 	for {
 		select {
 		case <-timeoutChan:
-			err := killActiveWorkflows(c, nodeID)
+			err := KillActiveWorkflow(c, nodeID)
 			if err != nil {
 				log.Error(fmt.Sprintf("Could not abort timed out workflow on node: %s\n", nodeID))
 				return fmt.Errorf("Could not abort timed out workflow on node: %s", nodeID)
@@ -196,13 +208,13 @@ func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody, fetch 
 			log.Info(fmt.Sprintf("Timed out running workflow: %s on node: %s", req.Name, nodeID))
 			return fmt.Errorf("Timed out running workflow: %s on node: %s", req.Name, nodeID)
 		case <-retryChan:
-			workflowResponse, err := fetch(c, nodeID, workflowResp.ID)
+			wr, err := fetcher(c, nodeID, workflowResponse.ID)
 			if err != nil {
 				log.Error(fmt.Sprintf("Unable to fetch workflow status: %s\n", err))
 				return err
 			}
 
-			switch workflowResponse.Status {
+			switch wr.Status {
 			case workflowValidStatus:
 				if len(workflowResponse.PendingTasks) == 0 {
 					log.Info(fmt.Sprintf("workflow: %s completed with valid state against node: %s", req.Name, nodeID))
@@ -221,13 +233,13 @@ func RunWorkflow(c config.Cpi, nodeID string, req RunWorkflowRequestBody, fetch 
 				return nil
 			default:
 				log.Error(fmt.Sprintf("workflow: %s has unexpected status on node: %s", req.Name, nodeID))
-				return fmt.Errorf("workflow: %s has unexpected status %s on node: %s", req.Name, workflowResponse.Status, nodeID)
+				return fmt.Errorf("workflow: %s has unexpected status %s on node: %s", req.Name, wr.Status, nodeID)
 			}
 		}
 	}
 }
 
-func killActiveWorkflows(c config.Cpi, nodeID string) error {
+func KillActiveWorkflow(c config.Cpi, nodeID string) error {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
 	request, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
@@ -240,16 +252,15 @@ func killActiveWorkflows(c config.Cpi, nodeID string) error {
 		log.Error(fmt.Sprintf("Error: %s deleting active workflows on node: %s\n", err, nodeID))
 		return fmt.Errorf("Error: %s deleting active workflows on node: %s", err, nodeID)
 	}
-
 	defer resp.Body.Close()
 
-	msg, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Error(fmt.Sprintf("Error: %s reading response body from abort workflows request against node: %s\n", err, nodeID))
-		return fmt.Errorf("Error: %s reading response body from abort workflows request against node: %s", err, nodeID)
-	}
+	if resp.StatusCode != 200 && resp.StatusCode != 204 {
+		msg, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Error(fmt.Sprintf("Error: %s reading response body from abort workflows request against node: %s\n", err, nodeID))
+			return fmt.Errorf("Error: %s reading response body from abort workflows request against node: %s", err, nodeID)
+		}
 
-	if resp.StatusCode != 200 {
 		log.Error(fmt.Sprintf("Failed deleting active workflows against node: %s with status: %s, message: %s", nodeID, resp.Status, string(msg)))
 		return fmt.Errorf("Failed deleting active workflows against node: %s with status: %s, message: %s", nodeID, resp.Status, string(msg))
 	}

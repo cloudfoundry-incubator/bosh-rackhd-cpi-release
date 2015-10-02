@@ -1,0 +1,36 @@
+{
+  "node": "560c28782cd220f304a2467f",
+  "_status": "valid",
+  "finishedTasks": [
+    {
+      "instanceId": "479b0473-1ce1-4e49-b987-5aebe8cbca7d",
+      "nodeId": "560c28782cd220f304a2467f",
+      "name": "Task.Obm.Node.PxeBoot",
+      "friendlyName": "Set Node Pxeboot",
+      "state": "succeeded",
+      "options": {
+        "action": "setBootPxe",
+        "obmServiceName": "ipmi-obm-service"
+      },
+      "job": {
+        "options": {
+          "action": "setBootPxe",
+          "obmServiceName": "ipmi-obm-service"
+        },
+        "context": {
+          "target": "560c28782cd220f304a2467f",
+          "graphId": "34564cd7-d5be-45bf-a3a1-a3bbc1014574",
+          "479b0473-1ce1-4e49-b987-5aebe8cbca7d": {}
+        },
+        "taskId": "479b0473-1ce1-4e49-b987-5aebe8cbca7d",
+        "nodeId": "560c28782cd220f304a2467f",
+        "obmServiceName": "ipmi-obm-service"
+      }
+    }
+  ],
+  "injectableName": "Test.Success.CF.Fake.bbb0d3b4-df26-4071-5e25-cb570637609c",
+  "instanceId": "34564cd7-d5be-45bf-a3a1-a3bbc1014574",
+  "name": "UPLOADED_BY_ONRACK_CPI",
+  "pendingTasks": [],
+  "id": "560dabe1554acf0805584a1e"
+}

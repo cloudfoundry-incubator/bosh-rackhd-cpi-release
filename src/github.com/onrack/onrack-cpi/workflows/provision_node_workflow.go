@@ -16,7 +16,7 @@ func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, 
 		Options: map[string]interface{}{"defaults": options},
 	}
 
-	return onrackhttp.RunWorkflow(c, nodeID, req, onrackhttp.FetchWorkflowImpl)
+	return onrackhttp.RunWorkflow(onrackhttp.WorkflowPoster, onrackhttp.WorkflowFetcher, c, nodeID, req)
 }
 
 func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, error) {
