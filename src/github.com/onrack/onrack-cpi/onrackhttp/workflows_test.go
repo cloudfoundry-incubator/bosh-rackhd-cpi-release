@@ -140,7 +140,7 @@ var _ = Describe("Workflows", func() {
 			wr, err := onrackhttp.WorkflowPoster(c, nodeID, body)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(wr.Name).To(Equal(fakeWorkflowName))
-			err = onrackhttp.KillActiveWorkflows(c, nodeID)
+			err = onrackhttp.KillActiveWorkflow(c, nodeID)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
@@ -207,7 +207,7 @@ var _ = Describe("Workflows", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(wr.Name).To(Equal(fakeWorkflowName))
 
-			err = onrackhttp.KillActiveWorkflows(c, nodeID)
+			err = onrackhttp.KillActiveWorkflow(c, nodeID)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
