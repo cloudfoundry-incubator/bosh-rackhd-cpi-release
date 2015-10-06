@@ -213,10 +213,11 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 				log.Error(fmt.Sprintf("Unable to fetch workflow status: %s\n", err))
 				return err
 			}
+			log.Debug(fmt.Sprintf("workflow: %s with status: %s and pending tasks: %d", wr.Name, wr.Status, len(wr.PendingTasks)))
 
 			switch wr.Status {
 			case workflowValidStatus:
-				if len(workflowResponse.PendingTasks) == 0 {
+				if len(wr.PendingTasks) == 0 {
 					log.Info(fmt.Sprintf("workflow: %s completed with valid state against node: %s", req.Name, nodeID))
 					return nil
 				}
