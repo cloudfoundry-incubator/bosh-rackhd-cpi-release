@@ -14,6 +14,66 @@ import (
 	"github.com/onrack/onrack-cpi/config"
 )
 
+const (
+	workflowValidStatus      = "valid"
+	worfklowSuccessfulStatus = "succeeded"
+	workflowFailedStatus     = "failed"
+	workflowCancelledStatus  = "cancelled"
+)
+
+const (
+	OnrackReserveVMGraphName = "Graph.CF.ReserveVM"
+	OnrackCreateVMGraphName  = "Graph.BOSH.ProvisionNode"
+	OnrackDeleteVMGraphName  = "Graph.CF.DeleteVM"
+	OnrackEnvPath            = "/var/vcap/bosh/onrack-cpi-agent-env.json"
+	OnrackRegistryPath       = "/var/vcap/bosh/agent.json"
+	DefaultUnusedName        = "UPLOADED_BY_ONRACK_CPI"
+)
+
+type NodeWorkflow struct {
+	NodeID         string `json:"node"`
+	InjectableName string `json:"injectableName"`
+	Status         string `json:"_status"`
+}
+
+type Workflow struct {
+	Name       string                 `json:"injectableName"`
+	UnusedName string                 `json:"friendlyName"`
+	Tasks      []WorkflowTask         `json:"tasks"`
+	Options    map[string]interface{} `json:"options"`
+}
+
+type WorkflowStub struct {
+	Name       string         `json:"injectableName"`
+	UnusedName string         `json:"friendlyName"`
+	Tasks      []WorkflowTask `json:"tasks"`
+}
+
+type WorkflowResponse struct {
+	Name         string                  `json:"injectableName"`
+	Tasks        map[string]TaskResponse `json:"tasks"`
+	Status       string                  `json:"_status"`
+	ID           string                  `json:"id"`
+	PendingTasks []interface{}           `json:"pendingTasks"`
+}
+
+type PropertyContainer struct {
+	Properties interface{} `json:"properties"`
+}
+
+type OptionContainer struct {
+	Options interface{} `json:"options"`
+}
+
+type RunWorkflowRequestBody struct {
+	Name    string                 `json:"name"`
+	Options map[string]interface{} `json:"options"`
+}
+
+type workflowFetcherFunc func(config.Cpi, string, string) (WorkflowResponse, error)
+
+type workflowPosterFunc func(config.Cpi, string, RunWorkflowRequestBody) (WorkflowResponse, error)
+
 func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", c.ApiServer)
 
@@ -183,9 +243,6 @@ func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (Wo
 	return workflowResp, nil
 }
 
-type workflowFetcherFunc func(config.Cpi, string, string) (WorkflowResponse, error)
-type workflowPosterFunc func(config.Cpi, string, RunWorkflowRequestBody) (WorkflowResponse, error)
-
 func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c config.Cpi, nodeID string, req RunWorkflowRequestBody) error {
 	workflowResponse, err := poster(c, nodeID, req)
 	if err != nil {
@@ -295,60 +352,4 @@ func getActiveWorkflows(c config.Cpi, nodeID string) ([]WorkflowResponse, error)
 	}
 
 	return workflows, nil
-}
-
-const (
-	OnrackReserveVMGraphName = "Graph.CF.ReserveVM"
-	OnrackCreateVMGraphName  = "Graph.BOSH.ProvisionNode"
-	OnrackDeleteVMGraphName  = "Graph.CF.DeleteVM"
-	OnrackEnvPath            = "/var/vcap/bosh/onrack-cpi-agent-env.json"
-	OnrackRegistryPath       = "/var/vcap/bosh/agent.json"
-	DefaultUnusedName        = "UPLOADED_BY_ONRACK_CPI"
-)
-
-const (
-	workflowValidStatus      = "valid"
-	worfklowSuccessfulStatus = "succeeded"
-	workflowFailedStatus     = "failed"
-	workflowCancelledStatus  = "cancelled"
-)
-
-type NodeWorkflow struct {
-	NodeID         string `json:"node"`
-	InjectableName string `json:"injectableName"`
-	Status         string `json:"_status"`
-}
-
-type Workflow struct {
-	Name       string                 `json:"injectableName"`
-	UnusedName string                 `json:"friendlyName"`
-	Tasks      []WorkflowTask         `json:"tasks"`
-	Options    map[string]interface{} `json:"options"`
-}
-
-type WorkflowStub struct {
-	Name       string         `json:"injectableName"`
-	UnusedName string         `json:"friendlyName"`
-	Tasks      []WorkflowTask `json:"tasks"`
-}
-
-type WorkflowResponse struct {
-	Name         string                  `json:"injectableName"`
-	Tasks        map[string]TaskResponse `json:"tasks"`
-	Status       string                  `json:"_status"`
-	ID           string                  `json:"id"`
-	PendingTasks []interface{}           `json:"pendingTasks"`
-}
-
-type PropertyContainer struct {
-	Properties interface{} `json:"properties"`
-}
-
-type OptionContainer struct {
-	Options interface{} `json:"options"`
-}
-
-type RunWorkflowRequestBody struct {
-	Name    string                 `json:"name"`
-	Options map[string]interface{} `json:"options"`
 }

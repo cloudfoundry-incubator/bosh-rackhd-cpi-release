@@ -12,6 +12,15 @@ import (
 	"github.com/onrack/onrack-cpi/config"
 )
 
+type FileMetadataResponse []struct {
+	Basename string `json:"basename"`
+	Filename string `json:"filename"`
+	UUID     string `json:"uuid"`
+	Md5      string `json:"md5"`
+	Sha256   string `json:"sha256"`
+	Version  int    `json:"version"`
+}
+
 func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64) (string, error) {
 	url := fmt.Sprintf("http://%s:8080/api/common/files/%s", c.ApiServer, baseName)
 	body := ioutil.NopCloser(r)
@@ -90,13 +99,4 @@ func DeleteFile(c config.Cpi, baseName string) error {
 	}
 
 	return nil
-}
-
-type FileMetadataResponse []struct {
-	Basename string `json:"basename"`
-	Filename string `json:"filename"`
-	UUID     string `json:"uuid"`
-	Md5      string `json:"md5"`
-	Sha256   string `json:"sha256"`
-	Version  int    `json:"version"`
 }

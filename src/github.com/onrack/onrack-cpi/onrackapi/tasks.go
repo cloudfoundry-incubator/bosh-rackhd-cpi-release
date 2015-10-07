@@ -13,6 +13,24 @@ import (
 	"github.com/onrack/onrack-cpi/config"
 )
 
+type TaskStub struct {
+	Name           string `json:"injectableName"`
+	UnusedName     string `json:"friendlyName"`
+	ImplementsTask string `json:"implementsTask,omitempty"`
+}
+
+type WorkflowTask struct {
+	TaskName      string            `json:"taskName"`
+	Label         string            `json:"label"`
+	WaitOn        map[string]string `json:"waitOn,omitempty"`
+	IgnoreFailure bool              `json:"ignoreFailure,omitempty"`
+}
+
+type TaskResponse struct {
+	Name  string `json:"name"`
+	State string `json:"state"`
+}
+
 func PublishTask(c config.Cpi, taskBytes []byte) error {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/tasks", c.ApiServer)
 	request, err := http.NewRequest("PUT", url, bytes.NewReader(taskBytes))
@@ -96,22 +114,4 @@ func RetrieveTasks(c config.Cpi) ([]byte, error) {
 	}
 
 	return body, nil
-}
-
-type TaskStub struct {
-	Name           string `json:"injectableName"`
-	UnusedName     string `json:"friendlyName"`
-	ImplementsTask string `json:"implementsTask,omitempty"`
-}
-
-type WorkflowTask struct {
-	TaskName      string            `json:"taskName"`
-	Label         string            `json:"label"`
-	WaitOn        map[string]string `json:"waitOn,omitempty"`
-	IgnoreFailure bool              `json:"ignoreFailure,omitempty"`
-}
-
-type TaskResponse struct {
-	Name  string `json:"name"`
-	State string `json:"state"`
 }

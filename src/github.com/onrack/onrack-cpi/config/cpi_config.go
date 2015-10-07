@@ -16,6 +16,19 @@ const (
 	defaultRunWorkflowTimeoutSeconds = 20 * 60
 )
 
+type Cpi struct {
+	ApiServer                 string        `json:"apiserver"`
+	Agent                     AgentConfig   `json:"agent"`
+	MaxCreateVMAttempt        int           `json:"max_create_vm_attempts"`
+	RunWorkflowTimeoutSeconds time.Duration `json:"run_workflow_timeout"`
+}
+
+type AgentConfig struct {
+	Blobstore map[string]interface{}
+	Mbus      string   `json:"mbus"`
+	Ntp       []string `json:"ntp"`
+}
+
 func DefaultMaxCreateVMAttempts() int { return defaultMaxCreateVMAttempts }
 
 func New(config io.Reader) (Cpi, error) {
@@ -76,17 +89,4 @@ func isAgentConfigValid(config AgentConfig) bool {
 
 	// ntp is optional
 	return true
-}
-
-type Cpi struct {
-	ApiServer                 string        `json:"apiserver"`
-	Agent                     AgentConfig   `json:"agent"`
-	MaxCreateVMAttempt        int           `json:"max_create_vm_attempts"`
-	RunWorkflowTimeoutSeconds time.Duration `json:"run_workflow_timeout"`
-}
-
-type AgentConfig struct {
-	Blobstore map[string]interface{}
-	Mbus      string   `json:"mbus"`
-	Ntp       []string `json:"ntp"`
 }

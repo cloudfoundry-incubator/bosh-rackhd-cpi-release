@@ -10,6 +10,72 @@ import (
 	"github.com/onrack/onrack-cpi/onrackapi"
 )
 
+var provisionNodeWorkflowTemplate = []byte(`{
+  "friendlyName": "BOSH Provision Node",
+  "injectableName": "Graph.BOSH.ProvisionNode",
+  "options": {
+    "defaults": {
+      "agentSettingsFile": null,
+      "agentSettingsPath": null,
+      "publicKeyFile": null,
+      "cid": null,
+      "downloadDir": "/opt/downloads",
+      "registrySettingsFile": null,
+      "registrySettingsPath": null,
+      "stemcellFile": null
+    }
+  },
+  "tasks": [
+		{
+			"label": "bootstrap-ubuntu",
+			"taskName": "Task.Linux.Bootstrap.Ubuntu"
+		},
+    {
+      "label": "provision-node",
+      "taskName": "Task.BOSH.Provision.Node"
+    },
+    {
+      "label": "set-id",
+      "taskName": "Task.BOSH.SetNodeId",
+      "waitOn": {
+        "provision-node": "succeeded"
+      }
+    },
+		{
+			"label": "reboot",
+			"taskName": "Task.ProcShellReboot",
+			"waitOn": {
+				"set-id": "succeeded"
+			}
+		}
+  ]
+}`)
+
+type ProvisionNodeWorkflowOptions struct {
+	AgentSettingsFile    *string `json:"agentSettingsFile"`
+	AgentSettingsPath    *string `json:"agentSettingsPath"`
+	PublicKeyFile        *string `json:"publicKeyFile"`
+	CID                  *string `json:"cid"`
+	DownloadDir          string  `json:"downloadDir,omitempty"`
+	RegistrySettingsFile *string `json:"registrySettingsFile"`
+	RegistrySettingsPath *string `json:"registrySettingsPath"`
+	StemcellFile         *string `json:"stemcellFile"`
+}
+
+type provisionNodeWorkflowOptionsContainer struct {
+	Options provisionNodeWorkflowDefaultOptionsContainer `json:"options"`
+}
+
+type provisionNodeWorkflowDefaultOptionsContainer struct {
+	Defaults ProvisionNodeWorkflowOptions `json:"defaults"`
+}
+
+type provisionNodeWorkflow struct {
+	*onrackapi.WorkflowStub
+	*provisionNodeWorkflowOptionsContainer
+	Tasks []onrackapi.WorkflowTask `json:"tasks"`
+}
+
 func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, options ProvisionNodeWorkflowOptions) error {
 	req := onrackapi.RunWorkflowRequestBody{
 		Name:    workflowName,
@@ -100,69 +166,3 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	return [][]byte{pBytes, sBytes}, wBytes, nil
 }
-
-type ProvisionNodeWorkflowOptions struct {
-	AgentSettingsFile    *string `json:"agentSettingsFile"`
-	AgentSettingsPath    *string `json:"agentSettingsPath"`
-	PublicKeyFile        *string `json:"publicKeyFile"`
-	CID                  *string `json:"cid"`
-	DownloadDir          string  `json:"downloadDir,omitempty"`
-	RegistrySettingsFile *string `json:"registrySettingsFile"`
-	RegistrySettingsPath *string `json:"registrySettingsPath"`
-	StemcellFile         *string `json:"stemcellFile"`
-}
-
-type provisionNodeWorkflowOptionsContainer struct {
-	Options provisionNodeWorkflowDefaultOptionsContainer `json:"options"`
-}
-
-type provisionNodeWorkflowDefaultOptionsContainer struct {
-	Defaults ProvisionNodeWorkflowOptions `json:"defaults"`
-}
-
-type provisionNodeWorkflow struct {
-	*onrackapi.WorkflowStub
-	*provisionNodeWorkflowOptionsContainer
-	Tasks []onrackapi.WorkflowTask `json:"tasks"`
-}
-
-var provisionNodeWorkflowTemplate = []byte(`{
-  "friendlyName": "BOSH Provision Node",
-  "injectableName": "Graph.BOSH.ProvisionNode",
-  "options": {
-    "defaults": {
-      "agentSettingsFile": null,
-      "agentSettingsPath": null,
-      "publicKeyFile": null,
-      "cid": null,
-      "downloadDir": "/opt/downloads",
-      "registrySettingsFile": null,
-      "registrySettingsPath": null,
-      "stemcellFile": null
-    }
-  },
-  "tasks": [
-		{
-			"label": "bootstrap-ubuntu",
-			"taskName": "Task.Linux.Bootstrap.Ubuntu"
-		},
-    {
-      "label": "provision-node",
-      "taskName": "Task.BOSH.Provision.Node"
-    },
-    {
-      "label": "set-id",
-      "taskName": "Task.BOSH.SetNodeId",
-      "waitOn": {
-        "provision-node": "succeeded"
-      }
-    },
-		{
-			"label": "reboot",
-			"taskName": "Task.ProcShellReboot",
-			"waitOn": {
-				"set-id": "succeeded"
-			}
-		}
-  ]
-}`)

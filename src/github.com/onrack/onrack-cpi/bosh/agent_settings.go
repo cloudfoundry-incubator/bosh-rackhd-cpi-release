@@ -1,5 +1,10 @@
 package bosh
 
+const (
+	DynamicNetworkType = "dynamic"
+	ManualNetworkType  = "manual"
+)
+
 var defaultAgentRegistrySettings = AgentRegistrySettings{
 	Infrastructure: agentInfrastructureSettings{
 		Settings: agentRegistrySetting{
@@ -13,15 +18,6 @@ var defaultAgentRegistrySettings = AgentRegistrySettings{
 		},
 	},
 }
-
-func DefaultAgentRegistrySettings() AgentRegistrySettings {
-	return defaultAgentRegistrySettings
-}
-
-const (
-	DynamicNetworkType = "dynamic"
-	ManualNetworkType  = "manual"
-)
 
 type Network struct {
 	NetworkType     string                 `json:"type"`
@@ -61,4 +57,8 @@ type agentRegistrySetting struct {
 type agentSettingsSource struct {
 	Settingspath string `json:"SettingsPath"`
 	Type         string `json:"Type"`
+}
+
+func DefaultAgentRegistrySettings() AgentRegistrySettings {
+	return defaultAgentRegistrySettings
 }

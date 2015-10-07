@@ -10,6 +10,53 @@ import (
 	"github.com/onrack/onrack-cpi/onrackapi"
 )
 
+var deprovisionNodeWorkflowTemplate = []byte(`{
+  "friendlyName": "BOSH Deprovision Node",
+  "injectableName": "Graph.BOSH.DeprovisionNode",
+  "options": {},
+  "tasks": [
+    {
+      "label": "set-boot-pxe",
+      "taskName": "Task.Obm.Node.PxeBoot",
+      "ignoreFailure": true
+    },
+    {
+      "label": "reboot",
+      "taskName": "Task.Obm.Node.Reboot",
+      "waitOn": {
+        "set-boot-pxe": "finished"
+      }
+    },
+    {
+      "label": "bootstrap-ubuntu",
+      "taskName": "Task.Linux.Bootstrap.Ubuntu",
+      "waitOn": {
+        "reboot": "succeeded"
+      }
+    },
+    {
+      "label": "wipe-machine",
+      "taskName": "Task.BOSH.DeprovisionNode",
+      "waitOn": {
+        "bootstrap-ubuntu": "succeeded"
+      }
+    },
+    {
+      "label": "shell-reboot",
+      "taskName": "Task.ProcShellReboot",
+      "waitOn": {
+        "wipe-machine": "finished"
+      }
+    }
+  ]
+}`)
+
+type deprovisionNodeWorkflow struct {
+	*onrackapi.WorkflowStub
+	*onrackapi.OptionContainer
+	Tasks []onrackapi.WorkflowTask `json:"tasks"`
+}
+
 func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
 	req := onrackapi.RunWorkflowRequestBody{
 		Name:    workflowName,
@@ -83,50 +130,3 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	return [][]byte{deprovisionTaskBytes}, wBytes, nil
 }
-
-type deprovisionNodeWorkflow struct {
-	*onrackapi.WorkflowStub
-	*onrackapi.OptionContainer
-	Tasks []onrackapi.WorkflowTask `json:"tasks"`
-}
-
-var deprovisionNodeWorkflowTemplate = []byte(`{
-  "friendlyName": "BOSH Deprovision Node",
-  "injectableName": "Graph.BOSH.DeprovisionNode",
-  "options": {},
-  "tasks": [
-    {
-      "label": "set-boot-pxe",
-      "taskName": "Task.Obm.Node.PxeBoot",
-      "ignoreFailure": true
-    },
-    {
-      "label": "reboot",
-      "taskName": "Task.Obm.Node.Reboot",
-      "waitOn": {
-        "set-boot-pxe": "finished"
-      }
-    },
-    {
-      "label": "bootstrap-ubuntu",
-      "taskName": "Task.Linux.Bootstrap.Ubuntu",
-      "waitOn": {
-        "reboot": "succeeded"
-      }
-    },
-    {
-      "label": "wipe-machine",
-      "taskName": "Task.BOSH.DeprovisionNode",
-      "waitOn": {
-        "bootstrap-ubuntu": "succeeded"
-      }
-    },
-    {
-      "label": "shell-reboot",
-      "taskName": "Task.ProcShellReboot",
-      "waitOn": {
-        "wipe-machine": "finished"
-      }
-    }
-  ]
-}`)

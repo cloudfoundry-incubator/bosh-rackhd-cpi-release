@@ -2,36 +2,6 @@ package workflows
 
 import "github.com/onrack/onrack-cpi/onrackapi"
 
-type provisionNodeOptions struct {
-	AgentSettingsFile      *string  `json:"agentSettingsFile"`
-	AgentSettingsMd5Uri    string   `json:"agentSettingsMd5Uri"`
-	AgentSettingsPath      *string  `json:"agentSettingsPath"`
-	AgentSettingsURI       string   `json:"agentSettingsUri"`
-	Commands               []string `json:"commands"`
-	Device                 string   `json:"device"`
-	DownloadDir            string   `json:"downloadDir"`
-	PublicKeyFile          *string  `json:"publicKeyFile"`
-	PublicKeyMd5Uri        string   `json:"publicKeyMd5Uri"`
-	PublicKeyURI           string   `json:"publicKeyUri"`
-	RegistrySettingsFile   *string  `json:"registrySettingsFile"`
-	RegistrySettingsMd5Uri string   `json:"registrySettingsMd5Uri"`
-	RegistrySettingsPath   *string  `json:"registrySettingsPath"`
-	StemcellFileMd5Uri     string   `json:"stemcellFileMd5Uri"`
-	RegistrySettingsURI    string   `json:"registrySettingsUri"`
-	StemcellFile           *string  `json:"stemcellFile"`
-	StemcellURI            string   `json:"stemcellUri"`
-}
-
-type provisionNodeTask struct {
-	*onrackapi.TaskStub
-	*onrackapi.PropertyContainer
-	*provisionNodeOptionsContainer
-}
-
-type provisionNodeOptionsContainer struct {
-	Options provisionNodeOptions `json:"options"`
-}
-
 var provisionNodeTemplate = []byte(`{
   "friendlyName": "Provision Node",
   "implementsTask": "Task.Base.Linux.Commands",
@@ -87,3 +57,33 @@ var provisionNodeTemplate = []byte(`{
   },
   "properties": {}
 }`)
+
+type provisionNodeOptions struct {
+	AgentSettingsFile      *string  `json:"agentSettingsFile"`
+	AgentSettingsMd5Uri    string   `json:"agentSettingsMd5Uri"`
+	AgentSettingsPath      *string  `json:"agentSettingsPath"`
+	AgentSettingsURI       string   `json:"agentSettingsUri"`
+	Commands               []string `json:"commands"`
+	Device                 string   `json:"device"`
+	DownloadDir            string   `json:"downloadDir"`
+	PublicKeyFile          *string  `json:"publicKeyFile"`
+	PublicKeyMd5Uri        string   `json:"publicKeyMd5Uri"`
+	PublicKeyURI           string   `json:"publicKeyUri"`
+	RegistrySettingsFile   *string  `json:"registrySettingsFile"`
+	RegistrySettingsMd5Uri string   `json:"registrySettingsMd5Uri"`
+	RegistrySettingsPath   *string  `json:"registrySettingsPath"`
+	StemcellFileMd5Uri     string   `json:"stemcellFileMd5Uri"`
+	RegistrySettingsURI    string   `json:"registrySettingsUri"`
+	StemcellFile           *string  `json:"stemcellFile"`
+	StemcellURI            string   `json:"stemcellUri"`
+}
+
+type provisionNodeTask struct {
+	*onrackapi.TaskStub
+	*onrackapi.PropertyContainer
+	*provisionNodeOptionsContainer
+}
+
+type provisionNodeOptionsContainer struct {
+	Options provisionNodeOptions `json:"options"`
+}

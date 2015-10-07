@@ -12,6 +12,43 @@ import (
 	"github.com/onrack/onrack-cpi/config"
 )
 
+const (
+	NetworkActive    = "up"
+	NetworkInactive  = "down"
+	EthernetNetwork  = "Ethernet"
+	MacAddressFamily = "lladdr"
+)
+
+type NodeCatalog struct {
+	Data CatalogData `json:"data"`
+}
+
+type CatalogData struct {
+	NetworkData NetworkCatalog `json:"network"`
+}
+
+type NetworkCatalog struct {
+	Networks map[string]Network `json:"interfaces"`
+}
+
+type Network struct {
+	Encapsulation string                    `json:"encapsulation"`
+	Number        string                    `json:"number"`
+	Addresses     map[string]NetworkAddress `json:"addresses"`
+	State         string                    `json:"state"`
+}
+
+type NetworkAddress struct {
+	Family string `json:"family"`
+}
+
+type Node struct {
+	Workflows []interface{} `json:"workflows"`
+	Reserved  string        `json:"reserved"`
+	ID        string        `json:"id"`
+	CID       string        `json:"cid"`
+}
+
 func GetNodes(c config.Cpi) ([]Node, error) {
 	nodesURL := fmt.Sprintf("http://%s:8080/api/common/nodes", c.ApiServer)
 	resp, err := http.Get(nodesURL)
@@ -99,41 +136,4 @@ func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
 	}
 
 	return nodeCatalog, nil
-}
-
-const (
-	NetworkActive    = "up"
-	NetworkInactive  = "down"
-	EthernetNetwork  = "Ethernet"
-	MacAddressFamily = "lladdr"
-)
-
-type NodeCatalog struct {
-	Data CatalogData `json:"data"`
-}
-
-type CatalogData struct {
-	NetworkData NetworkCatalog `json:"network"`
-}
-
-type NetworkCatalog struct {
-	Networks map[string]Network `json:"interfaces"`
-}
-
-type Network struct {
-	Encapsulation string                    `json:"encapsulation"`
-	Number        string                    `json:"number"`
-	Addresses     map[string]NetworkAddress `json:"addresses"`
-	State         string                    `json:"state"`
-}
-
-type NetworkAddress struct {
-	Family string `json:"family"`
-}
-
-type Node struct {
-	Workflows []interface{} `json:"workflows"`
-	Reserved  string        `json:"reserved"`
-	ID        string        `json:"id"`
-	CID       string        `json:"cid"`
 }
