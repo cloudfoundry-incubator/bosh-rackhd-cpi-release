@@ -23,7 +23,7 @@ import (
 
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -239,11 +239,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 
-			nodes, err := onrackhttp.GetNodes(c)
+			nodes, err := onrackapi.GetNodes(c)
 			Expect(err).ToNot(HaveOccurred())
 			targetNodeID := nodes[0].ID
 			log.Info(fmt.Sprintf("targetNodeId: %s", targetNodeID))
-			err = onrackhttp.ReleaseNode(c, targetNodeID)
+			err = onrackapi.ReleaseNode(c, targetNodeID)
 			Expect(err).ToNot(HaveOccurred())
 			nodeURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, targetNodeID)
 
@@ -254,7 +254,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			nodeBytes, err := ioutil.ReadAll(resp.Body)
 			Expect(err).ToNot(HaveOccurred())
 
-			var node onrackhttp.Node
+			var node onrackapi.Node
 			err = json.Unmarshal(nodeBytes, &node)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(node.Reserved).To(Equal(""))
@@ -270,7 +270,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			b, err := ioutil.ReadAll(dummyCatalogfile)
 			Expect(err).ToNot(HaveOccurred())
 
-			nodeCatalog := onrackhttp.NodeCatalog{}
+			nodeCatalog := onrackapi.NodeCatalog{}
 
 			err = json.Unmarshal(b, &nodeCatalog)
 			Expect(err).ToNot(HaveOccurred())
@@ -289,7 +289,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			b, err := ioutil.ReadAll(dummyCatalogfile)
 			Expect(err).ToNot(HaveOccurred())
 
-			nodeCatalog := onrackhttp.NodeCatalog{}
+			nodeCatalog := onrackapi.NodeCatalog{}
 
 			err = json.Unmarshal(b, &nodeCatalog)
 			Expect(err).ToNot(HaveOccurred())
@@ -309,7 +309,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				b, err := ioutil.ReadAll(dummyCatalogfile)
 				Expect(err).ToNot(HaveOccurred())
 
-				nodeCatalog := onrackhttp.NodeCatalog{}
+				nodeCatalog := onrackapi.NodeCatalog{}
 
 				err = json.Unmarshal(b, &nodeCatalog)
 				Expect(err).ToNot(HaveOccurred())
@@ -343,7 +343,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				b, err := ioutil.ReadAll(dummyCatalogfile)
 				Expect(err).ToNot(HaveOccurred())
 
-				nodeCatalog := onrackhttp.NodeCatalog{}
+				nodeCatalog := onrackapi.NodeCatalog{}
 
 				err = json.Unmarshal(b, &nodeCatalog)
 				Expect(err).ToNot(HaveOccurred())
@@ -394,7 +394,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			nodes := []onrackhttp.Node{}
+			nodes := []onrackapi.Node{}
 			err = json.Unmarshal(dummyResponseBytes, &nodes)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -410,7 +410,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			nodes := []onrackhttp.Node{}
+			nodes := []onrackapi.Node{}
 			err = json.Unmarshal(dummyResponseBytes, &nodes)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -427,7 +427,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			nodes := []onrackhttp.Node{}
+			nodes := []onrackapi.Node{}
 			err = json.Unmarshal(dummyResponseBytes, &nodes)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -520,7 +520,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				Expect(err).ToNot(HaveOccurred())
 				defer nodeResp.Body.Close()
 
-				var node onrackhttp.Node
+				var node onrackapi.Node
 				err = json.Unmarshal(nodeBytes, &node)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(node.Reserved).To(Equal("fake-uuid"))
@@ -543,7 +543,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			defer resp.Body.Close()
 
-			var node onrackhttp.Node
+			var node onrackapi.Node
 			err = json.Unmarshal(nodeBytes, &node)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(node.Reserved).To(Equal(""))

@@ -1,6 +1,6 @@
 package workflows
 
-import "github.com/onrack/onrack-cpi/onrackhttp"
+import "github.com/onrack/onrack-cpi/onrackapi"
 
 type deprovisionNodeTaskOptions struct {
 	Type     string   `json:"type,omitempty"`
@@ -12,8 +12,8 @@ type deprovisionnodeTaskOptionsContainer struct {
 }
 
 type deprovisionNodeTask struct {
-	*onrackhttp.TaskStub
-	*onrackhttp.PropertyContainer
+	*onrackapi.TaskStub
+	*onrackapi.PropertyContainer
 	*deprovisionnodeTaskOptionsContainer
 }
 

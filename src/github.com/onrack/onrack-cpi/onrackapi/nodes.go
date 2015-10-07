@@ -1,4 +1,4 @@
-package onrackhttp
+package onrackapi
 
 import (
 	"encoding/json"

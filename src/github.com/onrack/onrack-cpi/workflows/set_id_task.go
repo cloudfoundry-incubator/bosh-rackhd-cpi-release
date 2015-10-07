@@ -1,6 +1,6 @@
 package workflows
 
-import "github.com/onrack/onrack-cpi/onrackhttp"
+import "github.com/onrack/onrack-cpi/onrackapi"
 
 type setNodeIDOptions struct {
 	CID      *string  `json:"cid"`
@@ -12,8 +12,8 @@ type setNodeIDOptionsContainer struct {
 }
 
 type setNodeIDTask struct {
-	*onrackhttp.TaskStub
-	*onrackhttp.PropertyContainer
+	*onrackapi.TaskStub
+	*onrackapi.PropertyContainer
 	*setNodeIDOptionsContainer
 }
 

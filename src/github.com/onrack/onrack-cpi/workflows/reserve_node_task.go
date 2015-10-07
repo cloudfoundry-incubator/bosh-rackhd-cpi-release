@@ -1,6 +1,6 @@
 package workflows
 
-import "github.com/onrack/onrack-cpi/onrackhttp"
+import "github.com/onrack/onrack-cpi/onrackapi"
 
 type reserveNodeTaskOptions struct {
 	UUID     *string  `json:"uuid"`
@@ -8,8 +8,8 @@ type reserveNodeTaskOptions struct {
 }
 
 type reserveNodeTask struct {
-	*onrackhttp.TaskStub
-	*onrackhttp.PropertyContainer
+	*onrackapi.TaskStub
+	*onrackapi.PropertyContainer
 	*reserveNodeTaskOptionsContainer
 }
 

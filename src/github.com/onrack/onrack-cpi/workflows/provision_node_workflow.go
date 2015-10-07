@@ -7,16 +7,16 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 )
 
 func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, options ProvisionNodeWorkflowOptions) error {
-	req := onrackhttp.RunWorkflowRequestBody{
+	req := onrackapi.RunWorkflowRequestBody{
 		Name:    workflowName,
 		Options: map[string]interface{}{"defaults": options},
 	}
 
-	return onrackhttp.RunWorkflow(onrackhttp.WorkflowPoster, onrackhttp.WorkflowFetcher, c, nodeID, req)
+	return onrackapi.RunWorkflow(onrackapi.WorkflowPoster, onrackapi.WorkflowFetcher, c, nodeID, req)
 }
 
 func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, error) {
@@ -26,7 +26,7 @@ func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, er
 	}
 
 	for i := range tasks {
-		err = onrackhttp.PublishTask(cpiConfig, tasks[i])
+		err = onrackapi.PublishTask(cpiConfig, tasks[i])
 		if err != nil {
 			return "", err
 		}
@@ -39,7 +39,7 @@ func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, er
 		return "", err
 	}
 
-	err = onrackhttp.PublishWorkflow(cpiConfig, workflow)
+	err = onrackapi.PublishWorkflow(cpiConfig, workflow)
 	if err != nil {
 		return "", err
 	}
@@ -121,9 +121,9 @@ type provisionNodeWorkflowDefaultOptionsContainer struct {
 }
 
 type provisionNodeWorkflow struct {
-	*onrackhttp.WorkflowStub
+	*onrackapi.WorkflowStub
 	*provisionNodeWorkflowOptionsContainer
-	Tasks []onrackhttp.WorkflowTask `json:"tasks"`
+	Tasks []onrackapi.WorkflowTask `json:"tasks"`
 }
 
 var provisionNodeWorkflowTemplate = []byte(`{

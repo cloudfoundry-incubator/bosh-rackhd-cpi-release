@@ -1,4 +1,4 @@
-package onrackhttp_test
+package onrackapi_test
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,7 +21,7 @@ var _ = Describe("Nodes", func() {
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 
-			nodes, err := onrackhttp.GetNodes(c)
+			nodes, err := onrackapi.GetNodes(c)
 			Expect(err).ToNot(HaveOccurred())
 
 			resp, err := http.Get(fmt.Sprintf("http://%s:8080/api/common/nodes", c.ApiServer))
@@ -30,7 +30,7 @@ var _ = Describe("Nodes", func() {
 			b, err := ioutil.ReadAll(resp.Body)
 			Expect(err).ToNot(HaveOccurred())
 
-			var rawNodes []onrackhttp.Node
+			var rawNodes []onrackapi.Node
 			err = json.Unmarshal(b, &rawNodes)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -44,13 +44,13 @@ var _ = Describe("Nodes", func() {
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 
-			nodes, err := onrackhttp.GetNodes(c)
+			nodes, err := onrackapi.GetNodes(c)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(nodes).ToNot(BeEmpty())
 			testNode := nodes[0]
 
-			catalog, err := onrackhttp.GetNodeCatalog(c, testNode.ID)
+			catalog, err := onrackapi.GetNodeCatalog(c, testNode.ID)
 			Expect(err).ToNot(HaveOccurred())
 
 			resp, err := http.Get(fmt.Sprintf("http://%s:8080/api/common/nodes/%s/catalogs/ohai", c.ApiServer, testNode.ID))
@@ -59,7 +59,7 @@ var _ = Describe("Nodes", func() {
 			b, err := ioutil.ReadAll(resp.Body)
 			Expect(err).ToNot(HaveOccurred())
 
-			var rawCatalog onrackhttp.NodeCatalog
+			var rawCatalog onrackapi.NodeCatalog
 			err = json.Unmarshal(b, &rawCatalog)
 			Expect(err).ToNot(HaveOccurred())
 

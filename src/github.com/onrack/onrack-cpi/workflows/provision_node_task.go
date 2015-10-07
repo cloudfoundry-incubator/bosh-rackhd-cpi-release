@@ -1,6 +1,6 @@
 package workflows
 
-import "github.com/onrack/onrack-cpi/onrackhttp"
+import "github.com/onrack/onrack-cpi/onrackapi"
 
 type provisionNodeOptions struct {
 	AgentSettingsFile      *string  `json:"agentSettingsFile"`
@@ -23,8 +23,8 @@ type provisionNodeOptions struct {
 }
 
 type provisionNodeTask struct {
-	*onrackhttp.TaskStub
-	*onrackhttp.PropertyContainer
+	*onrackapi.TaskStub
+	*onrackapi.PropertyContainer
 	*provisionNodeOptionsContainer
 }
 

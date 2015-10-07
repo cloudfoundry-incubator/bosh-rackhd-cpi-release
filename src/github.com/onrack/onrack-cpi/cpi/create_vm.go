@@ -14,7 +14,7 @@ import (
 	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 	"github.com/onrack/onrack-cpi/workflows"
 )
 
@@ -29,7 +29,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
-	defer onrackhttp.ReleaseNode(c, nodeID)
+	defer onrackapi.ReleaseNode(c, nodeID)
 
 	var netSpec bosh.Network
 	var netName string
@@ -39,7 +39,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	}
 
 	if netSpec.NetworkType == bosh.ManualNetworkType {
-		nodeCatalog, err := onrackhttp.GetNodeCatalog(c, nodeID)
+		nodeCatalog, err := onrackapi.GetNodeCatalog(c, nodeID)
 		if err != nil {
 			return "", err
 		}
@@ -71,11 +71,11 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", fmt.Errorf("error marshalling agent env %s", err)
 	}
 	envReader := bytes.NewReader(envBytes)
-	vmCID, err := onrackhttp.UploadFile(c, nodeID, envReader, int64(len(envBytes)))
+	vmCID, err := onrackapi.UploadFile(c, nodeID, envReader, int64(len(envBytes)))
 	if err != nil {
 		return "", err
 	}
-	defer onrackhttp.DeleteFile(c, nodeID)
+	defer onrackapi.DeleteFile(c, nodeID)
 
 	agentRegistryName := fmt.Sprintf("agent-%s", vmCID)
 	regBytes, err := json.Marshal(bosh.DefaultAgentRegistrySettings())
@@ -83,20 +83,20 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", fmt.Errorf("error marshalling agent env %s", err)
 	}
 	regReader := bytes.NewReader(regBytes)
-	regUUID, err := onrackhttp.UploadFile(c, agentRegistryName, regReader, int64(len(regBytes)))
+	regUUID, err := onrackapi.UploadFile(c, agentRegistryName, regReader, int64(len(regBytes)))
 	if err != nil {
 		return "", err
 	}
-	defer onrackhttp.DeleteFile(c, agentRegistryName)
+	defer onrackapi.DeleteFile(c, agentRegistryName)
 	log.Info(fmt.Sprintf("Succeeded uploading agent registry, got '%s' as uuid", regUUID))
 
 	publicKeyName := fmt.Sprintf("key-%s", vmCID)
 	publicKeyReader := strings.NewReader(publicKey)
-	keyUUID, err := onrackhttp.UploadFile(c, publicKeyName, publicKeyReader, int64(len(publicKey)))
+	keyUUID, err := onrackapi.UploadFile(c, publicKeyName, publicKeyReader, int64(len(publicKey)))
 	if err != nil {
 		return "", err
 	}
-	defer onrackhttp.DeleteFile(c, publicKeyName)
+	defer onrackapi.DeleteFile(c, publicKeyName)
 	log.Info(fmt.Sprintf("Succeeded uploading public key, got '%s' as uuid", keyUUID))
 
 	workflowName, err := workflows.PublishProvisionNodeWorkflow(c, vmCID)
@@ -105,8 +105,8 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", fmt.Errorf("error publishing provision workflow: %s", err)
 	}
 
-	envPath := onrackhttp.OnrackEnvPath
-	regPath := onrackhttp.OnrackRegistryPath
+	envPath := onrackapi.OnrackEnvPath
+	regPath := onrackapi.OnrackRegistryPath
 	options := workflows.ProvisionNodeWorkflowOptions{
 		AgentSettingsFile:    &nodeID,
 		AgentSettingsPath:    &envPath,
@@ -126,11 +126,11 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	return vmCID, nil
 }
 
-func attachMAC(nodeNetworks map[string]onrackhttp.Network, oldSpec bosh.Network) (bosh.Network, error) {
-	var upNetworks []onrackhttp.Network
+func attachMAC(nodeNetworks map[string]onrackapi.Network, oldSpec bosh.Network) (bosh.Network, error) {
+	var upNetworks []onrackapi.Network
 
 	for _, nodeNetwork := range nodeNetworks {
-		if nodeNetwork.State == onrackhttp.NetworkActive && nodeNetwork.Encapsulation == onrackhttp.EthernetNetwork {
+		if nodeNetwork.State == onrackapi.NetworkActive && nodeNetwork.Encapsulation == onrackapi.EthernetNetwork {
 			upNetworks = append(upNetworks, nodeNetwork)
 		}
 	}
@@ -147,7 +147,7 @@ func attachMAC(nodeNetworks map[string]onrackhttp.Network, oldSpec bosh.Network)
 
 	var nodeMac string
 	for netName, netValue := range upNetworks[0].Addresses {
-		if netValue.Family == onrackhttp.MacAddressFamily {
+		if netValue.Family == onrackapi.MacAddressFamily {
 			nodeMac = netName
 		}
 	}
@@ -180,7 +180,7 @@ func tryReservation(c config.Cpi, choose selectionFunc, reserve reservationFunc)
 		reserved, err = reserve(c, nodeID)
 		if err != nil {
 			log.Error(fmt.Sprintf("retry %d: error reserving node %s", i, err))
-			err = onrackhttp.ReleaseNode(c, nodeID)
+			err = onrackapi.ReleaseNode(c, nodeID)
 			if err != nil {
 				log.Error(fmt.Sprintf("error releasing node %s, %s", nodeID, err))
 			}
@@ -225,7 +225,7 @@ func reserveNodeFromOnRack(c config.Cpi, nodeID string) (string, error) {
 }
 
 func selectNodeFromOnRack(c config.Cpi) (string, error) {
-	nodes, err := onrackhttp.GetNodes(c)
+	nodes, err := onrackapi.GetNodes(c)
 	if err != nil {
 		return "", err
 	}
@@ -239,7 +239,7 @@ func selectNodeFromOnRack(c config.Cpi) (string, error) {
 	return nodeID, nil
 }
 
-func selectNonReservedNode(nodes []onrackhttp.Node) (string, error) {
+func selectNonReservedNode(nodes []onrackapi.Node) (string, error) {
 	availableNodes := rejectReservedNodes(nodes)
 	if len(availableNodes) == 0 {
 		return "", errors.New("all nodes have been reserved")
@@ -252,8 +252,8 @@ func selectNonReservedNode(nodes []onrackhttp.Node) (string, error) {
 	return availableNodes[i].ID, nil
 }
 
-func rejectReservedNodes(nodes []onrackhttp.Node) []onrackhttp.Node {
-	var n []onrackhttp.Node
+func rejectReservedNodes(nodes []onrackapi.Node) []onrackapi.Node {
+	var n []onrackapi.Node
 
 	for i := range nodes {
 		if nodes[i].Reserved == "" && nodes[i].CID == "" {

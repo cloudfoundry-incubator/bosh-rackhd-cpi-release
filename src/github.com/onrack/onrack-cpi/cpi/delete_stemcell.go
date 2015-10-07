@@ -8,7 +8,7 @@ import (
 
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 )
 
 func DeleteStemcell(c config.Cpi, extInput bosh.MethodArguments) error {
@@ -21,5 +21,5 @@ func DeleteStemcell(c config.Cpi, extInput bosh.MethodArguments) error {
 
 	cid = extInput[0].(string)
 
-	return onrackhttp.DeleteFile(c, cid)
+	return onrackapi.DeleteFile(c, cid)
 }

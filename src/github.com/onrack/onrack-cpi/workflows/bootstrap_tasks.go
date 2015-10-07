@@ -1,6 +1,6 @@
 package workflows
 
-import "github.com/onrack/onrack-cpi/onrackhttp"
+import "github.com/onrack/onrack-cpi/onrackapi"
 
 const (
 	SetPxeBootTaskName      = "Task.Obm.Node.PxeBoot"
@@ -41,7 +41,7 @@ type bootstrapUbuntuTaskPropertiesContainer struct {
 }
 
 type bootstrapUbuntuTask struct {
-	*onrackhttp.TaskStub
+	*onrackapi.TaskStub
 	*bootstrapUbuntuTaskOptionsContainer
 	*bootstrapUbuntuTaskPropertiesContainer
 }
@@ -89,7 +89,7 @@ type setPxeBootTaskPropertiesContainer struct {
 }
 
 type setPxeBootTask struct {
-	*onrackhttp.TaskStub
+	*onrackapi.TaskStub
 	*setPxeBootTaskOptionsContainer
 	*setPxeBootTaskPropertiesContainer
 }
@@ -121,7 +121,7 @@ type rebootNodeTaskPropertiesContainer struct {
 }
 
 type rebootNodeTask struct {
-	*onrackhttp.TaskStub
+	*onrackapi.TaskStub
 	*rebootNodeTaskOptionsContainer
 	*rebootNodeTaskPropertiesContainer
 }

@@ -7,7 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 	"github.com/onrack/onrack-cpi/workflows"
 )
 
@@ -20,7 +20,7 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 
 	cid = extInput[0].(string)
 
-	nodes, err := onrackhttp.GetNodes(c)
+	nodes, err := onrackapi.GetNodes(c)
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 )
 
 const (
@@ -16,13 +16,13 @@ const (
 )
 
 type bootstrapTask struct {
-	*onrackhttp.TaskStub
+	*onrackapi.TaskStub
 	Options    json.RawMessage `json:"options"`
 	Properties json.RawMessage `json:"properties"`
 }
 
 func BootstrappingTasksExist(c config.Cpi) error {
-	tasksBytes, err := onrackhttp.RetrieveTasks(c)
+	tasksBytes, err := onrackapi.RetrieveTasks(c)
 	if err != nil {
 		log.Error(fmt.Sprintf("unable to retrieve tasks: %s", err))
 		return fmt.Errorf("unable to retrieve tasks: %s", err)

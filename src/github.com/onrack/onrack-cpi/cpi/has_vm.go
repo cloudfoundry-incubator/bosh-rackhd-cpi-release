@@ -8,7 +8,7 @@ import (
 
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 )
 
 func HasVM(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
@@ -20,7 +20,7 @@ func HasVM(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 
 	cid = extInput[0].(string)
 
-	nodes, err := onrackhttp.GetNodes(c)
+	nodes, err := onrackapi.GetNodes(c)
 	if err != nil {
 		return false, err
 	}

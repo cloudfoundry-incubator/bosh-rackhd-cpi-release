@@ -1,4 +1,4 @@
-package onrackhttp_test
+package onrackapi_test
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -34,7 +34,7 @@ var _ = Describe("Files", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(404))
 
-			onrackUUID, err := onrackhttp.UploadFile(c, baseName, dummyFile, int64(len(dummyStr)))
+			onrackUUID, err := onrackapi.UploadFile(c, baseName, dummyFile, int64(len(dummyStr)))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(onrackUUID).ToNot(BeEmpty())
 
@@ -47,7 +47,7 @@ var _ = Describe("Files", func() {
 			defer getResp.Body.Close()
 			Expect(getResp.StatusCode).To(Equal(200))
 
-			fileMetadataResp := onrackhttp.FileMetadataResponse{}
+			fileMetadataResp := onrackapi.FileMetadataResponse{}
 			err = json.Unmarshal(respBytes, &fileMetadataResp)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fileMetadataResp).To(HaveLen(1))
@@ -55,7 +55,7 @@ var _ = Describe("Files", func() {
 			fileMetadata := fileMetadataResp[0]
 			Expect(fileMetadata.Basename).To(Equal(baseName))
 
-			err = onrackhttp.DeleteFile(c, baseName)
+			err = onrackapi.DeleteFile(c, baseName)
 			Expect(err).ToNot(HaveOccurred())
 
 			resp, err = http.Get(url)

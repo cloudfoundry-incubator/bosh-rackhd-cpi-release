@@ -11,7 +11,7 @@ import (
 	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 )
 
 func CreateStemcell(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
@@ -41,7 +41,7 @@ func CreateStemcell(c config.Cpi, extInput bosh.MethodArguments) (string, error)
 		return "", errors.New("Error generating UUID")
 	}
 
-	_, err = onrackhttp.UploadFile(c, uuid.String(), stemcellFile, fileInfo.Size())
+	_, err = onrackapi.UploadFile(c, uuid.String(), stemcellFile, fileInfo.Size())
 	if err != nil {
 		return "", err
 	}

@@ -4,7 +4,7 @@ import (
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/cpi"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 
 	"encoding/json"
 	"net/http"
@@ -42,7 +42,7 @@ var _ = Describe("CreateStemcell", func() {
 			defer resp.Body.Close()
 			Expect(resp.StatusCode).To(Equal(200))
 
-			fileMetadataResp := onrackhttp.FileMetadataResponse{}
+			fileMetadataResp := onrackapi.FileMetadataResponse{}
 			err = json.Unmarshal(respBytes, &fileMetadataResp)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fileMetadataResp).To(HaveLen(1))
@@ -50,7 +50,7 @@ var _ = Describe("CreateStemcell", func() {
 			fileMetadata := fileMetadataResp[0]
 			Expect(fileMetadata.Basename).To(Equal(uuid))
 
-			err = onrackhttp.DeleteFile(config, fileMetadata.UUID)
+			err = onrackapi.DeleteFile(config, fileMetadata.UUID)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})

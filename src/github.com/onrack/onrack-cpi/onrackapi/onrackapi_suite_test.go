@@ -1,4 +1,4 @@
-package onrackhttp_test
+package onrackapi_test
 
 import (
 	"io/ioutil"

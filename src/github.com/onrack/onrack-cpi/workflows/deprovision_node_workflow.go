@@ -7,16 +7,16 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 )
 
 func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
-	req := onrackhttp.RunWorkflowRequestBody{
+	req := onrackapi.RunWorkflowRequestBody{
 		Name:    workflowName,
 		Options: map[string]interface{}{},
 	}
 
-	return onrackhttp.RunWorkflow(onrackhttp.WorkflowPoster, onrackhttp.WorkflowFetcher, c, nodeID, req)
+	return onrackapi.RunWorkflow(onrackapi.WorkflowPoster, onrackapi.WorkflowFetcher, c, nodeID, req)
 }
 
 func PublishDeprovisionNodeWorkflow(c config.Cpi, uuid string) (string, error) {
@@ -26,7 +26,7 @@ func PublishDeprovisionNodeWorkflow(c config.Cpi, uuid string) (string, error) {
 	}
 
 	for i := range tasks {
-		err = onrackhttp.PublishTask(c, tasks[i])
+		err = onrackapi.PublishTask(c, tasks[i])
 		if err != nil {
 			return "", err
 		}
@@ -39,7 +39,7 @@ func PublishDeprovisionNodeWorkflow(c config.Cpi, uuid string) (string, error) {
 		return "", err
 	}
 
-	err = onrackhttp.PublishWorkflow(c, workflow)
+	err = onrackapi.PublishWorkflow(c, workflow)
 	if err != nil {
 		return "", err
 	}
@@ -85,9 +85,9 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 }
 
 type deprovisionNodeWorkflow struct {
-	*onrackhttp.WorkflowStub
-	*onrackhttp.OptionContainer
-	Tasks []onrackhttp.WorkflowTask `json:"tasks"`
+	*onrackapi.WorkflowStub
+	*onrackapi.OptionContainer
+	Tasks []onrackapi.WorkflowTask `json:"tasks"`
 }
 
 var deprovisionNodeWorkflowTemplate = []byte(`{

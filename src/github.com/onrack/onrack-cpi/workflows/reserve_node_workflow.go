@@ -7,16 +7,16 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/onrack/onrack-cpi/config"
-	"github.com/onrack/onrack-cpi/onrackhttp"
+	"github.com/onrack/onrack-cpi/onrackapi"
 )
 
 func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string, options ReserveNodeWorkflowOptions) error {
-	req := onrackhttp.RunWorkflowRequestBody{
+	req := onrackapi.RunWorkflowRequestBody{
 		Name:    workflowName,
 		Options: map[string]interface{}{"defaults": options},
 	}
 
-	return onrackhttp.RunWorkflow(onrackhttp.WorkflowPoster, onrackhttp.WorkflowFetcher, c, nodeID, req)
+	return onrackapi.RunWorkflow(onrackapi.WorkflowPoster, onrackapi.WorkflowFetcher, c, nodeID, req)
 }
 
 func PublishReserveNodeWorkflow(c config.Cpi, uuid string) (string, error) {
@@ -26,7 +26,7 @@ func PublishReserveNodeWorkflow(c config.Cpi, uuid string) (string, error) {
 	}
 
 	for i := range tasks {
-		err = onrackhttp.PublishTask(c, tasks[i])
+		err = onrackapi.PublishTask(c, tasks[i])
 		if err != nil {
 			return "", err
 		}
@@ -39,7 +39,7 @@ func PublishReserveNodeWorkflow(c config.Cpi, uuid string) (string, error) {
 		return "", err
 	}
 
-	err = onrackhttp.PublishWorkflow(c, workflow)
+	err = onrackapi.PublishWorkflow(c, workflow)
 	if err != nil {
 		return "", err
 	}
@@ -97,9 +97,9 @@ type reserveNodeWorkflowDefaultOptionsContainer struct {
 }
 
 type reserveNodeWorkflow struct {
-	*onrackhttp.WorkflowStub
+	*onrackapi.WorkflowStub
 	*reserveNodeWorkflowOptionsContainer
-	Tasks []onrackhttp.WorkflowTask `json:"tasks"`
+	Tasks []onrackapi.WorkflowTask `json:"tasks"`
 }
 
 var reserveNodeWorkflowTemplate = []byte(`{
