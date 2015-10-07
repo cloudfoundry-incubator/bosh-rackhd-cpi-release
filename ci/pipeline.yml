@@ -37,7 +37,7 @@ resources:
 - name: bosh-cpi-release-in
   type: git
   source:
-    uri: git@github.com:Pipe-s/emc_baremetal.git
+    uri: git@github.com:Pipe-s/bosh-onrack-cpi-release.git
     branch: master
     private_key: {{github_deployment_key__bosh-onrack-cpi-release}}
     ignore_paths:
