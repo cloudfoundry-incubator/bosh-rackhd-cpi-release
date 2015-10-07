@@ -11,4 +11,4 @@ params:
   AGENT_PUBLIC_KEY:             replace-me
   STATIC_IP:                    replace-me
   GATEWAY:                      replace-me
-  ONRACK_CPI_ENABLE_LOGGING:    true
+  ONRACK_CPI_LOG_LEVEL:         DEBUG

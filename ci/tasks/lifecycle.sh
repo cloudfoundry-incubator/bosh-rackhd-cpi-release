@@ -15,7 +15,7 @@ check_param ON_RACK_API_URI
 check_param AGENT_PUBLIC_KEY
 check_param STATIC_IP
 check_param GATEWAY
-check_param ONRACK_CPI_ENABLE_LOGGING
+check_param ONRACK_CPI_LOG_LEVEL
 
 AGENT_PUBLIC_KEY=$(echo ${AGENT_PUBLIC_KEY} | tr -d '\n')
 
