@@ -17,7 +17,7 @@ check_param STATIC_IP
 check_param GATEWAY
 check_param ONRACK_CPI_LOG_LEVEL
 
-AGENT_PUBLIC_KEY=$(echo ${AGENT_PUBLIC_KEY} | tr -d '\n')
+AGENT_PUBLIC_KEY=$(echo ${AGENT_PUBLIC_KEY} | tr -d '\n' | tr -d ' ')
 
 sudo apt-get update
 sudo apt-get -y install jq uuid-runtime
