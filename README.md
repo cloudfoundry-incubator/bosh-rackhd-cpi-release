@@ -1,3 +1,3 @@
-## bosh-ssh-cpi-release
+## bosh-onrack-cpi-release
 
-A [BOSH](https://github.com/cloudfoundry/bosh) release for `baremetal-cpi` written in Go.
+A [BOSH](https://github.com/cloudfoundry/bosh) release for `onrack-cpi` written in Go.

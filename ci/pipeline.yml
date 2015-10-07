@@ -1,6 +1,6 @@
 ---
 groups:
-  - name: bosh-baremetal-cpi
+  - name: bosh-onrack-cpi
     jobs:
       - integration
       - lifecycle
@@ -23,7 +23,7 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-cpi-release-in}
-    - {trigger: false,                         get: stemcell,           resource: baremetal-openstack-stemcell}
+    - {trigger: false,                         get: stemcell,           resource: onrack-openstack-stemcell}
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
@@ -39,12 +39,12 @@ resources:
   source:
     uri: git@github.com:Pipe-s/emc_baremetal.git
     branch: master
-    private_key: {{github_deployment_key__bosh-baremetal-cpi-release}}
+    private_key: {{github_deployment_key__bosh-onrack-cpi-release}}
     ignore_paths:
       - .final_builds/**/*.yml
       - releases/**/*.yml
 
-- name: baremetal-openstack-stemcell
+- name: onrack-openstack-stemcell
   type: bosh-io-stemcell
   source:
     name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
