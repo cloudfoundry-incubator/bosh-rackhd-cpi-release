@@ -49,7 +49,7 @@ cat config_file
 config_path=${PWD}/config_file
 
 cat > create_stemcell_request <<EOF
-{"method":"create_stemcell", "arguments": ["${stemcell_path}"]}
+{"method": "create_stemcell", "arguments": ["${stemcell_path}"]}
 EOF
 cat create_stemcell_request
 
@@ -82,7 +82,7 @@ cat bosh_networks
 
 agent_id=$(uuidgen)
 cat > create_vm_request <<EOF
-{"method":"create_vm", "arguments": ["${agent_id}", ${stemcell_id}, {"public_key": "${AGENT_PUBLIC_KEY}"}, $(cat bosh_networks)]}
+{"method": "create_vm", "arguments": ["${agent_id}", ${stemcell_id}, {"public_key": "${AGENT_PUBLIC_KEY}"}, $(cat bosh_networks)]}
 EOF
 cat create_vm_request
 
@@ -94,8 +94,13 @@ fi
 echo "got vm cid: ${vm_cid}"
 
 cat > delete_vm_request <<EOF
-{"method":"delete_vm", "arguments": [${vm_cid}]}
+{"method": "delete_vm", "arguments": [${vm_cid}]}
 EOF
 cat delete_vm_request
-
 cat delete_vm_request | ./onrack-cpi -configPath=${config_path} 2>&1
+
+cat > delete_stemcell_request <<EOF
+{"method": "delete_stemcell", "arguments": [${stemcell_id}]}
+EOF
+cat delete_stemcell_request
+cat delete_stemcell_request | ./onrack-cpi -configPath=${config_path}
