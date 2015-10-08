@@ -77,19 +77,6 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	}
 	defer onrackapi.DeleteFile(c, nodeID)
 
-	agentRegistryName := fmt.Sprintf("agent-%s", vmCID)
-	regBytes, err := json.Marshal(bosh.DefaultAgentRegistrySettings())
-	if err != nil {
-		return "", fmt.Errorf("error marshalling agent env %s", err)
-	}
-	regReader := bytes.NewReader(regBytes)
-	regUUID, err := onrackapi.UploadFile(c, agentRegistryName, regReader, int64(len(regBytes)))
-	if err != nil {
-		return "", err
-	}
-	defer onrackapi.DeleteFile(c, agentRegistryName)
-	log.Info(fmt.Sprintf("Succeeded uploading agent registry, got '%s' as uuid", regUUID))
-
 	publicKeyName := fmt.Sprintf("key-%s", vmCID)
 	publicKeyReader := strings.NewReader(publicKey)
 	keyUUID, err := onrackapi.UploadFile(c, publicKeyName, publicKeyReader, int64(len(publicKey)))
@@ -106,15 +93,12 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	}
 
 	envPath := onrackapi.OnrackEnvPath
-	regPath := onrackapi.OnrackRegistryPath
 	options := workflows.ProvisionNodeWorkflowOptions{
-		AgentSettingsFile:    &nodeID,
-		AgentSettingsPath:    &envPath,
-		CID:                  &vmCID,
-		PublicKeyFile:        &publicKeyName,
-		RegistrySettingsFile: &agentRegistryName,
-		RegistrySettingsPath: &regPath,
-		StemcellFile:         &stemcellCID,
+		AgentSettingsFile: &nodeID,
+		AgentSettingsPath: &envPath,
+		CID:               &vmCID,
+		PublicKeyFile:     &publicKeyName,
+		StemcellFile:      &stemcellCID,
 	}
 
 	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, options)

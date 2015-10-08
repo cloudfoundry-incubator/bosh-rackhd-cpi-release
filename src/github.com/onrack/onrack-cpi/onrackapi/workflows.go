@@ -25,8 +25,7 @@ const (
 	OnrackReserveVMGraphName = "Graph.CF.ReserveVM"
 	OnrackCreateVMGraphName  = "Graph.BOSH.ProvisionNode"
 	OnrackDeleteVMGraphName  = "Graph.CF.DeleteVM"
-	OnrackEnvPath            = "/var/vcap/bosh/onrack-cpi-agent-env.json"
-	OnrackRegistryPath       = "/var/vcap/bosh/agent.json"
+	OnrackEnvPath            = "/var/vcap/bosh/agent-bootstrap-env.json"
 	DefaultUnusedName        = "UPLOADED_BY_ONRACK_CPI"
 )
 
