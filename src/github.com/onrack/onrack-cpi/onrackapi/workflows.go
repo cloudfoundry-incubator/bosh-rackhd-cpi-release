@@ -78,6 +78,8 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows", c.ApiServer)
 
 	request, err := http.NewRequest("PUT", url, bytes.NewReader(workflowBytes))
+	request.Close = true
+
 	if err != nil {
 		log.Error(fmt.Sprintf("error building http request: %s\n", err))
 		return fmt.Errorf("error building http request: %s", err)
@@ -138,7 +140,14 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 
 func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
 	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/library", c.ApiServer)
-	resp, err := http.Get(url)
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Error(fmt.Sprintf("error making request: %s\n", err))
+		return nil, fmt.Errorf("error making request: %s\n", err)
+	}
+	request.Close = true
+
+	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		log.Error(fmt.Sprintf("Error: %s\n", err))
 		return nil, fmt.Errorf("Error: %s", err)
@@ -270,6 +279,11 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 				log.Error(fmt.Sprintf("Unable to fetch workflow status: %s\n", err))
 				return err
 			}
+
+			for key, value := range wr.Tasks {
+				log.Debug(fmt.Sprintf("task is %s => %v", key, value))
+			}
+
 			log.Debug(fmt.Sprintf("workflow: %s with status: %s and pending tasks: %d", wr.Name, wr.Status, len(wr.PendingTasks)))
 
 			switch wr.Status {

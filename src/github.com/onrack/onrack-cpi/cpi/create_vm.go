@@ -206,15 +206,14 @@ func reserveNodeFromOnRack(c config.Cpi, nodeID string) (string, error) {
 	}
 	uStr := u.String()
 
-	worflowName, err := workflows.PublishReserveNodeWorkflow(c, u.String())
+	workflowName, err := workflows.PublishReserveNodeWorkflow(c, u.String())
 	if err != nil {
 		log.Error(fmt.Sprintf("error publishing reserve workflow: %s", err))
 		return "", fmt.Errorf("error publishing reserve workflow: %s", err)
 	}
 
 	o := workflows.ReserveNodeWorkflowOptions{UUID: &uStr}
-
-	err = workflows.RunReserveNodeWorkflow(c, nodeID, worflowName, o)
+	err = workflows.RunReserveNodeWorkflow(c, nodeID, workflowName, o)
 	if err != nil {
 		log.Error(fmt.Sprintf("error running reserve workflow: %s", err))
 		return "", fmt.Errorf("error running reserve workflow: %s", err)
