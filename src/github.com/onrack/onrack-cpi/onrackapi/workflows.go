@@ -1,6 +1,7 @@
 package onrackapi
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -153,18 +154,22 @@ func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Error(fmt.Sprintf("error reading response body: %s\n", err))
-		return nil, fmt.Errorf("error reading response body: %s", err)
+	var buf bytes.Buffer
+	scanner := bufio.NewScanner(resp.Body)
+	scanner.Split(bufio.ScanBytes)
+	for scanner.Scan() {
+		_, err := buf.Write(scanner.Bytes())
+		if err != nil {
+			log.Error(fmt.Sprintf("error scanning for response body %s", err))
+		}
 	}
 
 	if resp.StatusCode != 200 {
-		log.Error(fmt.Sprintf("error retrieving tasks: response code is %d: %s\n", resp.StatusCode, string(body)))
-		return nil, fmt.Errorf("Failed retrieving workflows with status: %s, message: %s", resp.Status, string(body))
+		log.Error(fmt.Sprintf("error retrieving tasks: response code is %d: %s\n", resp.StatusCode, buf.String()))
+		return nil, fmt.Errorf("Failed retrieving workflows with status: %s, message: %s", resp.Status, buf.String())
 	}
 
-	return body, nil
+	return buf.Bytes(), nil
 }
 
 func WorkflowFetcher(c config.Cpi, nodeID string, workflowID string) (WorkflowResponse, error) {
