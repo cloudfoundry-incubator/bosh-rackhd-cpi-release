@@ -22,7 +22,7 @@ var reserveNodeWorkflowTemplate = []byte(`{
     {
       "label": "set-boot-pxe",
       "taskName": "Task.Obm.Node.PxeBoot",
-      "ignoreFailure": true
+      "ignoreFailure": false
     },
     {
       "label": "reboot",

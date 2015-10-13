@@ -32,7 +32,10 @@ var provisionNodeWorkflowTemplate = []byte(`{
 		},
     {
       "label": "provision-node",
-      "taskName": "Task.BOSH.Provision.Node"
+      "taskName": "Task.BOSH.Provision.Node",
+			"waitOn": {
+				"bootstrap-ubuntu": "succeeded"
+			}
     },
     {
       "label": "set-id",
