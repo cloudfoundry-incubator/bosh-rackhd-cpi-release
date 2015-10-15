@@ -30,6 +30,8 @@ func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64)
 		return "", err
 	}
 	request.ContentLength = contentLength
+
+	log.Debug(fmt.Sprintf("uploading file: %s to server", baseName))
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		log.Error(fmt.Sprintf("Error making request to api server: %s", err))
@@ -47,6 +49,7 @@ func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64)
 		log.Error(fmt.Sprintf("Failed uploading %s with status: %s", baseName, resp.Status))
 		return "", fmt.Errorf("Failed uploading %s with status: %s", baseName, resp.Status)
 	}
+	log.Debug(fmt.Sprintf("uploaded file: %s to server", baseName))
 
 	return string(bodyBytes), nil
 }
