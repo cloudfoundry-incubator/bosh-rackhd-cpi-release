@@ -17,7 +17,6 @@ var provisionNodeWorkflowTemplate = []byte(`{
     "defaults": {
       "agentSettingsFile": null,
       "agentSettingsPath": null,
-      "publicKeyFile": null,
       "cid": null,
       "downloadDir": "/opt/downloads",
       "registrySettingsFile": null,
@@ -57,7 +56,6 @@ var provisionNodeWorkflowTemplate = []byte(`{
 type ProvisionNodeWorkflowOptions struct {
 	AgentSettingsFile    *string `json:"agentSettingsFile"`
 	AgentSettingsPath    *string `json:"agentSettingsPath"`
-	PublicKeyFile        *string `json:"publicKeyFile"`
 	CID                  *string `json:"cid"`
 	DownloadDir          string  `json:"downloadDir,omitempty"`
 	RegistrySettingsFile *string `json:"registrySettingsFile"`

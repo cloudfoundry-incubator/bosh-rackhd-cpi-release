@@ -64,6 +64,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 			"id":   nodeID,
 			"name": nodeID,
 		},
+		PublicKey: publicKey,
 	}
 
 	envBytes, err := json.Marshal(env)
@@ -77,15 +78,6 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	}
 	defer onrackapi.DeleteFile(c, nodeID)
 
-	publicKeyName := fmt.Sprintf("key-%s", vmCID)
-	publicKeyReader := strings.NewReader(publicKey)
-	keyUUID, err := onrackapi.UploadFile(c, publicKeyName, publicKeyReader, int64(len(publicKey)))
-	if err != nil {
-		return "", err
-	}
-	defer onrackapi.DeleteFile(c, publicKeyName)
-	log.Info(fmt.Sprintf("Succeeded uploading public key, got '%s' as uuid", keyUUID))
-
 	workflowName, err := workflows.PublishProvisionNodeWorkflow(c, vmCID)
 	if err != nil {
 		log.Error(fmt.Sprintf("error publishing provision workflow: %s", err))
@@ -97,7 +89,6 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		AgentSettingsFile: &nodeID,
 		AgentSettingsPath: &envPath,
 		CID:               &vmCID,
-		PublicKeyFile:     &publicKeyName,
 		StemcellFile:      &stemcellCID,
 	}
 
