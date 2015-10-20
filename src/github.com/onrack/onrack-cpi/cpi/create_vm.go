@@ -80,7 +80,6 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 
 	workflowName, err := workflows.PublishProvisionNodeWorkflow(c, vmCID)
 	if err != nil {
-		log.Error(fmt.Sprintf("error publishing provision workflow: %s", err))
 		return "", fmt.Errorf("error publishing provision workflow: %s", err)
 	}
 
@@ -94,7 +93,6 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 
 	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, options)
 	if err != nil {
-		log.Error(fmt.Sprintf("error running provision workflow: %s", err))
 		return "", fmt.Errorf("error running provision workflow: %s", err)
 	}
 
@@ -111,12 +109,10 @@ func attachMAC(nodeNetworks map[string]onrackapi.Network, oldSpec bosh.Network) 
 	}
 
 	if len(upNetworks) == 0 {
-		log.Error("node has no active network")
 		return bosh.Network{}, errors.New("node has no active network")
 	}
 
 	if len(upNetworks) > 1 {
-		log.Error(fmt.Sprintf("node has %d active networks", len(upNetworks)))
 		return bosh.Network{}, fmt.Errorf("node has %d active networks", len(upNetworks))
 	}
 
@@ -183,14 +179,12 @@ func reserveNodeFromOnRack(c config.Cpi, nodeID string) (string, error) {
 
 	workflowName, err := workflows.PublishReserveNodeWorkflow(c, u.String())
 	if err != nil {
-		log.Error(fmt.Sprintf("error publishing reserve workflow: %s", err))
 		return "", fmt.Errorf("error publishing reserve workflow: %s", err)
 	}
 
 	o := workflows.ReserveNodeWorkflowOptions{UUID: &uStr}
 	err = workflows.RunReserveNodeWorkflow(c, nodeID, workflowName, o)
 	if err != nil {
-		log.Error(fmt.Sprintf("error running reserve workflow: %s", err))
 		return "", fmt.Errorf("error running reserve workflow: %s", err)
 	}
 

@@ -63,7 +63,7 @@ var _ = Describe("CreateStemcell", func() {
 			input = append(input, map[string]string{"foo": "bar"})
 
 			uuid, err := cpi.CreateStemcell(config, input)
-			Expect(err).To(MatchError("Received unexpected type for stemcell image path"))
+			Expect(err).To(MatchError("received unexpected type for stemcell image path"))
 			Expect(uuid).To(BeEmpty())
 		})
 	})

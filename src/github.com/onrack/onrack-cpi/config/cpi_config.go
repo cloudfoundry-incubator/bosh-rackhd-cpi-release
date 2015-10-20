@@ -34,24 +34,20 @@ func DefaultMaxCreateVMAttempts() int { return defaultMaxCreateVMAttempts }
 func New(config io.Reader) (Cpi, error) {
 	b, err := ioutil.ReadAll(config)
 	if err != nil {
-		log.Error(fmt.Sprintf("Error reading config file %s", err))
-		return Cpi{}, err
+		return Cpi{}, fmt.Errorf("Error reading config file %s", err)
 	}
 
 	var cpi Cpi
 	err = json.Unmarshal(b, &cpi)
 	if err != nil {
-		log.Error(fmt.Sprintf("Error unmarshalling cpi config %s", err))
-		return Cpi{}, err
+		return Cpi{}, fmt.Errorf("Error unmarshalling cpi config %s", err)
 	}
 
 	if cpi.ApiServer == "" {
-		log.Error("ApiServer IP is not set")
 		return Cpi{}, errors.New("ApiServer IP is not set")
 	}
 
 	if cpi.MaxCreateVMAttempt < 0 {
-		log.Error("Invalid config. MaxCreateVMAttempt cannot be negative")
 		return Cpi{}, errors.New("Invalid config. MaxCreateVMAttempt cannot be negative")
 	}
 
@@ -66,7 +62,6 @@ func New(config io.Reader) (Cpi, error) {
 	}
 
 	if !isAgentConfigValid(cpi.Agent) {
-		log.Error(fmt.Sprintf("Agent config invalid %v", cpi.Agent))
 		return Cpi{}, fmt.Errorf("Agent config invalid %v", cpi.Agent)
 	}
 

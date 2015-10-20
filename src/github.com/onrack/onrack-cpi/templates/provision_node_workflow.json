@@ -5,7 +5,6 @@
     "defaults": {
       "agentSettingsFile": null,
       "agentSettingsPath": null,
-      "publicKeyFile": null,
       "cid": null,
       "downloadDir": "/opt/downloads",
       "registrySettingsFile": null,
@@ -14,13 +13,17 @@
     }
   },
   "tasks": [
-		{
-			"label": "bootstrap-ubuntu",
-			"taskName": "Task.Linux.Bootstrap.Ubuntu"
-		},
+    {
+      "label": "bootstrap-ubuntu",
+      "taskName": "Task.Linux.Bootstrap.Ubuntu",
+      "ignoreFailure": true
+    },
     {
       "label": "provision-node",
-      "taskName": "Task.BOSH.Provision.Node"
+      "taskName": "Task.BOSH.Provision.Node",
+      "waitOn": {
+        "bootstrap-ubuntu": "finished"
+      }
     },
     {
       "label": "set-id",
@@ -29,12 +32,12 @@
         "provision-node": "succeeded"
       }
     },
-		{
-			"label": "reboot",
-			"taskName": "Task.ProcShellReboot",
-			"waitOn": {
-				"set-id": "succeeded"
-			}
-		}
+    {
+      "label": "reboot",
+      "taskName": "Task.ProcShellReboot",
+      "waitOn": {
+        "set-id": "succeeded"
+      }
+    }
   ]
 }

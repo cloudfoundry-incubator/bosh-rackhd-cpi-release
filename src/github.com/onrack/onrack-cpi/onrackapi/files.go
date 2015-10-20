@@ -26,16 +26,14 @@ func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64)
 	body := ioutil.NopCloser(r)
 	request, err := http.NewRequest("PUT", url, body)
 	if err != nil {
-		log.Error(fmt.Sprintf("Error building request to api server: %s", err))
-		return "", err
+		return "", fmt.Errorf("Error building request to api server: %s", err)
 	}
 	request.ContentLength = contentLength
 
 	log.Debug(fmt.Sprintf("uploading file: %s to server", baseName))
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		log.Error(fmt.Sprintf("Error making request to api server: %s", err))
-		return "", err
+		return "", fmt.Errorf("Error making request to api server: %s", err)
 	}
 	defer resp.Body.Close()
 
@@ -46,7 +44,6 @@ func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64)
 	}
 
 	if resp.StatusCode != 201 {
-		log.Error(fmt.Sprintf("Failed uploading %s with status: %s", baseName, resp.Status))
 		return "", fmt.Errorf("Failed uploading %s with status: %s", baseName, resp.Status)
 	}
 	log.Debug(fmt.Sprintf("uploaded file: %s to server", baseName))
@@ -58,7 +55,6 @@ func DeleteFile(c config.Cpi, baseName string) error {
 	url := fmt.Sprintf("http://%s:8080/api/common/files/metadata/%s", c.ApiServer, baseName)
 	metadataResp, err := http.Get(url)
 	if err != nil {
-		log.Error(fmt.Sprintf("error getting file metadata: %s", err))
 		return fmt.Errorf("error getting file metadata: %s", err)
 	}
 	defer metadataResp.Body.Close()
@@ -70,14 +66,12 @@ func DeleteFile(c config.Cpi, baseName string) error {
 
 	metadataBytes, err := ioutil.ReadAll(metadataResp.Body)
 	if err != nil {
-		log.Error(fmt.Sprintf("error reading metadata response body %s", err))
 		return fmt.Errorf("error reading metadata response body %s", err)
 	}
 
 	metadata := FileMetadataResponse{}
 	err = json.Unmarshal(metadataBytes, &metadata)
 	if err != nil {
-		log.Error(fmt.Sprintf("error unmarshalling metadata response: %s", err))
 		return fmt.Errorf("error unmarshalling metadata response: %s", err)
 	}
 

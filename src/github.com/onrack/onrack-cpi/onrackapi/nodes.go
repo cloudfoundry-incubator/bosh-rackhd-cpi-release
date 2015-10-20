@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
-
 	"github.com/onrack/onrack-cpi/config"
 )
 
@@ -53,26 +51,22 @@ func GetNodes(c config.Cpi) ([]Node, error) {
 	nodesURL := fmt.Sprintf("http://%s:8080/api/common/nodes", c.ApiServer)
 	resp, err := http.Get(nodesURL)
 	if err != nil {
-		log.Error(fmt.Sprintf("error fetching nodes %s", err))
 		return []Node{}, fmt.Errorf("error fetching nodes %s", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		log.Error(fmt.Sprintf("error getting nodes %s", err))
-		return []Node{}, fmt.Errorf("Failed getting nodes with status: %s", resp.Status)
+		return []Node{}, fmt.Errorf("Failed getting nodes with status: %s, err: %s", resp.Status, err)
 	}
 
 	nodeBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Error(fmt.Sprintf("error reading node response body %s", err))
 		return []Node{}, fmt.Errorf("error reading node response body %s", err)
 	}
 
 	var nodes []Node
 	err = json.Unmarshal(nodeBytes, &nodes)
 	if err != nil {
-		log.Error(fmt.Sprintf("error unmarshalling /common/nodes response %s", err))
 		return []Node{}, fmt.Errorf("error unmarshalling /common/nodes response %s", err)
 	}
 
@@ -87,8 +81,7 @@ func ReleaseNode(c config.Cpi, nodeID string) error {
 
 	request, err := http.NewRequest("PATCH", url, body)
 	if err != nil {
-		log.Error(fmt.Sprintf("Error building request to api server: %s", err))
-		return err
+		return fmt.Errorf("Error building request to api server: %s", err)
 	}
 
 	request.Header.Set("Content-Type", "application/json")
@@ -96,12 +89,10 @@ func ReleaseNode(c config.Cpi, nodeID string) error {
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		log.Error(fmt.Sprintf("Error making request to api server: %s", err))
-		return err
+		return fmt.Errorf("Error making request to api server: %s", err)
 	}
 
 	if resp.StatusCode != 200 {
-		log.Error(fmt.Sprintf("Failed patching with status: %s", resp.Status))
 		return fmt.Errorf("Failed patching with status: %s", resp.Status)
 	}
 
@@ -112,26 +103,22 @@ func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
 	catalogURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s/catalogs/ohai", c.ApiServer, nodeID)
 	resp, err := http.Get(catalogURL)
 	if err != nil {
-		log.Error(fmt.Sprintf("error getting catalog %s", err))
 		return NodeCatalog{}, fmt.Errorf("error getting catalog %s", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		log.Error(fmt.Sprintf("error getting nodes %s", err))
-		return NodeCatalog{}, fmt.Errorf("Failed getting nodes with status: %s", resp.Status)
+		return NodeCatalog{}, fmt.Errorf("Failed getting nodes with status: %s, err: %s", resp.Status, err)
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Error(fmt.Sprintf("error reading catalog body %s", err))
 		return NodeCatalog{}, fmt.Errorf("error reading catalog body %s", err)
 	}
 
 	var nodeCatalog NodeCatalog
 	err = json.Unmarshal(b, &nodeCatalog)
 	if err != nil {
-		log.Error(fmt.Sprintf("error unmarshal catalog body %s", err))
 		return NodeCatalog{}, fmt.Errorf("error unmarshal catalog body %s", err)
 	}
 

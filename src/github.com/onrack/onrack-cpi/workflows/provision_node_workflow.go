@@ -25,16 +25,17 @@ var provisionNodeWorkflowTemplate = []byte(`{
     }
   },
   "tasks": [
-		{
-			"label": "bootstrap-ubuntu",
-			"taskName": "Task.Linux.Bootstrap.Ubuntu"
-		},
+    {
+      "label": "bootstrap-ubuntu",
+      "taskName": "Task.Linux.Bootstrap.Ubuntu",
+      "ignoreFailure": true
+    },
     {
       "label": "provision-node",
       "taskName": "Task.BOSH.Provision.Node",
-			"waitOn": {
-				"bootstrap-ubuntu": "succeeded"
-			}
+	  "waitOn": {
+	    "bootstrap-ubuntu": "finished"
+	  }
     },
     {
       "label": "set-id",
@@ -43,13 +44,13 @@ var provisionNodeWorkflowTemplate = []byte(`{
         "provision-node": "succeeded"
       }
     },
-		{
-			"label": "reboot",
-			"taskName": "Task.ProcShellReboot",
-			"waitOn": {
-				"set-id": "succeeded"
-			}
-		}
+	{
+	  "label": "reboot",
+	  "taskName": "Task.ProcShellReboot",
+	  "waitOn": {
+	    "set-id": "succeeded"
+	  }
+	}
   ]
 }`)
 

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
-
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackapi"
 )
@@ -82,8 +80,7 @@ func PublishDeprovisionNodeWorkflow(c config.Cpi, uuid string) (string, error) {
 	w := deprovisionNodeWorkflow{}
 	err = json.Unmarshal(workflow, &w)
 	if err != nil {
-		log.Error(fmt.Sprintf("error umarshalling workflow: %s", err))
-		return "", err
+		return "", fmt.Errorf("error umarshalling workflow: %s", err)
 	}
 
 	err = onrackapi.PublishWorkflow(c, workflow)
@@ -98,8 +95,7 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	deprovisionTask := deprovisionNodeTask{}
 	err := json.Unmarshal(deprovisionNodeTaskTemplate, &deprovisionTask)
 	if err != nil {
-		log.Error(fmt.Sprintf("error unmarshalling Deprovision node task template: %s\n", err))
-		return nil, nil, fmt.Errorf("error unmarshalling Deprovision node task template: %s\n", err)
+		return nil, nil, fmt.Errorf("error unmarshalling Deprovision node task template: %s", err)
 	}
 
 	deprovisionTask.Name = fmt.Sprintf("%s.%s", deprovisionTask.Name, uuid)
@@ -107,15 +103,13 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	deprovisionTaskBytes, err := json.Marshal(deprovisionTask)
 	if err != nil {
-		log.Error(fmt.Sprintf("error marshalling Deprovision node task template: %s\n", err))
-		return nil, nil, fmt.Errorf("error Deprovision provision node task template: %s\n", err)
+		return nil, nil, fmt.Errorf("error Deprovision provision node task template: %s", err)
 	}
 
 	w := deprovisionNodeWorkflow{}
 	err = json.Unmarshal(deprovisionNodeWorkflowTemplate, &w)
 	if err != nil {
-		log.Error(fmt.Sprintf("error unmarshalling Deprovision node workflow template: %s\n", err))
-		return nil, nil, fmt.Errorf("error unmarshalling Deprovision node workflow template: %s\n", err)
+		return nil, nil, fmt.Errorf("error unmarshalling Deprovision node workflow template: %s", err)
 	}
 
 	w.Name = fmt.Sprintf("%s.%s", w.Name, uuid)
@@ -124,8 +118,7 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	wBytes, err := json.Marshal(w)
 	if err != nil {
-		log.Error(fmt.Sprintf("error marshalling Deprovision node workflow template: %s\n", err))
-		return nil, nil, fmt.Errorf("error marshalling Deprovision node workflow template: %s\n", err)
+		return nil, nil, fmt.Errorf("error marshalling Deprovision node workflow template: %s", err)
 	}
 
 	return [][]byte{deprovisionTaskBytes}, wBytes, nil

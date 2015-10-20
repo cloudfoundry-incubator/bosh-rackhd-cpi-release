@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
-
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackapi"
 )
@@ -22,7 +20,7 @@ var reserveNodeWorkflowTemplate = []byte(`{
     {
       "label": "set-boot-pxe",
       "taskName": "Task.Obm.Node.PxeBoot",
-      "ignoreFailure": false
+      "ignoreFailure": true
     },
     {
       "label": "reboot",
@@ -91,8 +89,7 @@ func PublishReserveNodeWorkflow(c config.Cpi, uuid string) (string, error) {
 	w := reserveNodeWorkflow{}
 	err = json.Unmarshal(workflow, &w)
 	if err != nil {
-		log.Error(fmt.Sprintf("error umarshalling workflow: %s", err))
-		return "", err
+		return "", fmt.Errorf("error umarshalling workflow: %s", err)
 	}
 
 	err = onrackapi.PublishWorkflow(c, workflow)
@@ -107,8 +104,7 @@ func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	reserve := reserveNodeTask{}
 	err := json.Unmarshal(reserveNodeTaskTemplate, &reserve)
 	if err != nil {
-		log.Error(fmt.Sprintf("error unmarshalling reserve node task template: %s\n", err))
-		return nil, nil, fmt.Errorf("error unmarshalling reserve node task template: %s\n", err)
+		return nil, nil, fmt.Errorf("error unmarshalling reserve node task template: %s", err)
 	}
 
 	reserve.Name = fmt.Sprintf("%s.%s", reserve.Name, uuid)
@@ -116,15 +112,13 @@ func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	reserveBytes, err := json.Marshal(reserve)
 	if err != nil {
-		log.Error(fmt.Sprintf("error marshalling reserve node task template: %s\n", err))
-		return nil, nil, fmt.Errorf("error reserve provision node task template: %s\n", err)
+		return nil, nil, fmt.Errorf("error reserve provision node task template: %s", err)
 	}
 
 	w := reserveNodeWorkflow{}
 	err = json.Unmarshal(reserveNodeWorkflowTemplate, &w)
 	if err != nil {
-		log.Error(fmt.Sprintf("error unmarshalling reserve node workflow template: %s\n", err))
-		return nil, nil, fmt.Errorf("error unmarshalling reserve node workflow template: %s\n", err)
+		return nil, nil, fmt.Errorf("error unmarshalling reserve node workflow template: %s", err)
 	}
 
 	w.Name = fmt.Sprintf("%s.%s", w.Name, uuid)
@@ -133,8 +127,7 @@ func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 	wBytes, err := json.Marshal(w)
 	if err != nil {
-		log.Error(fmt.Sprintf("error marshalling reserve node workflow template: %s\n", err))
-		return nil, nil, fmt.Errorf("error marshalling reserve node workflow template: %s\n", err)
+		return nil, nil, fmt.Errorf("error marshalling reserve node workflow template: %s", err)
 	}
 
 	return [][]byte{reserveBytes}, wBytes, nil
