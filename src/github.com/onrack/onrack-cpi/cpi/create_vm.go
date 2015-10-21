@@ -11,7 +11,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/nu7hatch/gouuid"
 	"github.com/onrack/onrack-cpi/bosh"
 	"github.com/onrack/onrack-cpi/config"
 	"github.com/onrack/onrack-cpi/onrackapi"
@@ -24,12 +23,10 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
-	nodeID, err := tryReservation(c, selectNodeFromOnRack, reserveNodeFromOnRack)
+	nodeID, err := tryReservation(c, agentID, selectNodeFromOnRack, reserveNodeFromOnRack)
 	if err != nil {
 		return "", err
 	}
-
-	defer onrackapi.ReleaseNode(c, nodeID)
 
 	var netSpec bosh.Network
 	var netName string
@@ -137,59 +134,49 @@ func attachMAC(nodeNetworks map[string]onrackapi.Network, oldSpec bosh.Network) 
 }
 
 type selectionFunc func(config.Cpi) (string, error)
-type reservationFunc func(config.Cpi, string) (string, error)
+type reservationFunc func(config.Cpi, string, string) error
 
-func tryReservation(c config.Cpi, choose selectionFunc, reserve reservationFunc) (string, error) {
-	var reserved string
+func tryReservation(c config.Cpi, agentID string, choose selectionFunc, reserve reservationFunc) (string, error) {
+	var nodeID string
+	var err error
 	for i := 0; i < c.MaxCreateVMAttempt; i++ {
-		nodeID, err := choose(c)
+		nodeID, err = choose(c)
+
 		if err != nil {
 			log.Error(fmt.Sprintf("retry %d: error choosing node %s", i, err))
 			continue
 		}
 
-		reserved, err = reserve(c, nodeID)
+		err = reserve(c, agentID, nodeID)
 		if err != nil {
 			log.Error(fmt.Sprintf("retry %d: error reserving node %s", i, err))
-			err = onrackapi.ReleaseNode(c, nodeID)
-			if err != nil {
-				log.Error(fmt.Sprintf("error releasing node %s, %s", nodeID, err))
-			}
+			defer onrackapi.ReleaseNode(c, nodeID)
 			continue
 		}
 
-		if reserved != "" {
-			break
-		}
+		break
 	}
 
-	if reserved == "" {
+	if err != nil {
 		return "", errors.New("unable to reserve node")
 	}
 
-	return reserved, nil
+	return nodeID, nil
 }
 
-func reserveNodeFromOnRack(c config.Cpi, nodeID string) (string, error) {
-	u, err := uuid.NewV4()
+func reserveNodeFromOnRack(c config.Cpi, agentID string, nodeID string) error {
+	workflowName, err := workflows.PublishReserveNodeWorkflow(c, agentID)
 	if err != nil {
-		return "", errors.New("error generating UUID")
-	}
-	uStr := u.String()
-
-	workflowName, err := workflows.PublishReserveNodeWorkflow(c, u.String())
-	if err != nil {
-		return "", fmt.Errorf("error publishing reserve workflow: %s", err)
+		return fmt.Errorf("error publishing reserve workflow: %s", err)
 	}
 
-	o := workflows.ReserveNodeWorkflowOptions{UUID: &uStr}
-	err = workflows.RunReserveNodeWorkflow(c, nodeID, workflowName, o)
+	err = workflows.RunReserveNodeWorkflow(c, nodeID, workflowName)
 	if err != nil {
-		return "", fmt.Errorf("error running reserve workflow: %s", err)
+		return fmt.Errorf("error running reserve workflow: %s", err)
 	}
 
 	log.Info(fmt.Sprintf("reserved node %s", nodeID))
-	return nodeID, nil
+	return nil
 }
 
 func selectNodeFromOnRack(c config.Cpi) (string, error) {
@@ -198,8 +185,8 @@ func selectNodeFromOnRack(c config.Cpi) (string, error) {
 		return "", err
 	}
 
-	nodeID, err := selectNonReservedNode(nodes)
-	if err != nil {
+	nodeID, err := randomSelectAvailableNode(nodes)
+	if err != nil || nodeID == "" {
 		return "", err
 	}
 
@@ -207,8 +194,8 @@ func selectNodeFromOnRack(c config.Cpi) (string, error) {
 	return nodeID, nil
 }
 
-func selectNonReservedNode(nodes []onrackapi.Node) (string, error) {
-	availableNodes := rejectReservedNodes(nodes)
+func randomSelectAvailableNode(nodes []onrackapi.Node) (string, error) {
+	availableNodes := getAllAvailableNodes(nodes)
 	if len(availableNodes) == 0 {
 		return "", errors.New("all nodes have been reserved")
 	}
@@ -220,11 +207,11 @@ func selectNonReservedNode(nodes []onrackapi.Node) (string, error) {
 	return availableNodes[i].ID, nil
 }
 
-func rejectReservedNodes(nodes []onrackapi.Node) []onrackapi.Node {
+func getAllAvailableNodes(nodes []onrackapi.Node) []onrackapi.Node {
 	var n []onrackapi.Node
 
 	for i := range nodes {
-		if nodes[i].Reserved == "" && nodes[i].CID == "" {
+		if (nodes[i].Status == "" || nodes[i].Status == onrackapi.Available) && nodes[i].CID == "" {
 			n = append(n, nodes[i])
 		}
 	}

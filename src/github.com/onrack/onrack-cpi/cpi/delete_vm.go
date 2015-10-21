@@ -39,5 +39,7 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 		return err
 	}
 
+	defer onrackapi.ReleaseNode(c, nodeID)
+
 	return workflows.RunDeprovisionNodeWorkflow(c, nodeID, workflowName)
 }

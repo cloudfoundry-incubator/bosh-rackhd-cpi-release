@@ -17,6 +17,13 @@ const (
 	MacAddressFamily = "lladdr"
 )
 
+const (
+	Available   = "available"
+	Reserved    = "reserved"
+	Blocked     = "blocked"
+	Maintenance = "maintenance"
+)
+
 type NodeCatalog struct {
 	Data CatalogData `json:"data"`
 }
@@ -42,7 +49,7 @@ type NetworkAddress struct {
 
 type Node struct {
 	Workflows []interface{} `json:"workflows"`
-	Reserved  string        `json:"reserved"`
+	Status    string        `json:"status"`
 	ID        string        `json:"id"`
 	CID       string        `json:"cid"`
 }
@@ -75,7 +82,7 @@ func GetNodes(c config.Cpi) ([]Node, error) {
 
 func ReleaseNode(c config.Cpi, nodeID string) error {
 	url := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, nodeID)
-	reserveFlag := `{"reserved" : ""}`
+	reserveFlag := fmt.Sprintf(`{"status": "%s"}`, Available)
 	body := ioutil.NopCloser(strings.NewReader(reserveFlag))
 	defer body.Close()
 

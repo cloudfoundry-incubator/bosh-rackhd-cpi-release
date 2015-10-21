@@ -1,11 +1,7 @@
 {
   "friendlyName": "BOSH Reserve Node",
   "injectableName": "Graph.BOSH.ReserveNode",
-  "options": {
-    "defaults": {
-      "uuid": null
-    }
-  },
+  "options": null,
   "tasks": [
     {
       "label": "set-boot-pxe",

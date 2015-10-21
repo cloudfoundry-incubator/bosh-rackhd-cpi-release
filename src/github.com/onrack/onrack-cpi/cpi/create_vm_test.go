@@ -257,7 +257,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			var node onrackapi.Node
 			err = json.Unmarshal(nodeBytes, &node)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(node.Reserved).To(Equal(""))
+			Expect(node.Status).To(Equal(onrackapi.Available))
 		})
 	})
 
@@ -398,7 +398,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err = json.Unmarshal(dummyResponseBytes, &nodes)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = selectNonReservedNode(nodes)
+			_, err = randomSelectAvailableNode(nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 
@@ -414,7 +414,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err = json.Unmarshal(dummyResponseBytes, &nodes)
 			Expect(err).ToNot(HaveOccurred())
 
-			onRackID, err := selectNonReservedNode(nodes)
+			onRackID, err := randomSelectAvailableNode(nodes)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(onRackID).To(Equal("55e79ea54e66816f6152fff9"))
 		})
@@ -431,7 +431,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err = json.Unmarshal(dummyResponseBytes, &nodes)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = selectNonReservedNode(nodes)
+			_, err = randomSelectAvailableNode(nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 	})
@@ -443,8 +443,9 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			nodeID, err := tryReservation(
 				c,
+				"agentID",
 				func(config.Cpi) (string, error) { return "node-1234", nil },
-				func(config.Cpi, string) (string, error) { return "node-1234", nil },
+				func(config.Cpi, string, string) error { return nil },
 			)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(nodeID).To(Equal("node-1234"))
@@ -457,8 +458,9 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 			nodeID, err := tryReservation(
 				c,
+				"agentID",
 				func(config.Cpi) (string, error) { return "node-1234", nil },
-				func(config.Cpi, string) (string, error) { return "", errors.New("") },
+				func(config.Cpi, string, string) error { return errors.New("error") },
 			)
 			Expect(err).To(MatchError("unable to reserve node"))
 			Expect(nodeID).To(Equal(""))
@@ -479,8 +481,9 @@ var _ = Describe("The VM Creation Workflow", func() {
 			}
 			nodeID, err := tryReservation(
 				c,
+				"agentID",
 				flakeySelectionFunc,
-				func(config.Cpi, string) (string, error) { return "node-1234", nil },
+				func(config.Cpi, string, string) error { return nil },
 			)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(nodeID).To(Equal("node-1234"))
@@ -494,10 +497,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			var testNodeID string
-			flakeyReservationFunc := func(c config.Cpi, nodeID string) (string, error) {
+			flakeyReservationFunc := func(c config.Cpi, agentID string, nodeID string) error {
 				testNodeID = nodeID
 				url := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, nodeID)
-				reserveFlag := `{"reserved" : "fake-uuid"}`
+
+				reserveFlag := `{"status" : "reserved"}`
 				body := ioutil.NopCloser(strings.NewReader(reserveFlag))
 				defer body.Close()
 
@@ -509,7 +513,6 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 				resp, err := http.DefaultClient.Do(request)
 				Expect(err).ToNot(HaveOccurred())
-
 				Expect(resp.StatusCode).To(Equal(200))
 
 				nodeURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, testNodeID)
@@ -523,9 +526,9 @@ var _ = Describe("The VM Creation Workflow", func() {
 				var node onrackapi.Node
 				err = json.Unmarshal(nodeBytes, &node)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(node.Reserved).To(Equal("fake-uuid"))
+				Expect(node.Status).To(Equal(onrackapi.Reserved))
 
-				return "", errors.New("fake error doing reservation")
+				return errors.New("fake error doing reservation")
 			}
 
 			_, err = selectNodeFromOnRack(c)
@@ -533,6 +536,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 			_, err = tryReservation(
 				c,
+				"agentID",
 				selectNodeFromOnRack,
 				flakeyReservationFunc,
 			)
@@ -549,7 +553,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			var node onrackapi.Node
 			err = json.Unmarshal(nodeBytes, &node)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(node.Reserved).To(Equal(""))
+			Expect(node.Status).To(Equal(onrackapi.Available))
 		})
 	})
 })

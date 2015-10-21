@@ -11,11 +11,7 @@ import (
 var reserveNodeWorkflowTemplate = []byte(`{
   "friendlyName": "BOSH Reserve Node",
   "injectableName": "Graph.BOSH.ReserveNode",
-  "options": {
-    "defaults": {
-      "uuid": null
-    }
-  },
+  "options": null,
   "tasks": [
     {
       "label": "set-boot-pxe",
@@ -46,28 +42,16 @@ var reserveNodeWorkflowTemplate = []byte(`{
   ]
 }`)
 
-type ReserveNodeWorkflowOptions struct {
-	UUID *string `json:"uuid"`
-}
-
-type reserveNodeWorkflowOptionsContainer struct {
-	Options reserveNodeWorkflowDefaultOptionsContainer `json:"options"`
-}
-
-type reserveNodeWorkflowDefaultOptionsContainer struct {
-	Defaults ReserveNodeWorkflowOptions `json:"defaults"`
-}
-
 type reserveNodeWorkflow struct {
 	*onrackapi.WorkflowStub
-	*reserveNodeWorkflowOptionsContainer
-	Tasks []onrackapi.WorkflowTask `json:"tasks"`
+	Tasks   []onrackapi.WorkflowTask `json:"tasks"`
+	Options map[string]interface{}   `json:"options"`
 }
 
-func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string, options ReserveNodeWorkflowOptions) error {
+func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
 	req := onrackapi.RunWorkflowRequestBody{
 		Name:    workflowName,
-		Options: map[string]interface{}{"defaults": options},
+		Options: map[string]interface{}{},
 	}
 
 	return onrackapi.RunWorkflow(onrackapi.WorkflowPoster, onrackapi.WorkflowFetcher, c, nodeID, req)

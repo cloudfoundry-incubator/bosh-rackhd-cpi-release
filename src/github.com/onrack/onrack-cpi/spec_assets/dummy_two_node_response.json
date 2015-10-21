@@ -44,7 +44,7 @@
         "service": "ipmi-obm-service"
       }
     ],
-    "reserved": "vm-1234",
+    "status": "reserved",
     "sku": "55e79e0e4e66816f6152ffe6",
     "type": "compute",
     "updatedAt": "2015-09-14T15:47:55.323Z",
