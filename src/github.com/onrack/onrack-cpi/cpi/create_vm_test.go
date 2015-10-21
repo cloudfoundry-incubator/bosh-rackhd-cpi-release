@@ -528,6 +528,9 @@ var _ = Describe("The VM Creation Workflow", func() {
 				return "", errors.New("fake error doing reservation")
 			}
 
+			_, err = selectNodeFromOnRack(c)
+			Expect(err).ToNot(HaveOccurred())
+
 			_, err = tryReservation(
 				c,
 				selectNodeFromOnRack,
