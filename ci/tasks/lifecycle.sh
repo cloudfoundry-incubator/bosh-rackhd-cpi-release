@@ -19,9 +19,6 @@ check_param ONRACK_CPI_LOG_LEVEL
 
 AGENT_PUBLIC_KEY=$(echo ${AGENT_PUBLIC_KEY} | tr -d '\n' | tr -d ' ')
 
-sudo apt-get update
-sudo apt-get -y install jq uuid-runtime
-
 pushd ${PWD}/stemcell/
 tar -zxvf stemcell.tgz
 stemcell_path=${PWD}/image
