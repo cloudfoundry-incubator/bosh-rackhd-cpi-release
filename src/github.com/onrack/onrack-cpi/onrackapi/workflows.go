@@ -185,7 +185,7 @@ func WorkflowFetcher(c config.Cpi, nodeID string, workflowID string) (WorkflowRe
 	}
 
 	if w == nil {
-		return WorkflowResponse{}, fmt.Errorf("could not find workflow with name: %s on node: %s", workflowID, nodeID)
+		return WorkflowResponse{}, fmt.Errorf("could not find workflow with id: %s on node: %s", workflowID, nodeID)
 	}
 
 	return *w, nil
