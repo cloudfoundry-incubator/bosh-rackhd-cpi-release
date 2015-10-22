@@ -26,7 +26,7 @@ properties:
     default: {}
   onrack-cpi.max_create_vm_attempts:
     description: "maximum number of attempts to create a vm"
-    example: "5"
+    default: 5
   onrack-cpi.run_workflow_timeout:
     description: "timeout for running a workflow in seconds"
-    example: "1200"
+    default: 1200
