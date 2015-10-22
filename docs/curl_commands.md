@@ -45,6 +45,21 @@ curl -X POST -H "Content-Type: application/json" http://$ON_RACK_API_URI:8080/ap
 
 ## Node Handling
 
+### Mark node as blocked
+```
+curl -X PATCH -H "Content-Type: application/json" -d '{"status":"blocked"}' http://$ON_RACK_API_URI:8080/api/common/nodes/${Node_ID}
+```
+
+### Mark node as maintenance
+```
+curl -X PATCH -H "Content-Type: application/json" -d '{"status":"maintenance"}' http://$ON_RACK_API_URI:8080/api/common/nodes/${Node_ID}
+```
+
+### Mark node as available
+```
+curl -X PATCH -H "Content-Type: application/json" -d '{"status":"available"}' http://$ON_RACK_API_URI:8080/api/common/nodes/${Node_ID}
+```
+
 ### Running workflow against node
 ```
 curl -X POST -H "Content-Type: application/json" http://$ON_RACK_API_URI:8080/api/common/nodes/55e79ea54e66816f6152fff9/workflows -d '{"name":"Graph.CF.DeleteVM","options":{}}'
