@@ -1,0 +1,36 @@
+{
+    "agent_id": "5f368dd7-ee94-4aa1-4996-19cdb33305ab",
+    "blobstore": {
+        "options": {
+            "blobstore_path": "/var/vcap/micro_bosh/data/cache"
+        },
+        "provider": "local"
+    },
+    "disks": {
+        "ephemeral": "/dev/sdb",
+        "persistent": null,
+        "system": "/dev/sda"
+    },
+    "env": {},
+    "mbus": "https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868",
+    "networks": {
+        "default": {
+            "cloud_properties": {},
+            "default": [
+                "dns",
+                "gateway"
+            ],
+            "dns": null,
+            "gateway": "172.31.128.1",
+            "ip": "172.31.129.15",
+            "mac": "00:1e:67:c2:44:86",
+            "netmask": "255.255.252.0",
+            "type": "manual"
+        }
+    },
+    "ntp": [],
+    "vm": {
+        "id": "55e79ea34e66816f6152fff7",
+        "name": "55e79ea34e66816f6152fff7"
+    }
+}

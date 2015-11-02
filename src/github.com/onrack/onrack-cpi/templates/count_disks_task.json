@@ -1,0 +1,11 @@
+{
+  "friendlyName" : "Count Disks",
+  "injectableName" : "Task.BOSH.Count.Disks",
+  "implementsTask": "Task.Base.Linux.Commands",
+  "options": {
+    "commands":[
+      "test `fdisk -l | grep Disk | wc -l` -gt 1"
+    ]
+  },
+  "properties": {}
+}

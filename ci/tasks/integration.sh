@@ -1,15 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
-check_param() {
-  local name=$1
-  local value=$(eval echo '$'$name)
-  if [ "$value" == 'replace-me' ]; then
-    echo "environment variable $name must be set"
-    exit 1
-  fi
-}
+source bosh-cpi-release/ci/tasks/utils.sh
 
 check_param ON_RACK_API_URI
 

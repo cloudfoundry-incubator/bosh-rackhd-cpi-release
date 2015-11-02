@@ -1,0 +1,12 @@
+{
+  "friendlyName" : "Block Node",
+  "injectableName" : "Task.BOSH.Block.Node",
+  "implementsTask": "Task.Base.Linux.Commands",
+  "options": {
+    "commands":[
+      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"status\": \"block\" }'",
+      "test 0 -eq 1"
+    ]
+  },
+  "properties": {}
+}
