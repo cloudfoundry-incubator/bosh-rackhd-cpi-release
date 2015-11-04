@@ -5,12 +5,12 @@ set -e
 source bosh-cpi-release/ci/tasks/utils.sh
 
 check_param BOSH_DIRECTOR_PUBLIC_IP
+check_param BOSH_DIRECTOR_PRIVATE_IP
 check_param PRIVATE_KEY
 check_param PRIMARY_NETWORK_CIDR
 check_param PRIMARY_NETWORK_GATEWAY
 check_param PRIMARY_NETWORK_RANGE
 check_param PRIMARY_NETWORK_MANUAL_IP
-
 
 export BAT_STEMCELL=${PWD}/stemcell/stemcell.tgz
 
@@ -48,7 +48,7 @@ properties:
     static_ip: ${PRIMARY_NETWORK_MANUAL_IP}
     type: manual
     cidr: ${PRIMARY_NETWORK_CIDR}
-    reserved: [${PRIMARY_NETWORK_MANUAL_IP}]
+    reserved: [${BOSH_DIRECTOR_PRIVATE_IP}]
     static: [${PRIMARY_NETWORK_RANGE}]
     gateway: ${PRIMARY_NETWORK_GATEWAY}
 EOF

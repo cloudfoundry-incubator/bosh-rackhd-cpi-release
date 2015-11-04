@@ -6,9 +6,10 @@ inputs:
   - name: stemcell
   - name: bats
 run:
-  path: bosh-cpi-release/ci/tasks/run-manual-networking-bats.sh
+  path: bosh-cpi-release/ci/tasks/bats.sh
 params:
   BOSH_DIRECTOR_PUBLIC_IP         replace-me
+  BOSH_DIRECTOR_PRIVATE_IP        replace-me
   PRIVATE_KEY                     replace-me
   PRIMARY_NETWORK_CIDR            replace-me
   PRIMARY_NETWORK_GATEWAY         replace-me
