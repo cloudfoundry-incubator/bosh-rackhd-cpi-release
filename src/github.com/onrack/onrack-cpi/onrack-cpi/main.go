@@ -113,6 +113,11 @@ func main() {
 			exitWithError(fmt.Errorf("Error running HasVM: %s", err))
 		}
 		exitWithResult(hasVM)
+	case cpi.CONFIGURE_NETWORKS:
+		err := cpi.ConfigureNetworks(cpiConfig, req)
+		if err != nil {
+			exitWithError(fmt.Errorf("Error running ConfigureNetworks: %s", err))
+		}
 	default:
 		exitWithError(fmt.Errorf("Unexpected command: %s dispatched...aborting", req.Method))
 	}
