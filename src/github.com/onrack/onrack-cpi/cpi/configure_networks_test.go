@@ -1,8 +1,9 @@
 package cpi_test
 
 import (
-	"github.com/onrack/onrack-cpi/onrackapi"
 	"github.com/onrack/onrack-cpi/cpi"
+	"github.com/onrack/onrack-cpi/config"
+	"github.com/onrack/onrack-cpi/bosh"
 
 
 	. "github.com/onsi/ginkgo"
@@ -11,9 +12,7 @@ import (
 
 var _ = Describe("ConfigureNetworks", func() {
 	It("Returns unsupported error", func() {
-		instanceId := "instance_id"
-		network := onrackapi.Network{}
-		err := cpi.ConfigureNetworks(instanceId, network)
+		err := cpi.ConfigureNetworks(config.Cpi{}, bosh.MethodArguments{})
 		Expect(err).To(HaveOccurred())
 	})
 })

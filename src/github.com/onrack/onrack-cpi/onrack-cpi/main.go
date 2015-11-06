@@ -114,7 +114,7 @@ func main() {
 		}
 		exitWithResult(hasVM)
 	case cpi.CONFIGURE_NETWORKS:
-		err := cpi.ConfigureNetworks(cpiConfig, req)
+		err := cpi.ConfigureNetworks(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithError(fmt.Errorf("Error running ConfigureNetworks: %s", err))
 		}
