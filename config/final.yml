@@ -1,5 +1,5 @@
 ---
-final_name: bosh-ssh-cpi
+final_name: bosh-rackhd-cpi
 blobstore:
   provider: s3
   options:
