@@ -2,7 +2,7 @@
 
 set -e
 
-source ci/tasks/utils.sh
+source bosh-cpi-release/ci/tasks/utils.sh
 
 check_param ON_RACK_API_URI
 check_param AGENT_PUBLIC_KEY
@@ -17,7 +17,7 @@ tar -zxvf stemcell.tgz
 stemcell_path=${PWD}/image
 popd
 
-# pushd ${PWD}/
+pushd ${PWD}/bosh-cpi-release/
 source .envrc
 go build github.com/onrack/onrack-cpi/onrack-cpi
 
