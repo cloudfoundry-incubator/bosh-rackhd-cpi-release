@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -e -x
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
@@ -42,7 +42,7 @@ properties:
   uuid: $(bosh status --uuid)
   stemcell:
     name: bosh-stemcell-3072-openstack-kvm-ubuntu-trusty-go_agent-raw
-    version: 3072
+    version: latest
   networks:
   - name: default
     static_ip: ${PRIMARY_NETWORK_MANUAL_IP}
@@ -59,5 +59,5 @@ gem install bundle
 
 bundle install
 
-echo "run the tests"
+echo "running the tests"
 bundle exec rspec spec
