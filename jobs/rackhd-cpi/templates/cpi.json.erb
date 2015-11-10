@@ -1,0 +1,15 @@
+<%=
+
+JSON.dump(
+    "apiserver" => p("rackhd-cpi.apiserver"),
+
+    "agent" => {
+      "blobstore" => p("rackhd-cpi.agent.blobstore"),
+      "mbus" => p("rackhd-cpi.agent.mbus"),
+      "ntp"  => p("rackhd-cpi.agent.ntp"),
+    },
+
+    "max_create_vm_attempts" => p("rackhd-cpi.max_create_vm_attempts"),
+    "run_workflow_timeout" => p("rackhd-cpi.run_workflow_timeout")
+)
+%>

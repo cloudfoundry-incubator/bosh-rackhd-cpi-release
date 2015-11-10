@@ -1,0 +1,17 @@
+set -e -x
+
+if [ -z "$BOSH_PACKAGES_DIR" ]; then
+	pkg_dir=$(readlink -nf /var/vcap/packages/golang)
+else
+	pkg_dir=$BOSH_PACKAGES_DIR/golang
+fi
+
+export GOROOT=$pkg_dir
+export GOPATH=$PWD
+export PATH=$GOROOT/bin:$PATH
+
+mkdir ../src && cp -a * ../src/ && mv ../src ./src
+
+mkdir $BOSH_INSTALL_TARGET/bin
+
+go build -o $BOSH_INSTALL_TARGET/bin/cpi src/github.com/rackhd/rackhd-cpi/rackhd-cpi/*.go

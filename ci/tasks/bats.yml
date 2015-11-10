@@ -1,6 +1,6 @@
 ---
 platform: linux
-image: docker:///kaleo211/onrack-cpi
+image: docker:///kaleo211/rackhd-cpi
 inputs:
   - name: bosh-cpi-release
   - name: stemcell

@@ -1,8 +1,0 @@
----
-name: onrack-cpi
-
-dependencies:
-- golang
-
-files:
-- "**/*.go"

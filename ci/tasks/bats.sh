@@ -22,7 +22,7 @@ export BAT_VCAP_PRIVATE_KEY=${PRIVATE_KEY}
 export BAT_DIRECTOR=${BOSH_DIRECTOR_PUBLIC_IP}
 export BAT_VCAP_PASSWORD='c1oudc0w'
 export BAT_DNS_HOST=${BOSH_DIRECTOR_PUBLIC_IP}
-export BAT_INFRASTRUCTURE='onrack'
+export BAT_INFRASTRUCTURE='rackhd'
 export BAT_NETWORKING='manual'
 export BAT_DEPLOYMENT_SPEC="${working_dir}/bats-config.yml"
 
@@ -34,7 +34,7 @@ bosh -n target ${BOSH_DIRECTOR_PUBLIC_IP}
 
 cat > $BAT_DEPLOYMENT_SPEC <<EOF
 ---
-cpi: onrack
+cpi: rackhd
 properties:
   key_name:  bats
   pool_size: 1

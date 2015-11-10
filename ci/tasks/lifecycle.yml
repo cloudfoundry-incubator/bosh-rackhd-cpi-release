@@ -1,14 +1,14 @@
 ---
 platform: linux
-image: docker:///kaleo211/onrack-cpi
+image: docker:///kaleo211/rackhd-cpi
 inputs:
 - name: bosh-cpi-release
 - name: stemcell
 run:
   path: bosh-cpi-release/ci/tasks/lifecycle.sh
 params:
-  ON_RACK_API_URI:              replace-me
+  RACK_HD_API_URI:              replace-me
   AGENT_PUBLIC_KEY:             replace-me
   STATIC_IP:                    replace-me
   GATEWAY:                      replace-me
-  ONRACK_CPI_LOG_LEVEL:         DEBUG
+  RACKHD_CPI_LOG_LEVEL:         DEBUG

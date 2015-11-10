@@ -4,11 +4,11 @@ set -e
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
-check_param ON_RACK_API_URI
+check_param RACK_HD_API_URI
 check_param AGENT_PUBLIC_KEY
 check_param STATIC_IP
 check_param GATEWAY
-check_param ONRACK_CPI_LOG_LEVEL
+check_param RACKHD_CPI_LOG_LEVEL
 
 AGENT_PUBLIC_KEY=$(echo ${AGENT_PUBLIC_KEY} | tr -d '\n' | tr -d ' ')
 
@@ -19,13 +19,13 @@ popd
 
 pushd ${PWD}/bosh-cpi-release/
 source .envrc
-go build github.com/onrack/onrack-cpi/onrack-cpi
+go build github.com/rackhd/rackhd-cpi/rackhd-cpi
 
 # Prepare config file
 echo "Prepare config file"
 cat > config_file <<EOF
 {
-  "apiserver": "${ON_RACK_API_URI}",
+  "apiserver": "${RACK_HD_API_URI}",
   "agent": {
     "blobstore":{
       "provider": "local",
@@ -69,7 +69,7 @@ cat create_stemcell_request
 
 # Run create stemcell method
 echo -e "\nRun create stemcell method"
-response=$(cat create_stemcell_request | ./onrack-cpi -configPath=${config_path})
+response=$(cat create_stemcell_request | ./rackhd-cpi -configPath=${config_path})
 echo ${response}
 stemcell_id=$(echo ${response} | jq .result)
 if [ -z "${stemcell_id}" ] || [ ${stemcell_id} == null ]; then
@@ -88,7 +88,7 @@ cat create_vm_request
 
 # Run create vm method
 echo -e "\nRun create vm method"
-vm_cid=$(cat create_vm_request | ./onrack-cpi -configPath=${config_path} | jq .result)
+vm_cid=$(cat create_vm_request | ./rackhd-cpi -configPath=${config_path} | jq .result)
 if [ -z "${vm_cid}" ] || [ ${vm_cid} == null ]; then
   echo "can not retrieve vm cid"
   exit 1
@@ -104,7 +104,7 @@ cat delete_vm_request
 
 # Run delete vm method
 echo -e "\nRun delete vm method"
-cat delete_vm_request | ./onrack-cpi -configPath=${config_path} 2>&1
+cat delete_vm_request | ./rackhd-cpi -configPath=${config_path} 2>&1
 
 # Prepare delete stemcell request
 echo -e "\nPrepare delete stemcell request"
@@ -115,4 +115,4 @@ cat delete_stemcell_request
 
 # Run delete stemcell method
 echo -e "\nRun delete stemcell method"
-cat delete_stemcell_request | ./onrack-cpi -configPath=${config_path}
+cat delete_stemcell_request | ./rackhd-cpi -configPath=${config_path}

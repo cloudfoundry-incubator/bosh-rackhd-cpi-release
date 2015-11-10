@@ -1,0 +1,11 @@
+{
+"friendlyName" : "RackHD CPI Test Succeeding Task",
+"injectableName" : "",
+"implementsTask": "Task.Base.Linux.Commands",
+"options": {
+  "commands":[
+    "true"
+  ]
+ },
+ "properties": {}
+}

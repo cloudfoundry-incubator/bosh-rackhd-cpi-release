@@ -1,6 +1,6 @@
 ---
 groups:
-  - name: bosh-onrack-cpi
+  - name: bosh-rackhd-cpi
     jobs:
       - integration
       - lifecycle
@@ -16,19 +16,19 @@ jobs:
     file: bosh-cpi-release/ci/tasks/integration.yml
     config:
       params:
-        ON_RACK_API_URI:              {{onrack_server_ip}}
+        RACK_HD_API_URI:              {{rackhd_server_ip}}
 
 - name: lifecycle
   serial: true
   plan:
   - aggregate:
     - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-cpi-release-in}
-    - {trigger: false,                         get: stemcell,           resource: onrack-openstack-stemcell}
+    - {trigger: false,                         get: stemcell,           resource: rackhd-openstack-stemcell}
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
       params:
-        ON_RACK_API_URI:              {{onrack_server_ip}}
+        RACK_HD_API_URI:              {{rackhd_server_ip}}
         AGENT_PUBLIC_KEY:             {{agent_publick_key}}
         STATIC_IP:                    {{static_ip}}
         GATEWAY:                      {{gateway}}
@@ -37,14 +37,14 @@ resources:
 - name: bosh-cpi-release-in
   type: git
   source:
-    uri: git@github.com:Pipe-s/bosh-onrack-cpi-release.git
+    uri: git@github.com:EMC-CMD/bosh-rackhd-cpi-release.git
     branch: master
-    private_key: {{github_deployment_key__bosh-onrack-cpi-release}}
+    private_key: {{github_deployment_key__bosh-rackhd-cpi-release}}
     ignore_paths:
       - .final_builds/**/*.yml
       - releases/**/*.yml
 
-- name: onrack-openstack-stemcell
+- name: rackhd-openstack-stemcell
   type: bosh-io-stemcell
   source:
     name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw

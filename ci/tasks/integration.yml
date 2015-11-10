@@ -1,9 +1,9 @@
 ---
 platform: linux
-image: docker:///kaleo211/onrack-cpi
+image: docker:///kaleo211/rackhd-cpi
 inputs:
 - name: bosh-cpi-release
 run:
   path: bosh-cpi-release/ci/tasks/integration.sh
 params:
-  ON_RACK_API_URI:         replace-me
+  RACK_HD_API_URI:         replace-me
