@@ -10,7 +10,7 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: true, get: bosh-cpi-release,     resource: bosh-cpi-release-in}
+    - {trigger: true, get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
 
   - task: test
     file: bosh-cpi-release/ci/tasks/integration.yml
@@ -22,24 +22,24 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-cpi-release-in}
+    - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                         get: stemcell,           resource: rackhd-openstack-stemcell}
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
       params:
-        RACKHD_API_URI:              {{rackhd_server_ip}}
+        RACKHD_API_URI:               {{rackhd_server_ip}}
         AGENT_PUBLIC_KEY:             {{agent_publick_key}}
         STATIC_IP:                    {{static_ip}}
         GATEWAY:                      {{gateway}}
 
 resources:
-- name: bosh-cpi-release-in
+- name: bosh-rackhd-cpi-release
   type: git
   source:
     uri: git@github.com:EMC-CMD/bosh-rackhd-cpi-release.git
     branch: master
-    private_key: {{github_deployment_key__bosh-rackhd-cpi-release}}
+    private_key: {{github_key__bosh-rackhd-cpi-release}}
     ignore_paths:
       - .final_builds/**/*.yml
       - releases/**/*.yml
