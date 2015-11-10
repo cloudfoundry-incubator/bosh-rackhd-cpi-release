@@ -22,7 +22,7 @@ var _ = Describe("Workflows", func() {
 
 	Describe("PublishWorkflow", func() {
 		It("add workflow to library, retrieves updated list of tasks from task library", func() {
-			apiServer := os.Getenv("RACK_HD_API_URI")
+			apiServer := os.Getenv("RACKHD_API_URI")
 			Expect(apiServer).ToNot(BeEmpty())
 
 			uuidObj, err := uuid.NewV4()
@@ -97,7 +97,7 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := os.Getenv("RACK_HD_API_URI")
+					apiServer := os.Getenv("RACKHD_API_URI")
 					Expect(apiServer).ToNot(BeEmpty())
 
 					uuidObj, err := uuid.NewV4()
@@ -159,7 +159,7 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := os.Getenv("RACK_HD_API_URI")
+					apiServer := os.Getenv("RACKHD_API_URI")
 					Expect(apiServer).ToNot(BeEmpty())
 
 					uuidObj, err := uuid.NewV4()
@@ -266,7 +266,7 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := os.Getenv("RACK_HD_API_URI")
+					apiServer := os.Getenv("RACKHD_API_URI")
 					Expect(apiServer).ToNot(BeEmpty())
 
 					uuidObj, err := uuid.NewV4()

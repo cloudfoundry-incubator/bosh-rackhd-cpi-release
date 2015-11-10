@@ -6,4 +6,4 @@ inputs:
 run:
   path: bosh-cpi-release/ci/tasks/integration.sh
 params:
-  RACK_HD_API_URI:         replace-me
+  RACKHD_API_URI:         replace-me

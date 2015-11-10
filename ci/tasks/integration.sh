@@ -4,7 +4,7 @@ set -e
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
-check_param RACK_HD_API_URI
+check_param RACKHD_API_URI
 
 cd bosh-cpi-release/
 source .envrc

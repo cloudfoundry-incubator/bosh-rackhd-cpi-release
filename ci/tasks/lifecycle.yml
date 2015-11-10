@@ -7,7 +7,7 @@ inputs:
 run:
   path: bosh-cpi-release/ci/tasks/lifecycle.sh
 params:
-  RACK_HD_API_URI:              replace-me
+  RACKHD_API_URI:              replace-me
   AGENT_PUBLIC_KEY:             replace-me
   STATIC_IP:                    replace-me
   GATEWAY:                      replace-me

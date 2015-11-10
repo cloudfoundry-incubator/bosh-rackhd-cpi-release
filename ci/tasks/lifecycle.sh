@@ -4,7 +4,7 @@ set -e
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
-check_param RACK_HD_API_URI
+check_param RACKHD_API_URI
 check_param AGENT_PUBLIC_KEY
 check_param STATIC_IP
 check_param GATEWAY
@@ -25,7 +25,7 @@ go build github.com/rackhd/rackhd-cpi/rackhd-cpi
 echo "Prepare config file"
 cat > config_file <<EOF
 {
-  "apiserver": "${RACK_HD_API_URI}",
+  "apiserver": "${RACKHD_API_URI}",
   "agent": {
     "blobstore":{
       "provider": "local",

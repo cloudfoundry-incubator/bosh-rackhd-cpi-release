@@ -17,7 +17,7 @@ import (
 var _ = Describe("Nodes", func() {
 	Describe("Getting nodes", func() {
 		It("return expected nodes fields", func() {
-			apiServerIP := os.Getenv("RACK_HD_API_URI")
+			apiServerIP := os.Getenv("RACKHD_API_URI")
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 
@@ -40,7 +40,7 @@ var _ = Describe("Nodes", func() {
 
 	Describe("Getting catalog", func() {
 		It("return ", func() {
-			apiServerIP := os.Getenv("RACK_HD_API_URI")
+			apiServerIP := os.Getenv("RACKHD_API_URI")
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 

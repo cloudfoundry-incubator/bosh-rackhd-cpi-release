@@ -235,7 +235,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("unreserving a node", func() {
 		It("return a node with reserved flag unset", func() {
-			apiServerIP := os.Getenv("RACK_HD_API_URI")
+			apiServerIP := os.Getenv("RACKHD_API_URI")
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 
@@ -490,7 +490,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 
 		It("cleans up reservation flag after failing to reserve", func() {
-			apiServerIP := os.Getenv("RACK_HD_API_URI")
+			apiServerIP := os.Getenv("RACKHD_API_URI")
 			Expect(apiServerIP).ToNot(BeEmpty())
 			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, apiServerIP))
 			c, err := config.New(jsonReader)

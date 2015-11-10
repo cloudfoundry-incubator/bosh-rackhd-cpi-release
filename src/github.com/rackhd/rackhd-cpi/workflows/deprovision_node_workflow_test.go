@@ -67,7 +67,7 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			uID := u.String()
 
-			apiServerIP := os.Getenv("RACK_HD_API_URI")
+			apiServerIP := os.Getenv("RACKHD_API_URI")
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 

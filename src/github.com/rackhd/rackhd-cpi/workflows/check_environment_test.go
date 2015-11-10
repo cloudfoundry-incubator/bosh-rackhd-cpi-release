@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("CheckEnvironment", func() {
 	It("Returns no error when run against a properly configured environment", func() {
-		apiServerIP := os.Getenv("RACK_HD_API_URI")
+		apiServerIP := os.Getenv("RACKHD_API_URI")
 		Expect(apiServerIP).ToNot(BeEmpty())
 
 		c := config.Cpi{ApiServer: apiServerIP}

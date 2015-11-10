@@ -20,7 +20,7 @@ import (
 var _ = Describe("CreateStemcell", func() {
 	Context("With valid CPI v1 input", func() {
 		It("Uploads the image from an OpenStack stemcell", func() {
-			apiServerIP := os.Getenv("RACK_HD_API_URI")
+			apiServerIP := os.Getenv("RACKHD_API_URI")
 			Expect(apiServerIP).ToNot(BeEmpty())
 
 			config := config.Cpi{ApiServer: apiServerIP}
