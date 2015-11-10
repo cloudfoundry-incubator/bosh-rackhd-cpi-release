@@ -7,10 +7,12 @@ source bosh-cpi-release/ci/tasks/utils.sh
 check_param BOSH_DIRECTOR_PUBLIC_IP
 check_param BOSH_DIRECTOR_PRIVATE_IP
 check_param PRIVATE_KEY
+check_param PUBLIC_KEY
 check_param PRIMARY_NETWORK_CIDR
 check_param PRIMARY_NETWORK_GATEWAY
 check_param PRIMARY_NETWORK_RANGE
 check_param PRIMARY_NETWORK_MANUAL_IP
+check_param SECONDARY_STATIC_IP
 
 export BAT_STEMCELL=${PWD}/stemcell/stemcell.tgz
 
@@ -37,11 +39,14 @@ cat > $BAT_DEPLOYMENT_SPEC <<EOF
 cpi: rackhd
 properties:
   key_name:  bats
+  use_static_ip: true
+  second_static_ip: ${SECONDARY_STATIC_IP}
+  public_key: ${PUBLIC_KEY}
   pool_size: 1
   instances: 1
   uuid: $(bosh status --uuid)
   stemcell:
-    name: bosh-stemcell-3072-openstack-kvm-ubuntu-trusty-go_agent-raw
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
     version: latest
   networks:
   - name: default
