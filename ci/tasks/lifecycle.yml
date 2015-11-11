@@ -1,6 +1,6 @@
 ---
 platform: linux
-image: docker:///kaleo211/rackhd-cpi
+image: docker:///emccmd/rackhd-cpi
 inputs:
 - name: bosh-cpi-release
 - name: stemcell
