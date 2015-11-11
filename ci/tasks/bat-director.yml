@@ -1,0 +1,164 @@
+---
+name: bat-director
+
+# replace with bosh status --uuid
+director_uuid: 74161423-d976-445d-b5bc-292fff65233a
+
+disk_pools:
+- name: disks
+  disk_size: 15_000
+
+resource_pools:
+- name: vms
+  network: vm-network
+  stemcell:
+    name: bosh-vsphere-esxi-ubuntu-trusty-go_agent
+    version: 3121
+  cloud_properties:
+    cpu: 4
+    ram: 4_096
+    disk: 15_000
+  env:
+    bosh:
+      # c1oudc0w is a default password for vcap user
+      password: "$6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0"
+
+compilation:
+  workers: 1
+  network: vm-network
+  reuse_compilation_vms: true
+  cloud_properties:
+    cpu: 2
+    ram: 3_840
+    disk: 8_096
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: false
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000
+
+# replace all addresses with your network's IP range
+#
+# e.g. X.X.0.2 -> 10.0.0.2
+networks:
+  - name: vm-network
+    type: manual
+    subnets:
+      - range: 192.168.10.0/24
+        gateway: 192.168.10.1
+        dns: [192.168.10.1]
+        reserved: [192.168.10.2 - 192.168.10.210]
+        static:
+          - 192.168.10.211 - 192.168.10.215
+        cloud_properties: {name: 'VM Network'}
+
+releases:
+  - name: bosh
+    version: latest
+  - name: bosh-ssh-cpi
+    version: latest
+
+jobs:
+- name: bosh
+  instances: 1
+
+  templates:
+  - {name: nats, release: bosh}
+  - {name: redis, release: bosh}
+  - {name: postgres, release: bosh}
+  - {name: blobstore, release: bosh}
+  - {name: director, release: bosh}
+  - {name: health_monitor, release: bosh}
+  - {name: onrack-cpi, release: bosh-ssh-cpi}
+
+  resource_pool: vms
+  persistent_disk_pool: disks
+
+  networks:
+  - {name: vm-network, static_ips: [192.168.10.211]}
+
+  properties:
+    nats:
+      address: 127.0.0.1
+      user: nats
+      password: nats-password
+
+    redis:
+      listen_address: 127.0.0.1
+      address: 127.0.0.1
+      password: redis-password
+
+    postgres: &db
+      listen_address: 127.0.0.1
+      host: 127.0.0.1
+      user: postgres
+      password: postgres-password
+      database: bosh
+      adapter: postgres
+
+    blobstore:
+      address: 192.168.10.211
+      port: 25250
+      use_ssl: false
+      provider: dav
+      director: {user: director, password: director-password}
+      agent: {user: agent, password: agent-password}
+
+    director:
+      address: 127.0.0.1
+      name: my-bosh
+      db: *db
+      cpi_job: onrack-cpi
+      user_management:
+        provider: local
+        local:
+          users:
+          - {name: admin, password: admin}
+          - {name: hm, password: hm-password}
+
+    hm:
+      director_account: {user: hm, password: hm-password}
+      resurrector_enabled: true
+
+    onrack-cpi:
+      apiserver: "192.168.10.107"
+      agent:
+        mbus: "nats://nats:nats-password@172.31.129.15:4222"
+        blobstore:
+          provider: dav
+          options:
+            endpoint: http://172.31.129.15:25250
+            user: agent
+            password: agent-password
+
+    vcenter: &vcenter # <--- Replace values below
+      address: 192.168.10.105
+      user: administrator@vsphere.local
+      password: Emc1234!
+      datacenters:
+      - name: EMCCMD_Cambridge
+        vm_folder: CI
+        template_folder: CI
+        datastore_pattern: datastore3
+        persistent_datastore_pattern: datastore3
+        disk_path: DatastoreCluster1
+        clusters: [Cluster1]
+
+    agent: {mbus: "nats://nats:nats-password@192.168.10.211:4222"}
+
+    ntp: &ntp [0.pool.ntp.org, 1.pool.ntp.org]
+
+cloud_provider:
+  template: {name: onrack-cpi, release: bosh-ssh-cpi}
+  mbus: "https://mbus:mbus-password@192.168.10.211:6868"
+
+  properties:
+    onrack-cpi:
+      apiserver: "192.168.10.107"
+      agent:
+        mbus: "https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868"
+        blobstore:
+          provider: local
+          options: {blobstore_path: /var/vcap/micro_bosh/data/cache}
