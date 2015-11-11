@@ -63,5 +63,12 @@ EOF
 gem install bundle
 bundle install
 
+# create dev release
+pushd ${PWD}/spec/system/assets/bat-release
+rm -rf dev_releases
+bosh create release --force
+mv dev_releases/bat/* dev_releases/
+popd
+
 echo "running the tests"
 bundle exec rspec spec/system/with_release_stemcell_deployment_spec.rb:31
