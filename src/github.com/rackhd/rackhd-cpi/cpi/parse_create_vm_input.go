@@ -94,6 +94,8 @@ func parseCreateVMInput(extInput bosh.MethodArguments) (string, string, string, 
 		boshNetName = k
 		boshNet = v
 	}
+	defaultNetworkType(&boshNet)
+	log.Debug(fmt.Sprintf("After defaulting network type: %s", boshNet.NetworkType))
 
 	if valErr := validateNetworkingConfig(boshNet); valErr != nil {
 		return "", "", "", networkSpecs, valErr
@@ -109,6 +111,14 @@ func parseCreateVMInput(extInput bosh.MethodArguments) (string, string, string, 
 	}
 
 	return agentID, stemcellID, publicKey, networkSpecs, nil
+}
+
+func defaultNetworkType(bn *bosh.Network) {
+	log.Debug(fmt.Sprintf("Checking Network Type: %s", bn.NetworkType))
+	if bn.NetworkType == "" {
+		log.Debug("Defaulting to Manual because NetworkType is not set")
+		bn.NetworkType = bosh.ManualNetworkType
+	}
 }
 
 func validateNetworkingConfig(bn bosh.Network) error {

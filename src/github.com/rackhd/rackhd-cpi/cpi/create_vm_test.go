@@ -21,11 +21,11 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("The VM Creation Workflow", func() {
@@ -92,6 +92,31 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 			_, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(MatchError("config error: Only one network supported, provided length: 2"))
+		})
+
+		It("defaults to manual network if network type is not defined", func() {
+			jsonInput := []byte(`[
+				"4149ba0f-38d9-4485-476f-1581be36f290",
+				"vm-478585",
+				{},
+				{
+					"private": {
+						"ip": "10.0.0.2",
+						"netmask": "255.255.255.0",
+						"gateway": "10.0.0.1"
+					}
+				},
+				[],
+				{}]`)
+
+			var extInput bosh.MethodArguments
+			err := json.Unmarshal(jsonInput, &extInput)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, _, _, networks, err := parseCreateVMInput(extInput)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(networks).ToNot(BeEmpty())
+			Expect(networks["private"].NetworkType).To(Equal(bosh.ManualNetworkType))
 		})
 
 		It("returns an error if Agent ID is empty", func() {
