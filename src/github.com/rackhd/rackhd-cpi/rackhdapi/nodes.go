@@ -55,7 +55,7 @@ type Node struct {
 }
 
 func GetNodes(c config.Cpi) ([]Node, error) {
-	nodesURL := fmt.Sprintf("http://%s:8080/api/common/nodes", c.ApiServer)
+	nodesURL := fmt.Sprintf("http://%s/api/common/nodes", c.ApiServer)
 	resp, err := http.Get(nodesURL)
 	if err != nil {
 		return []Node{}, fmt.Errorf("error fetching nodes %s", err)
@@ -81,7 +81,7 @@ func GetNodes(c config.Cpi) ([]Node, error) {
 }
 
 func ReleaseNode(c config.Cpi, nodeID string) error {
-	url := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, nodeID)
+	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
 	reserveFlag := fmt.Sprintf(`{"status": "%s"}`, Available)
 	body := ioutil.NopCloser(strings.NewReader(reserveFlag))
 	defer body.Close()
@@ -107,7 +107,7 @@ func ReleaseNode(c config.Cpi, nodeID string) error {
 }
 
 func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
-	catalogURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s/catalogs/ohai", c.ApiServer, nodeID)
+	catalogURL := fmt.Sprintf("http://%s/api/common/nodes/%s/catalogs/ohai", c.ApiServer, nodeID)
 	resp, err := http.Get(catalogURL)
 	if err != nil {
 		return NodeCatalog{}, fmt.Errorf("error getting catalog %s", err)

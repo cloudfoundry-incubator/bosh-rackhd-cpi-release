@@ -1,6 +1,7 @@
 package workflows_test
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/rackhd/rackhd-cpi/config"
@@ -12,7 +13,7 @@ import (
 
 var _ = Describe("CheckEnvironment", func() {
 	It("Returns no error when run against a properly configured environment", func() {
-		apiServerIP := os.Getenv("RACKHD_API_URI")
+		apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 		Expect(apiServerIP).ToNot(BeEmpty())
 
 		c := config.Cpi{ApiServer: apiServerIP}

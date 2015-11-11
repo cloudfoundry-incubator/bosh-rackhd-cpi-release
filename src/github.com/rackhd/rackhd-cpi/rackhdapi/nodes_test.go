@@ -17,14 +17,14 @@ import (
 var _ = Describe("Nodes", func() {
 	Describe("Getting nodes", func() {
 		It("return expected nodes fields", func() {
-			apiServerIP := os.Getenv("RACKHD_API_URI")
+			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 
 			nodes, err := rackhdapi.GetNodes(c)
 			Expect(err).ToNot(HaveOccurred())
 
-			resp, err := http.Get(fmt.Sprintf("http://%s:8080/api/common/nodes", c.ApiServer))
+			resp, err := http.Get(fmt.Sprintf("http://%s/api/common/nodes", c.ApiServer))
 			Expect(err).ToNot(HaveOccurred())
 
 			b, err := ioutil.ReadAll(resp.Body)
@@ -40,7 +40,7 @@ var _ = Describe("Nodes", func() {
 
 	Describe("Getting catalog", func() {
 		It("return ", func() {
-			apiServerIP := os.Getenv("RACKHD_API_URI")
+			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 
@@ -53,7 +53,7 @@ var _ = Describe("Nodes", func() {
 			catalog, err := rackhdapi.GetNodeCatalog(c, testNode.ID)
 			Expect(err).ToNot(HaveOccurred())
 
-			resp, err := http.Get(fmt.Sprintf("http://%s:8080/api/common/nodes/%s/catalogs/ohai", c.ApiServer, testNode.ID))
+			resp, err := http.Get(fmt.Sprintf("http://%s/api/common/nodes/%s/catalogs/ohai", c.ApiServer, testNode.ID))
 			Expect(err).ToNot(HaveOccurred())
 
 			b, err := ioutil.ReadAll(resp.Body)

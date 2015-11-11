@@ -22,7 +22,7 @@ var _ = Describe("Workflows", func() {
 
 	Describe("PublishWorkflow", func() {
 		It("add workflow to library, retrieves updated list of tasks from task library", func() {
-			apiServer := os.Getenv("RACKHD_API_URI")
+			apiServer := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServer).ToNot(BeEmpty())
 
 			uuidObj, err := uuid.NewV4()
@@ -97,7 +97,7 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := os.Getenv("RACKHD_API_URI")
+					apiServer := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 					Expect(apiServer).ToNot(BeEmpty())
 
 					uuidObj, err := uuid.NewV4()
@@ -159,7 +159,7 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := os.Getenv("RACKHD_API_URI")
+					apiServer := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 					Expect(apiServer).ToNot(BeEmpty())
 
 					uuidObj, err := uuid.NewV4()
@@ -266,7 +266,7 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := os.Getenv("RACKHD_API_URI")
+					apiServer := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 					Expect(apiServer).ToNot(BeEmpty())
 
 					uuidObj, err := uuid.NewV4()
@@ -358,7 +358,7 @@ var _ = Describe("Workflows", func() {
 					Expect(err).To(HaveOccurred())
 
 					Eventually(func() int {
-						url := fmt.Sprintf("http://%s:8080/api/1.1/nodes/%s/workflows/active", cpiConfig.ApiServer, nodeID)
+						url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows/active", cpiConfig.ApiServer, nodeID)
 						resp, err := http.Get(url)
 						Expect(err).ToNot(HaveOccurred())
 						defer resp.Body.Close()

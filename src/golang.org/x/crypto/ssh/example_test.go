@@ -162,7 +162,7 @@ func ExampleClient_Listen() {
 	defer conn.Close()
 
 	// Request the remote side to open port 8080 on all interfaces.
-	l, err := conn.Listen("tcp", "0.0.0.0:8080")
+	l, err := conn.Listen("tcp", "0.0.0.0")
 	if err != nil {
 		log.Fatalf("unable to register tcp forward: %v", err)
 	}

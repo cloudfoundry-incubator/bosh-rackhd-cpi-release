@@ -30,7 +30,7 @@ type TaskResponse struct {
 }
 
 func PublishTask(c config.Cpi, taskBytes []byte) error {
-	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/tasks", c.ApiServer)
+	url := fmt.Sprintf("http://%s/api/1.1/workflows/tasks", c.ApiServer)
 	request, err := http.NewRequest("PUT", url, bytes.NewReader(taskBytes))
 	if err != nil {
 		return errors.New("error building publish task request")
@@ -85,7 +85,7 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 }
 
 func RetrieveTasks(c config.Cpi) ([]byte, error) {
-	url := fmt.Sprintf("http://%s:8080/api/1.1/workflows/tasks/library", c.ApiServer)
+	url := fmt.Sprintf("http://%s/api/1.1/workflows/tasks/library", c.ApiServer)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("Error: %s", err)

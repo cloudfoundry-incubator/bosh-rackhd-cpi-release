@@ -19,7 +19,7 @@ import (
 var _ = Describe("Files", func() {
 	Describe("uploading to then deleting from the RackHD API", func() {
 		It("allows files to be uploaded and deleted", func() {
-			apiServerIP := os.Getenv("RACKHD_API_URI")
+			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 			dummyStr := "Some ice cold file"
@@ -29,7 +29,7 @@ var _ = Describe("Files", func() {
 			Expect(err).ToNot(HaveOccurred())
 			baseName := uuid.String()
 
-			url := fmt.Sprintf("http://%s:8080/api/common/files/metadata/%s", c.ApiServer, baseName)
+			url := fmt.Sprintf("http://%s/api/common/files/metadata/%s", c.ApiServer, baseName)
 			resp, err := http.Get(url)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(404))

@@ -22,7 +22,7 @@ type FileMetadataResponse []struct {
 }
 
 func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64) (string, error) {
-	url := fmt.Sprintf("http://%s:8080/api/common/files/%s", c.ApiServer, baseName)
+	url := fmt.Sprintf("http://%s/api/common/files/%s", c.ApiServer, baseName)
 	body := ioutil.NopCloser(r)
 	request, err := http.NewRequest("PUT", url, body)
 	if err != nil {
@@ -52,7 +52,7 @@ func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64)
 }
 
 func DeleteFile(c config.Cpi, baseName string) error {
-	url := fmt.Sprintf("http://%s:8080/api/common/files/metadata/%s", c.ApiServer, baseName)
+	url := fmt.Sprintf("http://%s/api/common/files/metadata/%s", c.ApiServer, baseName)
 	metadataResp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("error getting file metadata: %s", err)
@@ -75,7 +75,7 @@ func DeleteFile(c config.Cpi, baseName string) error {
 		return fmt.Errorf("error unmarshalling metadata response: %s", err)
 	}
 
-	url = fmt.Sprintf("http://%s:8080/api/common/files/%s", c.ApiServer, metadata[0].UUID)
+	url = fmt.Sprintf("http://%s/api/common/files/%s", c.ApiServer, metadata[0].UUID)
 	deleteReq, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return fmt.Errorf("error creating delete request %s", err)

@@ -12,13 +12,14 @@ package workflows
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 
 	"github.com/nu7hatch/gouuid"
-	"github.com/rackhd/rackhd-cpi/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/rackhd/rackhd-cpi/config"
 )
 
 var _ = Describe("DeprovisionNodeWorkflow", func() {
@@ -67,7 +68,7 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			uID := u.String()
 
-			apiServerIP := os.Getenv("RACKHD_API_URI")
+			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 

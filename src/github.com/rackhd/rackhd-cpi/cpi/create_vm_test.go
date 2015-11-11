@@ -260,7 +260,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("unreserving a node", func() {
 		It("return a node with reserved flag unset", func() {
-			apiServerIP := os.Getenv("RACKHD_API_URI")
+			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 
@@ -270,7 +270,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			log.Info(fmt.Sprintf("targetNodeId: %s", targetNodeID))
 			err = rackhdapi.ReleaseNode(c, targetNodeID)
 			Expect(err).ToNot(HaveOccurred())
-			nodeURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, targetNodeID)
+			nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, targetNodeID)
 
 			resp, err := http.Get(nodeURL)
 			Expect(err).ToNot(HaveOccurred())
@@ -515,7 +515,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 
 		It("cleans up reservation flag after failing to reserve", func() {
-			apiServerIP := os.Getenv("RACKHD_API_URI")
+			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, apiServerIP))
 			c, err := config.New(jsonReader)
@@ -524,7 +524,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			var testNodeID string
 			flakeyReservationFunc := func(c config.Cpi, agentID string, nodeID string) error {
 				testNodeID = nodeID
-				url := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, nodeID)
+				url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
 
 				reserveFlag := `{"status" : "reserved"}`
 				body := ioutil.NopCloser(strings.NewReader(reserveFlag))
@@ -540,7 +540,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(resp.StatusCode).To(Equal(200))
 
-				nodeURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, testNodeID)
+				nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, testNodeID)
 				nodeResp, err := http.Get(nodeURL)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -567,7 +567,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			)
 
 			Expect(err).To(MatchError("unable to reserve node"))
-			nodeURL := fmt.Sprintf("http://%s:8080/api/common/nodes/%s", c.ApiServer, testNodeID)
+			nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, testNodeID)
 			resp, err := http.Get(nodeURL)
 			Expect(err).ToNot(HaveOccurred())
 
