@@ -14,27 +14,27 @@ check_param PRIMARY_NETWORK_RANGE
 check_param PRIMARY_NETWORK_MANUAL_IP
 check_param SECONDARY_STATIC_IP
 
-export BAT_STEMCELL=${PWD}/stemcell/stemcell.tgz
+base_dir=${PWD}
 
 cd bats
-working_dir=${PWD}
 
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
-export BAT_VCAP_PRIVATE_KEY=${PRIVATE_KEY}
 export BAT_DIRECTOR=${BOSH_DIRECTOR_PUBLIC_IP}
+export BAT_STEMCELL=${base_dir}/stemcell/stemcell.tgz
+export BAT_DEPLOYMENT_SPEC="${PWD}/bats-config.yml"
 export BAT_VCAP_PASSWORD='c1oudc0w'
 export BAT_DNS_HOST=${BOSH_DIRECTOR_PUBLIC_IP}
 export BAT_INFRASTRUCTURE='rackhd'
 export BAT_NETWORKING='manual'
-export BAT_DEPLOYMENT_SPEC="${working_dir}/bats-config.yml"
+export BAT_VCAP_PRIVATE_KEY=${PRIVATE_KEY}
 
 echo "using bosh CLI version..."
 bosh version
 
-echo "targeting bosh director at ${bosh_director_public_ip}"
+echo "targeting bosh director at ${BOSH_DIRECTOR_PUBLIC_IP}"
 bosh -n target ${BOSH_DIRECTOR_PUBLIC_IP}
 
-cat > $BAT_DEPLOYMENT_SPEC <<EOF
+cat > ${BAT_DEPLOYMENT_SPEC} <<EOF
 ---
 cpi: rackhd
 properties:
@@ -58,11 +58,10 @@ properties:
     gateway: ${PRIMARY_NETWORK_GATEWAY}
 EOF
 
-gem install bundle
-
 ./write_gemfile
 
+gem install bundle
 bundle install
 
 echo "running the tests"
-bundle exec rspec spec
+bundle exec rspec spec/system/with_release_stemcell_deployment_spec.rb:31

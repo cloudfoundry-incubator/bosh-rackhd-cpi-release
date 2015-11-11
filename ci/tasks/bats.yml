@@ -8,10 +8,12 @@ inputs:
 run:
   path: bosh-cpi-release/ci/tasks/bats.sh
 params:
-  BOSH_DIRECTOR_PUBLIC_IP         replace-me
-  BOSH_DIRECTOR_PRIVATE_IP        replace-me
-  PRIVATE_KEY                     replace-me
-  PRIMARY_NETWORK_CIDR            replace-me
-  PRIMARY_NETWORK_GATEWAY         replace-me
-  PRIMARY_NETWORK_RANGE           replace-me
-  PRIMARY_NETWORK_MANUAL_IP       replace-me
+  BOSH_DIRECTOR_PUBLIC_IP:         replace-me
+  BOSH_DIRECTOR_PRIVATE_IP:        replace-me
+  PRIVATE_KEY:                     replace-me
+  PUBLIC_KEY:                      replace-me
+  PRIMARY_NETWORK_CIDR:            replace-me
+  PRIMARY_NETWORK_GATEWAY:         replace-me
+  PRIMARY_NETWORK_RANGE:           replace-me
+  PRIMARY_NETWORK_MANUAL_IP:       replace-me
+  SECONDARY_STATIC_IP:             replace-me
