@@ -6,8 +6,8 @@ source bosh-cpi-release/ci/tasks/utils.sh
 
 check_param BOSH_DIRECTOR_PUBLIC_IP
 check_param BOSH_DIRECTOR_PRIVATE_IP
-check_param PRIVATE_KEY
-check_param PUBLIC_KEY
+check_param DIRECTOR_PRIVATE_KEY_PATH
+check_param AGENT_PUBLIC_KEY
 check_param PRIMARY_NETWORK_CIDR
 check_param PRIMARY_NETWORK_GATEWAY
 check_param PRIMARY_NETWORK_RANGE
@@ -26,7 +26,7 @@ export BAT_VCAP_PASSWORD='c1oudc0w'
 export BAT_DNS_HOST=${BOSH_DIRECTOR_PUBLIC_IP}
 export BAT_INFRASTRUCTURE='rackhd'
 export BAT_NETWORKING='manual'
-export BAT_VCAP_PRIVATE_KEY=${PRIVATE_KEY}
+export BAT_VCAP_PRIVATE_KEY=${DIRECTOR_PRIVATE_KEY_PATH}
 
 echo "using bosh CLI version..."
 bosh version
@@ -41,7 +41,7 @@ properties:
   key_name:  bats
   use_static_ip: true
   second_static_ip: ${SECONDARY_STATIC_IP}
-  public_key: ${PUBLIC_KEY}
+  public_key: ${AGENT_PUBLIC_KEY}
   pool_size: 1
   instances: 1
   uuid: $(bosh status --uuid)
