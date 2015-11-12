@@ -29,4 +29,4 @@ RUN echo eval "$(rbenv init -)" > /etc/profile.d/rbenv.sh &&\
     gem install bundler bosh_cli bosh_cli_plugin_micro --no-ri --no-rdoc
 
 RUN git clone https://github.com/cloudfoundry/bosh-acceptance-tests /root/bats
-RUN pushd /root/bats && ./write_gemfile && bundle install && popd 
+RUN pushd /root/bats && ./write_gemfile && rm Gemfile.lock && bundle install && rm -rf /root/bats && popd
