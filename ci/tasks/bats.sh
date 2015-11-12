@@ -26,7 +26,7 @@ export BAT_VCAP_PASSWORD='c1oudc0w'
 export BAT_DNS_HOST=${BOSH_DIRECTOR_PUBLIC_IP}
 export BAT_INFRASTRUCTURE='rackhd'
 export BAT_NETWORKING='manual'
-export BAT_VCAP_PRIVATE_KEY=${DIRECTOR_PRIVATE_KEY_PATH}
+export BAT_VCAP_PRIVATE_KEY=${PWD}/director.pem
 
 echo "using bosh CLI version..."
 bosh version
@@ -66,7 +66,7 @@ bundle install
 # create dev release
 pushd ${PWD}/spec/system/assets/bat-release
 rm -rf dev_releases
-bosh create release --force
+bosh create release --force --name=bat
 bosh --user admin --password admin upload release
 popd
 
