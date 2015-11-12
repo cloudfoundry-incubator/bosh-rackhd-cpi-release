@@ -1,8 +1,38 @@
+#!/usr/bin/env bash
+
+set -e -x
+
+source bosh-cpi-release/ci/tasks/utils.sh
+# source ./utils.sh
+
+check_param BOSH_VSPHERE_DIRECTOR
+check_param BOSH_DIRECTOR_PUBLIC_IP
+check_param BOSH_DIRECTOR_PRIVATE_IP
+check_param RACKHD_API_URI
+
+echo "Check to see if director exists at" $BOSH_DIRECTOR_PUBLIC_IP
+# check_for_rogue_vm $BOSH_DIRECTOR_PUBLIC_IP
+echo "Director" $BOSH_DIRECTOR_PUBLIC_IP "does not exist"
+
+bosh -n target ${BOSH_VSPHERE_DIRECTOR}
+director_uuid=$(bosh status | grep UUID | tr -s ' ' | cut -d' ' -f3)
+echo "Director UUID = "$director_uuid
+
+echo "Upload Stemcell"
+echo "Create Bosh Release Tarball"
+
+pushd bosh-cpi-release/
+# pushd ../../
+  $(bosh create release --force --with-tarball > create_release_output)
+  release_tarball_path=$(cat create_release_output | grep 'Release tarball' | cut -d ' ' -f4)
+  echo $release_tarball_path
+  bosh --user admin --password admin upload release $release_tarball_path
+popd
+
+cat > "./director-manifest.yml" <<EOF
 ---
 name: bat-director
-
-# replace with bosh status --uuid
-director_uuid: 74161423-d976-445d-b5bc-292fff65233a
+director_uuid: ${director_uuid}
 
 disk_pools:
 - name: disks
@@ -51,7 +81,7 @@ networks:
         dns: [192.168.10.1]
         reserved: [192.168.10.2 - 192.168.10.210]
         static:
-          - 192.168.10.215 - 192.168.10.215
+          - ${BOSH_DIRECTOR_PUBLIC_IP} - ${BOSH_DIRECTOR_PUBLIC_IP}
         cloud_properties: {name: 'VM Network'}
   - name: onrack-network
     type: manual
@@ -61,13 +91,13 @@ networks:
         dns: [172.31.128.1]
         #reserved: [172.31.128.1-172.31.128.255]
         static:
-          - 172.31.129.16 - 172.31.129.16
+          - ${BOSH_DIRECTOR_PRIVATE_IP} - ${BOSH_DIRECTOR_PRIVATE_IP}
         cloud_properties: {name: 'OnRack Network'}
 
 releases:
   - name: bosh
     version: latest
-  - name: bosh-ssh-cpi
+  - name: rackhd-cpi
     version: latest
 
 jobs:
@@ -81,14 +111,14 @@ jobs:
   - {name: blobstore, release: bosh}
   - {name: director, release: bosh}
   - {name: health_monitor, release: bosh}
-  - {name: onrack-cpi, release: bosh-ssh-cpi}
+  - {name: rackhd-cpi, release: rackhd-cpi}
 
   resource_pool: vms
   persistent_disk_pool: disks
 
   networks:
-  - {name: vm-network, static_ips: [192.168.10.215], default: [dns, gateway]}
-  - {name: onrack-network, static_ips: [172.31.129.16]}
+  - {name: vm-network, static_ips: [${BOSH_DIRECTOR_PUBLIC_IP}], default: [dns, gateway]}
+  - {name: onrack-network, static_ips: [${BOSH_DIRECTOR_PRIVATE_IP}]}
 
 
   properties:
@@ -111,7 +141,7 @@ jobs:
       adapter: postgres
 
     blobstore:
-      address: 192.168.10.215
+      address: ${BOSH_DIRECTOR_PUBLIC_IP}
       port: 25250
       use_ssl: false
       provider: dav
@@ -122,7 +152,7 @@ jobs:
       address: 127.0.0.1
       name: my-bosh
       db: *db
-      cpi_job: onrack-cpi
+      cpi_job: rackhd-cpi
       user_management:
         provider: local
         local:
@@ -134,43 +164,35 @@ jobs:
       director_account: {user: hm, password: hm-password}
       resurrector_enabled: true
 
-    onrack-cpi:
-      apiserver: "192.168.10.115"
+    rackhd-cpi:
+      apiserver: "${RACKHD_API_URI}"
       agent:
-        mbus: "nats://nats:nats-password@172.31.129.16:4222"
+        mbus: "nats://nats:nats-password@${BOSH_DIRECTOR_PRIVATE_IP}:4222"
         blobstore:
           provider: dav
           options:
-            endpoint: http://172.31.129.16:25250
+            endpoint: http://${BOSH_DIRECTOR_PRIVATE_IP}:25250
             user: agent
             password: agent-password
 
-    vcenter: &vcenter # <--- Replace values below
-      address: 192.168.10.105
-      user: administrator@vsphere.local
-      password: Emc1234!
-      datacenters:
-      - name: EMCCMD_Cambridge
-        vm_folder: CI
-        template_folder: CI
-        datastore_pattern: datastore3
-        persistent_datastore_pattern: datastore3
-        disk_path: DatastoreCluster1
-        clusters: [Cluster1]
-
-    agent: {mbus: "nats://nats:nats-password@172.31.129.16:4222"}
+    agent: {mbus: "nats://nats:nats-password@${BOSH_DIRECTOR_PRIVATE_IP}:4222"}
 
     ntp: &ntp [0.pool.ntp.org, 1.pool.ntp.org]
 
 cloud_provider:
-  template: {name: onrack-cpi, release: bosh-ssh-cpi}
-  mbus: "https://mbus:mbus-password@172.31.129.16:6868"
+  template: {name: rackhd-cpi, release: rackhd-cpi}
+  mbus: "https://mbus:mbus-password@${BOSH_DIRECTOR_PRIVATE_IP}:6868"
 
   properties:
-    onrack-cpi:
-      apiserver: "192.168.10.107"
+    rackhd-cpi:
+      apiserver: "${RACKHD_API_URI}"
       agent:
         mbus: "https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868"
         blobstore:
           provider: local
           options: {blobstore_path: /var/vcap/micro_bosh/data/cache}
+
+EOF
+
+bosh --user admin --password admin deployment ./director-manifest.yml
+echo 'yes' | bosh --user admin --password admin deploy

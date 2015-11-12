@@ -1,0 +1,9 @@
+---
+platform: linux
+image: docker:///emccmd/rackhd-cpi
+inputs:
+- name: bosh-cpi-release
+run:
+  path: bosh-cpi-release/ci/tasks/teardown-director.sh
+params:
+  BOSH_VSPHERE_DIRECTOR:        replace-me

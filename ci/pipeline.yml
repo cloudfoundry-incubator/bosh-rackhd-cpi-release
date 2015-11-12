@@ -5,6 +5,8 @@ groups:
       - integration
       - lifecycle
       - bats-virtual
+      - setup-director
+      - teardown-director
 
 jobs:
 - name: integration
@@ -55,6 +57,32 @@ jobs:
         PRIMARY_NETWORK_RANGE:              {{virtual_primary_network_range}}
         PRIMARY_NETWORK_MANUAL_IP:          {{virtual_primary_network_manual_ip}}
 
+- name: setup-director
+  serial: true
+  plan:
+  - aggregate:
+    - {trigger: false,  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+  - task: bat
+    file: bosh-cpi-release/ci/tasks/setup-director.yml
+    config:
+      params:
+        BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
+        BOSH_DIRECTOR_PUBLIC_IP:            {{virtual_bosh_director_public_ip}}
+        BOSH_DIRECTOR_PRIVATE_IP:           {{virtual_bosh_director_private_ip}}
+        RACKHD_API_URI:                     {{rackhd_server_ip}}
+
+- name: teardown-director
+  serial: true
+  plan:
+  - aggregate:
+    - {trigger: false, passed: [setup-director], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+  - task: bat
+    file: bosh-cpi-release/ci/tasks/teardown-director.yml
+    config:
+      params:
+        BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
+
+
 resources:
 - name: bosh-rackhd-cpi-release
   type: git
@@ -77,3 +105,6 @@ resources:
     uri: git@github.com:EMC-CMD/bosh-acceptance-tests.git
     branch: wip-branch
     private_key: {{github_key__bosh-acceptance-tests}}
+
+- name: vsphere-rackhd-env
+  type: pool
