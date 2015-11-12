@@ -10,4 +10,4 @@ bosh -n target ${BOSH_VSPHERE_DIRECTOR}
 echo 'yes' | bosh --user admin --password admin delete deployment bat-director
 
 echo "Remove Release"
-echo 'yes' | bosh --user admin --password admin delete release rackhd-cpi
+echo 'yes' | bosh --user admin --password admin delete release bosh-rackhd-cpi

@@ -23,12 +23,7 @@ echo "Create Bosh Release Tarball"
 
 pushd bosh-cpi-release/
 # pushd ../../
-  mkdir -p blobs/golang
-  pushd blobs/golang
-    wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
-  popd
-
-  $(bosh create release --force --with-tarball > create_release_output)
+  $(echo "" | bosh create release --force --with-tarball > create_release_output)
   release_tarball_path=$(cat create_release_output | grep 'Release tarball' | cut -d ' ' -f4)
   echo $release_tarball_path
   bosh --user admin --password admin upload release $release_tarball_path
@@ -102,7 +97,7 @@ networks:
 releases:
   - name: bosh
     version: latest
-  - name: rackhd-cpi
+  - name: bosh-rackhd-cpi
     version: latest
 
 jobs:
@@ -116,7 +111,7 @@ jobs:
   - {name: blobstore, release: bosh}
   - {name: director, release: bosh}
   - {name: health_monitor, release: bosh}
-  - {name: rackhd-cpi, release: rackhd-cpi}
+  - {name: rackhd-cpi, release: bosh-rackhd-cpi}
 
   resource_pool: vms
   persistent_disk_pool: disks
@@ -185,7 +180,7 @@ jobs:
     ntp: &ntp [0.pool.ntp.org, 1.pool.ntp.org]
 
 cloud_provider:
-  template: {name: rackhd-cpi, release: rackhd-cpi}
+  template: {name: rackhd-cpi, release: bosh-rackhd-cpi}
   mbus: "https://mbus:mbus-password@${BOSH_DIRECTOR_PRIVATE_IP}:6868"
 
   properties:
