@@ -3,7 +3,6 @@
 set -e -x
 
 source bosh-cpi-release/ci/tasks/utils.sh
-# source ./utils.sh
 
 check_param BOSH_VSPHERE_DIRECTOR
 check_param BOSH_DIRECTOR_PUBLIC_IP
@@ -22,12 +21,13 @@ echo "Upload Stemcell"
 echo "Create Bosh Release Tarball"
 
 pushd bosh-cpi-release/
-# pushd ../../
   $(echo "" | bosh create release --force --with-tarball > create_release_output)
   release_tarball_path=$(cat create_release_output | grep 'Release tarball' | cut -d ' ' -f4)
   echo $release_tarball_path
   bosh --user admin --password admin upload release $release_tarball_path
 popd
+
+password="\$6\$4gDD3aV0rdqlrKC\$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0"
 
 cat > "./director-manifest.yml" <<EOF
 ---
@@ -51,7 +51,7 @@ resource_pools:
   env:
     bosh:
       # c1oudc0w is a default password for vcap user
-      password: "$6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0"
+      password: ${password}
 
 compilation:
   workers: 1
