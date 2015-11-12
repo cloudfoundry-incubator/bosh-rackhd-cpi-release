@@ -5,65 +5,125 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 )
 
+func loadNodes(nodePath string) []rackhdapi.Node {
+	dummyResponseFile, err := os.Open(nodePath)
+	Expect(err).ToNot(HaveOccurred())
+	defer dummyResponseFile.Close()
+
+	dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
+	Expect(err).ToNot(HaveOccurred())
+
+	nodes := []rackhdapi.Node{}
+	err = json.Unmarshal(dummyResponseBytes, &nodes)
+	Expect(err).ToNot(HaveOccurred())
+
+	return nodes
+}
+
+func loadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
+	dummyCatalogfile, err := os.Open(nodeCatalogPath)
+	Expect(err).ToNot(HaveOccurred())
+	defer dummyCatalogfile.Close()
+
+	b, err := ioutil.ReadAll(dummyCatalogfile)
+	Expect(err).ToNot(HaveOccurred())
+
+	nodeCatalog := rackhdapi.NodeCatalog{}
+
+	err = json.Unmarshal(b, &nodeCatalog)
+	Expect(err).ToNot(HaveOccurred())
+	return nodeCatalog
+}
+
 var _ = Describe("Nodes", func() {
+	var server *ghttp.Server
+	var jsonReader *strings.Reader
+	var cpiConfig config.Cpi
+
+	BeforeEach(func() {
+		server = ghttp.NewServer()
+		serverURL, err := url.Parse(server.URL())
+		Expect(err).ToNot(HaveOccurred())
+		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+		cpiConfig, err = config.New(jsonReader)
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	AfterEach(func() {
+		server.Close()
+	})
+
 	Describe("Getting nodes", func() {
-		It("return expected nodes fields", func() {
-			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
-			Expect(apiServerIP).ToNot(BeEmpty())
-			c := config.Cpi{ApiServer: apiServerIP}
-
-			nodes, err := rackhdapi.GetNodes(c)
+		It("return expected nodes' fields", func() {
+			expectedNodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.RespondWith(http.StatusOK, expectedNodesData),
+				),
+			)
 
-			resp, err := http.Get(fmt.Sprintf("http://%s/api/common/nodes", c.ApiServer))
+			nodes, err := rackhdapi.GetNodes(cpiConfig)
+
 			Expect(err).ToNot(HaveOccurred())
-
-			b, err := ioutil.ReadAll(resp.Body)
-			Expect(err).ToNot(HaveOccurred())
-
-			var rawNodes []rackhdapi.Node
-			err = json.Unmarshal(b, &rawNodes)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(nodes).To(Equal(rawNodes))
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+			Expect(nodes).To(Equal(expectedNodes))
 		})
 	})
 
 	Describe("Getting catalog", func() {
-		It("return ", func() {
-			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
-			Expect(apiServerIP).ToNot(BeEmpty())
-			c := config.Cpi{ApiServer: apiServerIP}
-
-			nodes, err := rackhdapi.GetNodes(c)
+		It("returns a catalog", func() {
+			expectedNodeCatalog := loadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
+			expectedNodeCatalogData, err := json.Marshal(expectedNodeCatalog)
+			testNodeID := "55e79eb14e66816f6152fffb"
 			Expect(err).ToNot(HaveOccurred())
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", testNodeID)),
+					ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
+				),
+			)
 
-			Expect(nodes).ToNot(BeEmpty())
-			testNode := nodes[0]
+			catalog, err := rackhdapi.GetNodeCatalog(cpiConfig, testNodeID)
 
-			catalog, err := rackhdapi.GetNodeCatalog(c, testNode.ID)
 			Expect(err).ToNot(HaveOccurred())
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+			Expect(catalog).To(Equal(expectedNodeCatalog))
+		})
+	})
 
-			resp, err := http.Get(fmt.Sprintf("http://%s/api/common/nodes/%s/catalogs/ohai", c.ApiServer, testNode.ID))
+	Describe("blocking nodes", func() {
+		It("sends a request to block a node", func() {
+			nodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			serverURL, err := url.Parse(server.URL())
+			testNodeID := nodes[0].ID
+			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+			c, err := config.New(jsonReader)
 			Expect(err).ToNot(HaveOccurred())
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", testNodeID)),
+					ghttp.VerifyJSON(fmt.Sprintf(`{"status": "%s"}`, rackhdapi.Blocked)),
+				),
+			)
 
-			b, err := ioutil.ReadAll(resp.Body)
-			Expect(err).ToNot(HaveOccurred())
+			rackhdapi.BlockNode(c, nodes[0].ID)
 
-			var rawCatalog rackhdapi.NodeCatalog
-			err = json.Unmarshal(b, &rawCatalog)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(catalog).To(Equal(rawCatalog))
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 	})
 })

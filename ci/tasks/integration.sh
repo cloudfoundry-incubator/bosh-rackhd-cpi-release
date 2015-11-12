@@ -14,4 +14,4 @@ go install github.com/onsi/ginkgo/ginkgo
 cd src/github.com/rackhd/rackhd-cpi
 ginkgo -r
 
-echo "ingegration test complete."
+echo "integration test complete."

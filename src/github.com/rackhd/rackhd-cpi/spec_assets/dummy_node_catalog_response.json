@@ -100,6 +100,26 @@
       "default_interface": "p514p1",
       "default_gateway": "172.31.128.1"
     },
+    "block_device": {
+      "sda": {
+        "size": "15649200",
+        "removable": "0",
+        "model": "SATADOM-SL 3ME",
+        "rev": "S130",
+        "state": "running",
+        "timeout": "30",
+        "vendor": "ATA"
+      },
+      "sdb": {
+        "size": "1562845536",
+        "removable": "0",
+        "model": "HUSMM818 CLAR800",
+        "rev": "C118",
+        "state": "running",
+        "timeout": "30",
+        "vendor": "HGST"
+      }
+    },
     "ipaddress": "172.31.128.77",
     "macaddress": "00:1E:67:C4:E1:A0",
     "ip6address": "fe80::21e:67ff:fec4:e1a0",

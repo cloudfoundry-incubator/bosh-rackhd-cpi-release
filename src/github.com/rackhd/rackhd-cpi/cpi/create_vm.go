@@ -23,7 +23,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
-	nodeID, err := tryReservation(c, agentID, selectNodeFromRackHD, reserveNodeFromRackHD)
+	nodeID, err := tryReservation(c, agentID, blockNodesWithoutEphemeralDisk, selectNodeFromRackHD, reserveNodeFromRackHD)
 	if err != nil {
 		return "", err
 	}
@@ -133,13 +133,20 @@ func attachMAC(nodeNetworks map[string]rackhdapi.Network, oldSpec bosh.Network) 
 	return net, nil
 }
 
+type filterFunc func(config.Cpi) error
 type selectionFunc func(config.Cpi) (string, error)
 type reservationFunc func(config.Cpi, string, string) error
 
-func tryReservation(c config.Cpi, agentID string, choose selectionFunc, reserve reservationFunc) (string, error) {
+func tryReservation(c config.Cpi, agentID string, filter filterFunc, choose selectionFunc, reserve reservationFunc) (string, error) {
 	var nodeID string
 	var err error
 	for i := 0; i < c.MaxCreateVMAttempt; i++ {
+		err = filter(c)
+		if err != nil {
+			log.Error(fmt.Sprintf("retry %d: error filtering nodes: %s", i, err))
+			continue
+		}
+
 		nodeID, err = choose(c)
 
 		if err != nil {
@@ -162,6 +169,25 @@ func tryReservation(c config.Cpi, agentID string, choose selectionFunc, reserve 
 	}
 
 	return nodeID, nil
+}
+
+func blockNodesWithoutEphemeralDisk(c config.Cpi) error {
+	nodes, err := rackhdapi.GetNodes(c)
+	if err != nil {
+		return err
+	}
+	for i := range nodes {
+		if nodeIsAvailable(nodes[i]) {
+			nodeCatalog, err := rackhdapi.GetNodeCatalog(c, nodes[i].ID)
+			if err != nil {
+				return err
+			}
+			if _, ok := nodeCatalog.Data.BlockDevices["sdb"]; !ok {
+				rackhdapi.BlockNode(c, nodes[i].ID)
+			}
+		}
+	}
+	return nil
 }
 
 func reserveNodeFromRackHD(c config.Cpi, agentID string, nodeID string) error {
@@ -211,10 +237,14 @@ func getAllAvailableNodes(nodes []rackhdapi.Node) []rackhdapi.Node {
 	var n []rackhdapi.Node
 
 	for i := range nodes {
-		if (nodes[i].Status == "" || nodes[i].Status == rackhdapi.Available) && nodes[i].CID == "" {
+		if nodeIsAvailable(nodes[i]) {
 			n = append(n, nodes[i])
 		}
 	}
 
 	return n
+}
+
+func nodeIsAvailable(n rackhdapi.Node) bool {
+	return (n.Status == "" || n.Status == rackhdapi.Available) && n.CID == ""
 }

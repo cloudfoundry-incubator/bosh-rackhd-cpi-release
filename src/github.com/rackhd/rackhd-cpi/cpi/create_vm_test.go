@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -23,10 +24,41 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
+
+func loadNodes(nodePath string) []rackhdapi.Node {
+	dummyResponseFile, err := os.Open(nodePath)
+	Expect(err).ToNot(HaveOccurred())
+	defer dummyResponseFile.Close()
+
+	dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
+	Expect(err).ToNot(HaveOccurred())
+
+	nodes := []rackhdapi.Node{}
+	err = json.Unmarshal(dummyResponseBytes, &nodes)
+	Expect(err).ToNot(HaveOccurred())
+
+	return nodes
+}
+
+func loadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
+	dummyCatalogfile, err := os.Open(nodeCatalogPath)
+	Expect(err).ToNot(HaveOccurred())
+	defer dummyCatalogfile.Close()
+
+	b, err := ioutil.ReadAll(dummyCatalogfile)
+	Expect(err).ToNot(HaveOccurred())
+
+	nodeCatalog := rackhdapi.NodeCatalog{}
+
+	err = json.Unmarshal(b, &nodeCatalog)
+	Expect(err).ToNot(HaveOccurred())
+	return nodeCatalog
+}
 
 var _ = Describe("The VM Creation Workflow", func() {
 	Describe("parsing director input", func() {
@@ -286,6 +318,66 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 	})
 
+	Describe("trying to reserve a node without an ephemeral disk", func() {
+		var server *ghttp.Server
+		var jsonReader *strings.Reader
+		var cpiConfig config.Cpi
+
+		BeforeEach(func() {
+			server = ghttp.NewServer()
+			serverURL, err := url.Parse(server.URL())
+			Expect(err).ToNot(HaveOccurred())
+			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+			cpiConfig, err = config.New(jsonReader)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			server.Close()
+		})
+
+		It("blocks the node", func() {
+			expectedNodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			expectedNodesData, err := json.Marshal(expectedNodes)
+			Expect(err).ToNot(HaveOccurred())
+			firstExpectedNodeCatalog := loadNodeCatalog("../spec_assets/dummy_no_ephemeral_disk_catalog_response.json")
+			firstExpectedNodeCatalogData, err := json.Marshal(firstExpectedNodeCatalog)
+			Expect(err).ToNot(HaveOccurred())
+			secondExpectedNodeCatalog := loadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
+			secondExpectedNodeCatalogData, err := json.Marshal(secondExpectedNodeCatalog)
+			Expect(err).ToNot(HaveOccurred())
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.RespondWith(http.StatusOK, expectedNodesData),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", expectedNodes[0].ID)),
+					ghttp.RespondWith(http.StatusOK, firstExpectedNodeCatalogData),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", expectedNodes[0].ID)),
+					ghttp.VerifyJSON(fmt.Sprintf(`{"status": "%s"}`, rackhdapi.Blocked)),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", expectedNodes[1].ID)),
+					ghttp.RespondWith(http.StatusOK, secondExpectedNodeCatalogData),
+				),
+			)
+
+			_, err = tryReservation(
+				cpiConfig,
+				"agentID",
+				blockNodesWithoutEphemeralDisk,
+				func(config.Cpi) (string, error) { return "", nil },
+				func(config.Cpi, string, string) error { return nil },
+			)
+
+			Expect(false)
+		})
+	})
+
 	Describe("building the BOSH agent networking spec", func() {
 		It("returns an error if no active networks can be found", func() {
 			dummyCatalogfile, err := os.Open("../spec_assets/dummy_node_catalog_all_interface_down_response.json")
@@ -361,17 +453,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			})
 
 			It("attaches MAC address information from the RackHD API", func() {
-				dummyCatalogfile, err := os.Open("../spec_assets/dummy_node_catalog_response.json")
-				Expect(err).ToNot(HaveOccurred())
-				defer dummyCatalogfile.Close()
-
-				b, err := ioutil.ReadAll(dummyCatalogfile)
-				Expect(err).ToNot(HaveOccurred())
-
-				nodeCatalog := rackhdapi.NodeCatalog{}
-
-				err = json.Unmarshal(b, &nodeCatalog)
-				Expect(err).ToNot(HaveOccurred())
+				nodeCatalog := loadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
 
 				prevSpec := bosh.Network{}
 
@@ -412,51 +494,27 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("selecting an available node", func() {
 		It("returns an error if there are no free nodes available", func() {
-			dummyResponseFile, err := os.Open("../spec_assets/dummy_all_reserved_nodes_response.json")
-			Expect(err).ToNot(HaveOccurred())
-			defer dummyResponseFile.Close()
+			nodes := loadNodes("../spec_assets/dummy_all_reserved_nodes_response.json")
 
-			dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
-			Expect(err).ToNot(HaveOccurred())
+			_, err := randomSelectAvailableNode(nodes)
 
-			nodes := []rackhdapi.Node{}
-			err = json.Unmarshal(dummyResponseBytes, &nodes)
-			Expect(err).ToNot(HaveOccurred())
-
-			_, err = randomSelectAvailableNode(nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 
 		It("selects a free node for provisioning", func() {
-			dummyResponseFile, err := os.Open("../spec_assets/dummy_two_node_response.json")
-			Expect(err).ToNot(HaveOccurred())
-			defer dummyResponseFile.Close()
-
-			dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
-			Expect(err).ToNot(HaveOccurred())
-
-			nodes := []rackhdapi.Node{}
-			err = json.Unmarshal(dummyResponseBytes, &nodes)
-			Expect(err).ToNot(HaveOccurred())
+			nodes := loadNodes("../spec_assets/dummy_two_node_response.json")
 
 			rackHDID, err := randomSelectAvailableNode(nodes)
+
 			Expect(err).ToNot(HaveOccurred())
 			Expect(rackHDID).To(Equal("55e79ea54e66816f6152fff9"))
 		})
 
 		It("return an error if all nodes are created vms with cids", func() {
-			dummyResponseFile, err := os.Open("../spec_assets/dummy_all_nodes_are_vms.json")
-			Expect(err).ToNot(HaveOccurred())
-			defer dummyResponseFile.Close()
+			nodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
 
-			dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
-			Expect(err).ToNot(HaveOccurred())
+			_, err := randomSelectAvailableNode(nodes)
 
-			nodes := []rackhdapi.Node{}
-			err = json.Unmarshal(dummyResponseBytes, &nodes)
-			Expect(err).ToNot(HaveOccurred())
-
-			_, err = randomSelectAvailableNode(nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 	})
@@ -469,6 +527,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			nodeID, err := tryReservation(
 				c,
 				"agentID",
+				func(config.Cpi) error { return nil },
 				func(config.Cpi) (string, error) { return "node-1234", nil },
 				func(config.Cpi, string, string) error { return nil },
 			)
@@ -484,6 +543,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			nodeID, err := tryReservation(
 				c,
 				"agentID",
+				func(config.Cpi) error { return nil },
 				func(config.Cpi) (string, error) { return "node-1234", nil },
 				func(config.Cpi, string, string) error { return errors.New("error") },
 			)
@@ -507,6 +567,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			nodeID, err := tryReservation(
 				c,
 				"agentID",
+				func(config.Cpi) error { return nil },
 				flakeySelectionFunc,
 				func(config.Cpi, string, string) error { return nil },
 			)
@@ -562,6 +623,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			_, err = tryReservation(
 				c,
 				"agentID",
+				func(config.Cpi) error { return nil },
 				selectNodeFromRackHD,
 				flakeyReservationFunc,
 			)

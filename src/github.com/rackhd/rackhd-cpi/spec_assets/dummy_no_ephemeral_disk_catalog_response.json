@@ -1,0 +1,104 @@
+{
+  "node": "55e79ea54e66816f6152fff9",
+  "source": "ohai",
+  "data": {
+    "os": "linux",
+    "os_version": "3.13.0-32-generic",
+    "network": {
+      "interfaces": {
+        "lo": {
+          "mtu": "65536",
+          "encapsulation": "Loopback",
+          "state": "down"
+        },
+        "p514p1": {
+          "type": "p514p",
+          "number": "1",
+          "mtu": "1500",
+          "flags": [
+            "BROADCAST",
+            "MULTICAST",
+            "UP",
+            "LOWER_UP"
+          ],
+          "encapsulation": "Ethernet",
+          "addresses": {
+            "00:1E:67:AB:5E:E4": {
+              "family": "lladdr"
+            },
+            "172_31_128_17": {
+              "family": "inet",
+              "prefixlen": "22",
+              "netmask": "255.255.252.0",
+              "broadcast": "172.31.131.255",
+              "scope": "Global"
+            },
+            "fe80::21e:67ff:feab:5ee4": {
+              "family": "inet6",
+              "prefixlen": "64",
+              "scope": "Link"
+            }
+          },
+          "state": "up",
+          "arp": {
+            "172_31_128_1": "00:50:56:99:4a:1a"
+          },
+          "routes": [
+            {
+              "destination": "172.31.128.0/22",
+              "family": "inet",
+              "scope": "link",
+              "proto": "kernel",
+              "src": "172.31.128.17"
+            },
+            {
+              "destination": "fe80::/64",
+              "family": "inet6",
+              "metric": "256",
+              "proto": "kernel"
+            }
+          ]
+        },
+        "p514p2": {
+          "type": "p514p",
+          "number": "2",
+          "mtu": "1500",
+          "flags": [
+            "BROADCAST",
+            "MULTICAST"
+          ],
+          "encapsulation": "Ethernet",
+          "addresses": {
+            "00:1E:67:AB:5E:E5": {
+              "family": "lladdr"
+            }
+          },
+          "state": "down"
+        }
+      },
+      "listeners": {
+        "tcp": {
+          "22": {
+            "address": "*",
+            "pid": 1209,
+            "name": "sshd"
+          }
+        }
+      }
+    },
+    "block_device": {
+      "sda": {
+        "size": "15649200",
+        "removable": "0",
+        "model": "SATADOM-SL 3ME",
+        "rev": "S130",
+        "state": "running",
+        "timeout": "30",
+        "vendor": "ATA"
+      }
+    }
+  },
+  "createdAt": "2015-11-06T17:31:27.946Z",
+  "updatedAt": "2015-11-06T17:31:27.946Z",
+  "id": "563ce3ef3824173c07fa03e0"
+}
