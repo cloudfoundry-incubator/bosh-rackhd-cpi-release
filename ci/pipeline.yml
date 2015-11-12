@@ -14,7 +14,6 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true, get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
-
   - task: test
     file: bosh-cpi-release/ci/tasks/integration.yml
     config:
@@ -27,6 +26,8 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                         get: stemcell,           resource: rackhd-openstack-stemcell}
+  - put: vsphere-ubuntu-env
+    params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
@@ -35,7 +36,6 @@ jobs:
         AGENT_PUBLIC_KEY:             {{agent_public_key}}
         STATIC_IP:                    {{static_ip}}
         GATEWAY:                      {{gateway}}
-
 - name: bats-virtual
   serial: true
   plan:
@@ -43,6 +43,8 @@ jobs:
     - {trigger: true,  passed: [lifecycle],   get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false, passed: [lifecycle],   get: stemcell,           resource: rackhd-openstack-stemcell}
     - {trigger: false,                        get: bats,               resource: bosh-acceptance-tests}
+  - get: vsphere-ubuntu-env
+    passed: [lifecycle]
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
@@ -56,6 +58,8 @@ jobs:
         PRIMARY_NETWORK_GATEWAY:            {{virtual_primary_network_gateway}}
         PRIMARY_NETWORK_RANGE:              {{virtual_primary_network_range}}
         PRIMARY_NETWORK_MANUAL_IP:          {{virtual_primary_network_manual_ip}}
+  - put: vsphere-ubuntu-env
+    params: {release: vsphere-ubuntu-env}
 
 - name: setup-director
   serial: true
@@ -106,5 +110,10 @@ resources:
     branch: wip-branch
     private_key: {{github_key__bosh-acceptance-tests}}
 
-- name: vsphere-rackhd-env
+- name: vsphere-ubuntu-env
   type: pool
+  source:
+    uri: https://github.com/EMC-CMD/emccmd-environments.git
+    branch: master
+    pool: vsphere-ubuntu
+    private_key: {{github_key__emccmd-environments}}
