@@ -67,7 +67,7 @@ bundle install
 pushd ${PWD}/spec/system/assets/bat-release
 rm -rf dev_releases
 bosh create release --force
-mv dev_releases/bat/* dev_releases/
+bosh --user admin --password admin upload release
 popd
 
 echo "running the tests"
