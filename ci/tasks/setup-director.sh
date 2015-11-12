@@ -23,6 +23,11 @@ echo "Create Bosh Release Tarball"
 
 pushd bosh-cpi-release/
 # pushd ../../
+  mkdir -p blobs/golang
+  pushd blobs/golang
+    wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
+  popd
+
   $(bosh create release --force --with-tarball > create_release_output)
   release_tarball_path=$(cat create_release_output | grep 'Release tarball' | cut -d ' ' -f4)
   echo $release_tarball_path
