@@ -83,7 +83,7 @@ networks:
         static:
           - ${BOSH_DIRECTOR_PUBLIC_IP} - ${BOSH_DIRECTOR_PUBLIC_IP}
         cloud_properties: {name: 'VM Network'}
-  - name: onrack-network
+  - name: rackhd-network
     type: manual
     subnets:
       - range: 172.31.128.0/22
@@ -92,7 +92,7 @@ networks:
         #reserved: [172.31.128.1-172.31.128.255]
         static:
           - ${BOSH_DIRECTOR_PRIVATE_IP} - ${BOSH_DIRECTOR_PRIVATE_IP}
-        cloud_properties: {name: 'OnRack Network'}
+        cloud_properties: {name: 'RackHD Network'}
 
 releases:
   - name: bosh
@@ -118,7 +118,7 @@ jobs:
 
   networks:
   - {name: vm-network, static_ips: [${BOSH_DIRECTOR_PUBLIC_IP}], default: [dns, gateway]}
-  - {name: onrack-network, static_ips: [${BOSH_DIRECTOR_PRIVATE_IP}]}
+  - {name: rackhd-network, static_ips: [${BOSH_DIRECTOR_PRIVATE_IP}]}
 
 
   properties:
