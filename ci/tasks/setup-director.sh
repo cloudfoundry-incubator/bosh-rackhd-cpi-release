@@ -7,6 +7,7 @@ source bosh-cpi-release/ci/tasks/utils.sh
 check_param BOSH_VSPHERE_DIRECTOR
 check_param BOSH_DIRECTOR_PUBLIC_IP
 check_param BOSH_DIRECTOR_PRIVATE_IP
+check_param BOSH_DIRECTOR_PUBLIC_KEY
 check_param RACKHD_API_URI
 
 echo "Check to see if director exists at" $BOSH_DIRECTOR_PUBLIC_IP
@@ -27,6 +28,7 @@ pushd bosh-cpi-release/
   bosh --user admin --password admin upload release $release_tarball_path
 popd
 
+public_key=$(echo ${BOSH_DIRECTOR_PUBLIC_KEY} | base64)
 password="\$6\$4gDD3aV0rdqlrKC\$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0"
 
 cat > "./director-manifest.yml" <<EOF
@@ -196,3 +198,16 @@ EOF
 
 bosh --user admin --password admin deployment ./director-manifest.yml
 echo 'yes' | bosh --user admin --password admin deploy
+
+# hack
+apt-get install sshpass
+echo ${BOSH_DIRECTOR_PUBLIC_KEY} > director_key.pub
+touch director_key
+sshpass -p "c1oudc0w" ssh-copy-id -o StrictHostKeyChecking=no -i director_key.pub vcap@${BOSH_DIRECTOR_PUBLIC_IP}
+
+# hack to create log folder
+echo "echo 'c1oudc0w' | sudo -S su" >> log_script.sh
+echo "sudo -S su" >> log_script.sh
+echo "mkdir -p /var/vcap/sys/log/rackhd-cpi" >> log_script.sh
+echo "chown vcap:vcap /var/vcap/sys/log/rackhd-cpi" >> log_script.sh
+sshpass -p "c1oudc0w" ssh vcap@${BOSH_DIRECTOR_PUBLIC_IP} 'bash -s' < log_script.sh

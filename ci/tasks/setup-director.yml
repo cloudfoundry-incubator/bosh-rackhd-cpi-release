@@ -9,4 +9,5 @@ params:
   BOSH_VSPHERE_DIRECTOR:        replace-me
   BOSH_DIRECTOR_PUBLIC_IP:      replace-me
   BOSH_DIRECTOR_PRIVATE_IP:     replace-me
+  BOSH_DIRECTOR_PUBLIC_KEY:     replace-me
   RACKHD_API_URI:               replace-me
