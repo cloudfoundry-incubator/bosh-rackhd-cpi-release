@@ -13,7 +13,7 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: true, get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
+    - {trigger: true,   get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
   - task: test
     file: bosh-cpi-release/ci/tasks/integration.yml
     config:
@@ -26,8 +26,8 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                         get: stemcell,           resource: rackhd-openstack-stemcell}
-  - put: vsphere-ubuntu-env
-    params: {acquire: true}
+#  - put: vsphere-ubuntu-env
+#    params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
@@ -36,37 +36,15 @@ jobs:
         AGENT_PUBLIC_KEY:             {{agent_public_key}}
         STATIC_IP:                    {{static_ip}}
         GATEWAY:                      {{gateway}}
-- name: bats-virtual
-  serial: true
-  plan:
-  - aggregate:
-    - {trigger: true,  passed: [lifecycle],   get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-    - {trigger: false, passed: [lifecycle],   get: stemcell,           resource: rackhd-openstack-stemcell}
-    - {trigger: false,                        get: bats,               resource: bosh-acceptance-tests}
-  - get: vsphere-ubuntu-env
-    passed: [lifecycle]
-  - task: test
-    file: bosh-cpi-release/ci/tasks/lifecycle.yml
-    config:
-      params:
-        DIRECTOR_PRIVATE_KEY_PATH:          {{director_private_key_path}}
-        AGENT_PUBLIC_KEY:                   {{agent_public_key}}
-        BOSH_DIRECTOR_PUBLIC_IP:            {{virtual_bosh_director_public_ip}}
-        BOSH_DIRECTOR_PRIVATE_IP:           {{virtual_bosh_director_private_ip}}
-        SECONDARY_STATIC_IP:                {{virtual_secondary_static_ip}}
-        PRIMARY_NETWORK_CIDR:               {{virtual_primary_network_cidr}}
-        PRIMARY_NETWORK_GATEWAY:            {{virtual_primary_network_gateway}}
-        PRIMARY_NETWORK_RANGE:              {{virtual_primary_network_range}}
-        PRIMARY_NETWORK_MANUAL_IP:          {{virtual_primary_network_manual_ip}}
-  - put: vsphere-ubuntu-env
-    params: {release: vsphere-ubuntu-env}
 
 - name: setup-director
   serial: true
   plan:
   - aggregate:
-    - {trigger: false,  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-  - task: bat
+    - {trigger: true,  passed: [lifecycle], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+#  - get: vsphere-ubuntu-env
+#    passed: [lifecycle]
+  - task: setup-director
     file: bosh-cpi-release/ci/tasks/setup-director.yml
     config:
       params:
@@ -75,17 +53,42 @@ jobs:
         BOSH_DIRECTOR_PRIVATE_IP:           {{virtual_bosh_director_private_ip}}
         RACKHD_API_URI:                     {{rackhd_server_ip}}
 
+- name: bats-virtual
+  serial: true
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [setup-director],    get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+    - {trigger: false, passed: [lifecycle],         get: stemcell,           resource: rackhd-openstack-stemcell}
+    - {trigger: false,                              get: bats,               resource: bosh-acceptance-tests}
+#  - get: vsphere-ubuntu-env
+#    passed: [setup-director]
+  - task: test
+    file: bosh-cpi-release/ci/tasks/bats.yml
+    config:
+      params:
+        AGENT_PUBLIC_KEY:                   {{agent_public_key}}
+        BOSH_DIRECTOR_PUBLIC_IP:            {{virtual_bosh_director_public_ip}}
+        BOSH_DIRECTOR_PRIVATE_IP:           {{virtual_bosh_director_private_ip}}
+        SECONDARY_STATIC_IP:                {{virtual_secondary_static_ip}}
+        PRIMARY_NETWORK_CIDR:               {{virtual_primary_network_cidr}}
+        PRIMARY_NETWORK_GATEWAY:            {{virtual_primary_network_gateway}}
+        PRIMARY_NETWORK_RANGE:              {{virtual_primary_network_range}}
+        PRIMARY_NETWORK_MANUAL_IP:          {{virtual_primary_network_manual_ip}}
+
 - name: teardown-director
   serial: true
   plan:
   - aggregate:
-    - {trigger: false, passed: [setup-director], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-  - task: bat
+    - {trigger: false, passed: [bats-virtual], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+#  - get: vsphere-ubuntu-env
+#    passed: [bats-virtual]
+  - task: teardown-director
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
       params:
         BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
-
+#  - put: vsphere-ubuntu-env
+#    params: {release: vsphere-ubuntu-env}
 
 resources:
 - name: bosh-rackhd-cpi-release
