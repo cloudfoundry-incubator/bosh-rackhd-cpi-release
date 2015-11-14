@@ -78,4 +78,4 @@ bosh --user admin --password admin upload release
 popd
 
 echo "running the tests"
-bundle exec rspec spec/system/env_spec.rb
+bundle exec rspec spec/bat
