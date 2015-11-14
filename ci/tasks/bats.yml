@@ -10,7 +10,6 @@ run:
 params:
   BOSH_DIRECTOR_PUBLIC_IP:         replace-me
   BOSH_DIRECTOR_PRIVATE_IP:        replace-me
-  DIRECTOR_PRIVATE_KEY_PATH:       replace-me
   AGENT_PUBLIC_KEY:                replace-me
   PRIMARY_NETWORK_CIDR:            replace-me
   PRIMARY_NETWORK_GATEWAY:         replace-me

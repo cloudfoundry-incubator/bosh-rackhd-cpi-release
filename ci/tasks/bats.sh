@@ -6,7 +6,6 @@ source bosh-cpi-release/ci/tasks/utils.sh
 
 check_param BOSH_DIRECTOR_PUBLIC_IP
 check_param BOSH_DIRECTOR_PRIVATE_IP
-check_param DIRECTOR_PRIVATE_KEY_PATH
 check_param AGENT_PUBLIC_KEY
 check_param PRIMARY_NETWORK_CIDR
 check_param PRIMARY_NETWORK_GATEWAY
@@ -15,6 +14,15 @@ check_param PRIMARY_NETWORK_MANUAL_IP
 check_param SECONDARY_STATIC_IP
 
 base_dir=${PWD}
+
+bosh_ssh_key="${base_dir}/keys/bats.pem"
+mkdir -p $PWD/keys
+eval $(ssh-agent)
+ssh-keygen -N "" -t rsa -b 4096 -f ${bosh_ssh_key}
+chmod go-r ${bosh_ssh_key}
+ssh-add ${bosh_ssh_key}
+mkdir -p ~/.ssh/id_rsa.pub
+cp ${base_dir}/keys/bats.pem.pub ~/.ssh/id_rsa.pub
 
 cd bats
 
@@ -59,8 +67,7 @@ properties:
 EOF
 
 ./write_gemfile
-
-gem install bundle
+rm Gemfile.lock
 bundle install
 
 # create dev release
@@ -71,4 +78,4 @@ bosh --user admin --password admin upload release
 popd
 
 echo "running the tests"
-bundle exec rspec spec/system/with_release_stemcell_deployment_spec.rb:31
+bundle exec rspec spec/system/env_spec.rb
