@@ -13,7 +13,7 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: true,   get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
+    - {trigger: false,   get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
   - task: test
     file: bosh-cpi-release/ci/tasks/integration.yml
     config:
@@ -80,7 +80,7 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: false, passed: [bats-virtual], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+    - {trigger: true, passed: [bats-virtual], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
 #  - get: vsphere-ubuntu-env
 #    passed: [bats-virtual]
   - task: teardown-director
