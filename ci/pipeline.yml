@@ -75,6 +75,7 @@ jobs:
         PRIMARY_NETWORK_GATEWAY:            {{virtual_primary_network_gateway}}
         PRIMARY_NETWORK_RANGE:              {{virtual_primary_network_range}}
         PRIMARY_NETWORK_MANUAL_IP:          {{virtual_primary_network_manual_ip}}
+        BAT_SPEC:                           {{bat_spec}}
 
 - name: teardown-director
   serial: true

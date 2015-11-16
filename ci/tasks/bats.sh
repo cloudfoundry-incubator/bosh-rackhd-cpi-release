@@ -12,6 +12,7 @@ check_param PRIMARY_NETWORK_GATEWAY
 check_param PRIMARY_NETWORK_RANGE
 check_param PRIMARY_NETWORK_MANUAL_IP
 check_param SECONDARY_STATIC_IP
+check_param BAT_SPEC
 
 base_dir=${PWD}
 
@@ -78,4 +79,4 @@ bosh --user admin --password admin upload release
 popd
 
 echo "running the tests"
-bundle exec rspec spec/bat
+bundle exec rspec ${BAT_SPEC}

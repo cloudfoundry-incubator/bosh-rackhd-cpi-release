@@ -16,3 +16,4 @@ params:
   PRIMARY_NETWORK_RANGE:           replace-me
   PRIMARY_NETWORK_MANUAL_IP:       replace-me
   SECONDARY_STATIC_IP:             replace-me
+  BAT_SPEC:                        replace-me
