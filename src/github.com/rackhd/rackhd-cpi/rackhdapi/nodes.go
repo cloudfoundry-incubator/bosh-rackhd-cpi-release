@@ -21,6 +21,7 @@ const (
 	Available   = "available"
 	Reserved    = "reserved"
 	Blocked     = "blocked"
+	Disk_Reason = "Node has missing disks"
 	Maintenance = "maintenance"
 )
 
@@ -135,7 +136,7 @@ func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
 
 func BlockNode(c config.Cpi, nodeID string) error {
 	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
-	blockFlag := fmt.Sprintf(`{"status": "%s"}`, Blocked)
+	blockFlag := fmt.Sprintf(`{"status": "%s", "status_reason": "%s"}`, Blocked, Disk_Reason)
 	body := ioutil.NopCloser(strings.NewReader(blockFlag))
 	defer body.Close()
 

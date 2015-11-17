@@ -117,7 +117,7 @@ var _ = Describe("Nodes", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", testNodeID)),
-					ghttp.VerifyJSON(fmt.Sprintf(`{"status": "%s"}`, rackhdapi.Blocked)),
+					ghttp.VerifyJSON(fmt.Sprintf(`{"status": "%s", "status_reason": "%s"}`, rackhdapi.Blocked, "Node has missing disks")),
 				),
 			)
 

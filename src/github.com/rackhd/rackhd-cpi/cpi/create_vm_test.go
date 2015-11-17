@@ -358,7 +358,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", expectedNodes[0].ID)),
-					ghttp.VerifyJSON(fmt.Sprintf(`{"status": "%s"}`, rackhdapi.Blocked)),
+					ghttp.VerifyJSON(fmt.Sprintf(`{"status": "%s", "status_reason": "%s"}`, "blocked", "Node has missing disks")),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", expectedNodes[1].ID)),
@@ -373,8 +373,6 @@ var _ = Describe("The VM Creation Workflow", func() {
 				func(config.Cpi) (string, error) { return "", nil },
 				func(config.Cpi, string, string) error { return nil },
 			)
-
-			Expect(false)
 		})
 	})
 
