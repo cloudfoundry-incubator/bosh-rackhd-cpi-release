@@ -11,3 +11,4 @@ params:
   BOSH_DIRECTOR_PRIVATE_IP:     replace-me
   BOSH_DIRECTOR_PUBLIC_KEY:     replace-me
   RACKHD_API_URI:               replace-me
+  RACKHD_NETWORK:               replace-me

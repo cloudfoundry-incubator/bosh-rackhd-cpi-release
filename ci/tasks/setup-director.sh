@@ -9,6 +9,7 @@ check_param BOSH_DIRECTOR_PUBLIC_IP
 check_param BOSH_DIRECTOR_PRIVATE_IP
 check_param BOSH_DIRECTOR_PUBLIC_KEY
 check_param RACKHD_API_URI
+check_param RACKHD_NETWORK
 
 echo "Check to see if director exists at" $BOSH_DIRECTOR_PUBLIC_IP
 # check_for_rogue_vm $BOSH_DIRECTOR_PUBLIC_IP
@@ -94,7 +95,7 @@ networks:
         #reserved: [172.31.128.1-172.31.128.255]
         static:
           - ${BOSH_DIRECTOR_PRIVATE_IP} - ${BOSH_DIRECTOR_PRIVATE_IP}
-        cloud_properties: {name: 'RackHD Network'}
+        cloud_properties: {name: '${RACKHD_NETWORK}'}
 
 releases:
   - name: bosh

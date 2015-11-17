@@ -53,6 +53,7 @@ jobs:
         BOSH_DIRECTOR_PRIVATE_IP:           {{virtual_bosh_director_private_ip}}
         BOSH_DIRECTOR_PUBLIC_KEY:           {{director_public_key}}
         RACKHD_API_URI:                     {{rackhd_server_ip}}
+        RACKHD_NETWORK:                     {{rackhd_network}}
 
 - name: bats-virtual
   serial: true
