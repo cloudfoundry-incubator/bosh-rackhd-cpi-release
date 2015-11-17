@@ -10,6 +10,7 @@ check_param BOSH_DIRECTOR_PRIVATE_IP
 check_param BOSH_DIRECTOR_PUBLIC_KEY
 check_param RACKHD_API_URI
 check_param RACKHD_NETWORK
+check_param CPI_RELEASE_NAME
 
 echo "Check to see if director exists at" $BOSH_DIRECTOR_PUBLIC_IP
 # check_for_rogue_vm $BOSH_DIRECTOR_PUBLIC_IP
@@ -23,7 +24,7 @@ echo "Upload Stemcell"
 echo "Create Bosh Release Tarball"
 
 pushd bosh-cpi-release/
-  $(echo "" | bosh create release --force --with-tarball > create_release_output)
+  $(echo "${CPI_RELEASE_NAME}" | bosh create release --force --with-tarball > create_release_output)
   release_tarball_path=$(cat create_release_output | grep 'Release tarball' | cut -d ' ' -f4)
   echo $release_tarball_path
   bosh --user admin --password admin upload release $release_tarball_path
@@ -100,7 +101,7 @@ networks:
 releases:
   - name: bosh
     version: latest
-  - name: bosh-rackhd-cpi
+  - name: ${CPI_RELEASE_NAME}
     version: latest
 
 jobs:
@@ -114,7 +115,7 @@ jobs:
   - {name: blobstore, release: bosh}
   - {name: director, release: bosh}
   - {name: health_monitor, release: bosh}
-  - {name: rackhd-cpi, release: bosh-rackhd-cpi}
+  - {name: rackhd-cpi, release: ${CPI_RELEASE_NAME}}
 
   resource_pool: vms
   persistent_disk_pool: disks
@@ -183,7 +184,7 @@ jobs:
     ntp: &ntp [0.pool.ntp.org, 1.pool.ntp.org]
 
 cloud_provider:
-  template: {name: rackhd-cpi, release: bosh-rackhd-cpi}
+  template: {name: rackhd-cpi, release: ${CPI_RELEASE_NAME}}
   mbus: "https://mbus:mbus-password@${BOSH_DIRECTOR_PRIVATE_IP}:6868"
 
   properties:

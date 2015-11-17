@@ -54,6 +54,7 @@ jobs:
         BOSH_DIRECTOR_PUBLIC_KEY:           {{director_public_key}}
         RACKHD_API_URI:                     {{rackhd_server_ip}}
         RACKHD_NETWORK:                     {{rackhd_network}}
+        CPI_RELEASE_NAME:                   {{cpi_release_name}}
 
 - name: bats-virtual
   serial: true
