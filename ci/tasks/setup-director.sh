@@ -24,7 +24,7 @@ echo "Upload Stemcell"
 echo "Create Bosh Release Tarball"
 
 pushd bosh-cpi-release/
-  $(echo "${CPI_RELEASE_NAME}" | bosh create release --force --with-tarball > create_release_output)
+  $(bosh create release --force --name="${CPI_RELEASE_NAME}" --with-tarball > create_release_output)
   release_tarball_path=$(cat create_release_output | grep 'Release tarball' | cut -d ' ' -f4)
   echo $release_tarball_path
   bosh --user admin --password admin upload release $release_tarball_path
@@ -35,7 +35,7 @@ password="\$6\$4gDD3aV0rdqlrKC\$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtn
 
 cat > "./director-manifest.yml" <<EOF
 ---
-name: bat-director
+name: ${DIRECTOR_DEPLOYMENT_NAME}
 director_uuid: ${director_uuid}
 
 disk_pools:

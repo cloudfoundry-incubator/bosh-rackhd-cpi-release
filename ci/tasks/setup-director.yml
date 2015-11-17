@@ -13,3 +13,4 @@ params:
   RACKHD_API_URI:               replace-me
   RACKHD_NETWORK:               replace-me
   CPI_RELEASE_NAME:             bosh-rackhd-cpi
+  DIRECTOR_DEPLOYMENT_NAME:     bat-director
