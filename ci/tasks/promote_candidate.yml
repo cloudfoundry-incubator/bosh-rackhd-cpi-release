@@ -1,15 +1,14 @@
 ---
 platform: linux
-image: docker:///boshcpi/vsphere-cpi-release
+image: docker:///emccmd/rackhd-cpi
 
 inputs:
   - name: bosh-cpi-release
-  - name: bosh-cpi-dev-artifacts
   - name: release-version-semver
 
 run:
   path: bosh-cpi-release/ci/tasks/promote-candidate.sh
 
 params:
-  aws_access_key_id:     replace-me
-  aws_secret_access_key: replace-me
+  S3_ACCESS_KEY_ID:       replace-me
+  S3_SECRET_ACCESS_KEY:   replace-me
