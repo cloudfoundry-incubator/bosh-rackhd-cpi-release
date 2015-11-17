@@ -7,6 +7,7 @@ groups:
       - bats-virtual
       - setup-director
       - teardown-director
+      - promote-candidate
 
 jobs:
 - name: integration
@@ -93,37 +94,69 @@ jobs:
       params:
         BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
         CPI_RELEASE_NAME:                   {{cpi_release_name}}
-        DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}        
+        DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}
 #  - put: vsphere-ubuntu-env
 #    params: {release: vsphere-ubuntu-env}
 
+- name: promote-candidate
+  serial: true
+  plan:
+  - aggregate:
+    - {trigger: false, passed: [bats-virtual], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+    - {trigger: false, get: release-version-semver, params: {bump: major}}
+
+  - task: promote
+    file: bosh-cpi-release/ci/tasks/promote-candidate.yml
+    config:
+      params:
+        S3_ACCESS_KEY_ID:     {{s3_access_key_id}}
+        S3_SECRET_ACCESS_KEY: {{s3_secret_access_key}}
+  - put: bosh-cpi-release-out
+    params: {repository: promote/bosh-cpi-release, rebase: true, tag_prefix: "v", tag: promote/integer_version}
+
+  - put: release-version-semver
+    params: {file: release-version-semver/number}
+
+
 resources:
-- name: bosh-rackhd-cpi-release
-  type: git
-  source:
-    uri: git@github.com:EMC-CMD/bosh-rackhd-cpi-release.git
-    branch: master
-    private_key: {{github_key__bosh-rackhd-cpi-release}}
-    ignore_paths:
-      - .final_builds/**/*.yml
-      - releases/**/*.yml
+  - &bosh-cpi-release-resource
+    name: bosh-rackhd-cpi-release
+    type: git
+    source:
+      uri: git@github.com:EMC-CMD/bosh-rackhd-cpi-release.git
+      branch: master
+      private_key: {{github_key__bosh-rackhd-cpi-release}}
+      ignore_paths:
+        - .final_builds/**/*.yml
+        - releases/**/*.yml
 
-- name: rackhd-openstack-stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
+  - <<: *bosh-cpi-release-resource
+    name: bosh-cpi-release-out
 
-- name: bosh-acceptance-tests
-  type: git
-  source:
-    uri: git@github.com:EMC-CMD/bosh-acceptance-tests.git
-    branch: wip-branch
-    private_key: {{github_key__bosh-acceptance-tests}}
+  - name: rackhd-openstack-stemcell
+    type: bosh-io-stemcell
+    source:
+      name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
 
-- name: vsphere-ubuntu-env
-  type: pool
-  source:
-    uri: https://github.com/EMC-CMD/emccmd-environments.git
-    branch: master
-    pool: vsphere-ubuntu
-    private_key: {{github_key__emccmd-environments}}
+  - name: bosh-acceptance-tests
+    type: git
+    source:
+      uri: git@github.com:EMC-CMD/bosh-acceptance-tests.git
+      branch: wip-branch
+      private_key: {{github_key__bosh-acceptance-tests}}
+
+  - name: vsphere-ubuntu-env
+    type: pool
+    source:
+      uri: https://github.com/EMC-CMD/emccmd-environments.git
+      branch: master
+      pool: vsphere-ubuntu
+      private_key: {{github_key__emccmd-environments}}
+
+  - name: release-version-semver
+    type: semver
+    source:
+      key:               release-current-version
+      bucket:            {{s3_bucket_name}}
+      access_key_id:     {{s3_access_key_id}}
+      secret_access_key: {{s3_secret_access_key}}
