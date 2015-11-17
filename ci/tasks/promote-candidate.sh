@@ -15,8 +15,8 @@ echo $integer_version > integer_version
 
 cd bosh-cpi-release
 
-source /etc/profile.d/chruby.sh
-chruby 2.1.2
+#source /etc/profile.d/chruby.sh
+#chruby 2.1.2
 
 set +x
 echo creating config/private.yml with blobstore secrets
@@ -33,8 +33,8 @@ echo "using bosh CLI version..."
 bosh version
 
 echo "finalizing CPI release..."
-bosh create release --final --force --with-tarball
-bosh finalize release ../bosh-cpi-dev-artifacts/*.tgz --version $integer_version
+bosh create release --final --force --with-tarball --version $integer_version
+bosh finalize release releases/bosh-rackhd-cpi/*.tgz --version $integer_version
 
 rm config/private.yml
 
