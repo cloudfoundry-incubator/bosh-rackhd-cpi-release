@@ -24,6 +24,7 @@ cat > config/private.yml << EOF
 ---
 blobstore:
   s3:
+    bucket_name: bosh-rackhd-cpi-blobs
     access_key_id: ${S3_ACCESS_KEY_ID}
     secret_access_key: ${S3_SECRET_ACCESS_KEY}
 EOF
@@ -33,8 +34,8 @@ echo "using bosh CLI version..."
 bosh version
 
 echo "finalizing CPI release..."
-bosh create release --final --force --with-tarball --version $integer_version
-bosh finalize release releases/bosh-rackhd-cpi/*.tgz --version $integer_version
+echo 'yes' | bosh create release --force --with-tarball --version $integer_version
+bosh finalize release dev_releases/bosh-rackhd-cpi/*.tgz --version $integer_version
 
 rm config/private.yml
 
