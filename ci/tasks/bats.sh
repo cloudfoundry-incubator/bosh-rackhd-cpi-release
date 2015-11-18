@@ -75,8 +75,10 @@ bundle install
 pushd ${PWD}/spec/system/assets/bat-release
 rm -rf dev_releases
 bosh create release --force --name=bat
+cp dev_releases/bat/* dev_releases/
 bosh --user admin --password admin upload release
 popd
 
 echo "running the tests"
 bundle exec rspec ${BAT_SPEC}
+
