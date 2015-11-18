@@ -103,7 +103,7 @@ jobs:
   plan:
   - aggregate:
     - {trigger: false, passed: [bats-virtual], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-    - {trigger: false, get: release-version-semver, params: {bump: patch}}
+    - {trigger: false, get: release-version-semver, params: {bump: major}}
 
   - task: promote
     file: bosh-cpi-release/ci/tasks/promote-candidate.yml
