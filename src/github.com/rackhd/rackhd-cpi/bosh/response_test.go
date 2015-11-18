@@ -11,11 +11,11 @@ import (
 )
 
 var _ = Describe("response handling", func() {
-	Describe("exiting with an error", func() {
+	Describe("exiting with a default error", func() {
 		It("wraps errors in a CpiResponse", func() {
 			testErrMsg := "a test error"
 			testErr := errors.New(testErrMsg)
-			errResp := bosh.BuildErrorResponse(testErr, false, "")
+			errResp := bosh.BuildDefaultErrorResponse(testErr, false, "")
 			errRespBytes := []byte(errResp)
 
 			targetResponse := bosh.CpiResponse{}
@@ -27,6 +27,27 @@ var _ = Describe("response handling", func() {
 
 			targetResponseErr := targetResponse.Error
 			Expect(targetResponseErr.Type).To(Equal(bosh.DefaultErrorType))
+			Expect(targetResponseErr.Message).To(Equal(testErrMsg))
+			Expect(targetResponseErr.Retryable).To(BeFalse())
+		})
+	})
+
+	Describe("exiting with a custom error", func() {
+		It("wraps custom errors in a CpiResponse", func() {
+			testErrMsg := "a test error"
+			testErr := errors.New(testErrMsg)
+			errResp := bosh.BuildErrorResponse(testErr, bosh.NotSupportedErrorType, false, "")
+			errRespBytes := []byte(errResp)
+
+			targetResponse := bosh.CpiResponse{}
+			err := json.Unmarshal(errRespBytes, &targetResponse)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(targetResponse.Result).To(BeNil())
+			Expect(targetResponse.Log).To(BeEmpty())
+
+			targetResponseErr := targetResponse.Error
+			Expect(targetResponseErr.Type).To(Equal(bosh.NotSupportedErrorType))
 			Expect(targetResponseErr.Message).To(Equal(testErrMsg))
 			Expect(targetResponseErr.Retryable).To(BeFalse())
 		})

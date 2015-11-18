@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	DefaultErrorType = "Bosh::Clouds::CloudError"
+	DefaultErrorType      = "Bosh::Clouds::CloudError"
+	NotSupportedErrorType = "Bosh::Clouds::NotSupported"
 )
 
 type ResponseError struct {
@@ -21,11 +22,15 @@ type CpiResponse struct {
 	Log    string         `json:"log"`
 }
 
-func BuildErrorResponse(err error, retryable bool, logOutput string) string {
+func BuildDefaultErrorResponse(err error, retryable bool, logOutput string) string {
+	return BuildErrorResponse(err, DefaultErrorType, retryable, logOutput)
+}
+
+func BuildErrorResponse(err error, errType string, retryable bool, logOutput string) string {
 	res := CpiResponse{Log: logOutput}
 
 	resErr := ResponseError{
-		Type:      DefaultErrorType,
+		Type:      errType,
 		Message:   err.Error(),
 		Retryable: retryable,
 	}
