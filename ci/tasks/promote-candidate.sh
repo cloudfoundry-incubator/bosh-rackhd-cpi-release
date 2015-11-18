@@ -34,7 +34,7 @@ echo "using bosh CLI version..."
 bosh version
 
 echo "finalizing CPI release..."
-echo 'yes' | bosh create release --force --with-tarball --version $integer_version
+bosh create release --force --with-tarball --version $integer_version
 bosh finalize release dev_releases/bosh-rackhd-cpi/*.tgz --version $integer_version
 
 rm config/private.yml
