@@ -6,6 +6,7 @@ source bosh-cpi-release/ci/tasks/utils.sh
 
 check_param BOSH_DIRECTOR_PUBLIC_IP
 check_param BOSH_DIRECTOR_PRIVATE_IP
+check_param AGENT_PUBLIC_KEY
 check_param PRIMARY_NETWORK_CIDR
 check_param PRIMARY_NETWORK_GATEWAY
 check_param PRIMARY_NETWORK_RANGE
@@ -14,22 +15,15 @@ check_param SECONDARY_STATIC_IP
 check_param BAT_SPEC
 
 base_dir=${PWD}
-keys_dir=${base_dir}/keys
-mkdir -p ${keys_dir}
-eval $(ssh-agent)
 
-bosh_ssh_key="${keys_dir}/bats.pem"
+bosh_ssh_key="${base_dir}/keys/bats.pem"
+mkdir -p $PWD/keys
+eval $(ssh-agent)
 ssh-keygen -N "" -t rsa -b 4096 -f ${bosh_ssh_key}
 chmod go-r ${bosh_ssh_key}
 ssh-add ${bosh_ssh_key}
 mkdir -p ~/.ssh/id_rsa.pub
 cp ${base_dir}/keys/bats.pem.pub ~/.ssh/id_rsa.pub
-
-vm_ssh_key="${keys_dir}/vm"
-vm_ssh_public_key="${keys_dir}/vm.pub"
-ssh-keygen -N "" -t rsa -b 4096 -f ${vm_ssh_key}
-chmod go-r ${vm_ssh_key}
-vm_ssh_public_key_base64=$(cat ${vm_ssh_public_key} | tr -d '\n' | base64 | tr -d '\n')
 
 cd bats
 
@@ -41,7 +35,7 @@ export BAT_VCAP_PASSWORD='c1oudc0w'
 export BAT_DNS_HOST=${BOSH_DIRECTOR_PUBLIC_IP}
 export BAT_INFRASTRUCTURE='rackhd'
 export BAT_NETWORKING='manual'
-export BAT_VCAP_PRIVATE_KEY=${vm_ssh_key}
+export BAT_VCAP_PRIVATE_KEY=${PWD}/director.pem
 
 echo "using bosh CLI version..."
 bosh version
@@ -56,7 +50,7 @@ properties:
   key_name:  bats
   use_static_ip: true
   second_static_ip: ${SECONDARY_STATIC_IP}
-  public_key: ${vm_ssh_public_key_base64}
+  public_key: ${AGENT_PUBLIC_KEY}
   pool_size: 1
   instances: 1
   uuid: $(bosh status --uuid)
@@ -87,4 +81,3 @@ popd
 
 echo "running the tests"
 bundle exec rspec ${BAT_SPEC}
-
