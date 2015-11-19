@@ -72,6 +72,7 @@ jobs:
     config:
       params:
         AGENT_PUBLIC_KEY:                   {{agent_public_key}}
+        DIRECTOR_PRIVATE_KEY_DATA:          {{director_private_key}
         BOSH_DIRECTOR_PUBLIC_IP:            {{virtual_bosh_director_public_ip}}
         BOSH_DIRECTOR_PRIVATE_IP:           {{virtual_bosh_director_private_ip}}
         SECONDARY_STATIC_IP:                {{virtual_secondary_static_ip}}

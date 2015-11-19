@@ -7,6 +7,7 @@ source bosh-cpi-release/ci/tasks/utils.sh
 check_param BOSH_DIRECTOR_PUBLIC_IP
 check_param BOSH_DIRECTOR_PRIVATE_IP
 check_param AGENT_PUBLIC_KEY
+check_param DIRECTOR_PRIVATE_KEY_DATA
 check_param PRIMARY_NETWORK_CIDR
 check_param PRIMARY_NETWORK_GATEWAY
 check_param PRIMARY_NETWORK_RANGE
@@ -25,6 +26,9 @@ ssh-add ${bosh_ssh_key}
 mkdir -p ~/.ssh/id_rsa.pub
 cp ${base_dir}/keys/bats.pem.pub ~/.ssh/id_rsa.pub
 
+director_private_key_path="${base_dir}/keys/director"
+echo ${DIRECTOR_PRIVATE_KEY_DATA} > ${director_private_key_path}
+
 cd bats
 
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
@@ -35,7 +39,7 @@ export BAT_VCAP_PASSWORD='c1oudc0w'
 export BAT_DNS_HOST=${BOSH_DIRECTOR_PUBLIC_IP}
 export BAT_INFRASTRUCTURE='rackhd'
 export BAT_NETWORKING='manual'
-export BAT_VCAP_PRIVATE_KEY=${PWD}/director.pem
+export BAT_VCAP_PRIVATE_KEY=${director_private_key_path}
 
 echo "using bosh CLI version..."
 bosh version
