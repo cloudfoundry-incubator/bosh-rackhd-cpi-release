@@ -43,6 +43,7 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [lifecycle], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+    - {trigger: false, get: bosh-release, resource: bosh-release}
 #  - get: vsphere-ubuntu-env
 #    passed: [lifecycle]
   - task: setup-director
@@ -161,3 +162,8 @@ resources:
       bucket:            {{s3_bucket_name}}
       access_key_id:     {{s3_access_key_id}}
       secret_access_key: {{s3_secret_access_key}}
+
+  - name: bosh-release
+    type: bosh-io-release
+    source:
+      repository: cloudfoundry/bosh

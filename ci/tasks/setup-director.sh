@@ -21,7 +21,11 @@ director_uuid=$(bosh status | grep UUID | tr -s ' ' | cut -d' ' -f3)
 echo "Director UUID = "$director_uuid
 
 echo "Upload Stemcell"
-echo "Create Bosh Release Tarball"
+
+echo "Upload BOSH Release to Director"
+bosh upload release bosh-release/release.tgz
+
+echo "Create CPI Release Tarball"
 
 pushd bosh-cpi-release/
   $(bosh create release --force --name="${CPI_RELEASE_NAME}" --with-tarball > create_release_output)
@@ -64,7 +68,7 @@ compilation:
   cloud_properties:
     cpu: 2
     ram: 3_840
-    disk: 8_096
+    disk: 8_192
 
 update:
   canaries: 1
