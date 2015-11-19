@@ -23,11 +23,18 @@ echo "Director UUID = "$director_uuid
 echo "Upload Stemcell"
 
 echo "Upload BOSH Release to Director"
-bosh upload release bosh-release/release.tgz
+bosh --non-interactive --user admin --password admin upload release bosh-release/release.tgz
 
 echo "Create CPI Release Tarball"
 
 pushd bosh-cpi-release/
+cat > config/private.yml << EOF
+---
+blobstore:
+  s3:
+    bucket_name: bosh-rackhd-cpi-blobs
+EOF
+
   $(bosh create release --force --name="${CPI_RELEASE_NAME}" --with-tarball > create_release_output)
   release_tarball_path=$(cat create_release_output | grep 'Release tarball' | cut -d ' ' -f4)
   echo $release_tarball_path
