@@ -29,7 +29,7 @@ vm_ssh_key="${keys_dir}/vm"
 vm_ssh_public_key="${keys_dir}/vm.pub"
 ssh-keygen -N "" -t rsa -b 4096 -f ${vm_ssh_key}
 chmod go-r ${vm_ssh_key}
-vm_ssh_public_key_base64=$(cat ${vm_ssh_public_key} | tr -d '\n' | base64)
+vm_ssh_public_key_base64=$(cat ${vm_ssh_public_key} | tr -d '\n' | base64 | tr -d '\n')
 
 cd bats
 
