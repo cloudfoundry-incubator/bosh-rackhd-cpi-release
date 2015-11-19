@@ -17,19 +17,9 @@ check_param BAT_SPEC
 
 base_dir=${PWD}
 
-bosh_ssh_key="${base_dir}/keys/bats.pem"
-mkdir -p $PWD/keys
-eval $(ssh-agent)
-ssh-keygen -N "" -t rsa -b 4096 -f ${bosh_ssh_key}
-chmod go-r ${bosh_ssh_key}
-ssh-add ${bosh_ssh_key}
-mkdir -p ~/.ssh/id_rsa.pub
-cp ${base_dir}/keys/bats.pem.pub ~/.ssh/id_rsa.pub
-
+mkdir -p ${base_dir}/keys
 director_private_key_path="${base_dir}/keys/director"
-echo ${DIRECTOR_PRIVATE_KEY_DATA} > ${director_private_key_path}
-
-cd bats
+echo "${DIRECTOR_PRIVATE_KEY_DATA}" > ${director_private_key_path}
 
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_DIRECTOR=${BOSH_DIRECTOR_PUBLIC_IP}
@@ -71,6 +61,7 @@ properties:
     gateway: ${PRIMARY_NETWORK_GATEWAY}
 EOF
 
+cd bats
 ./write_gemfile
 rm Gemfile.lock
 bundle install
@@ -78,7 +69,7 @@ bundle install
 # create dev release
 pushd ${PWD}/spec/system/assets/bat-release
 rm -rf dev_releases
-bosh create release --force --name=bat
+bosh create release --force --name bat
 cp dev_releases/bat/* dev_releases/
 bosh --user admin --password admin upload release
 popd
