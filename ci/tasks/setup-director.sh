@@ -75,7 +75,7 @@ compilation:
   cloud_properties:
     cpu: 2
     ram: 3_840
-    disk: 8_192
+    disk: 8_096
 
 update:
   canaries: 1
