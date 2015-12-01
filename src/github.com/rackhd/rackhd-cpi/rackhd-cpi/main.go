@@ -111,6 +111,10 @@ func main() {
 		}
 		exitWithResult("")
 	case cpi.SET_VM_METADATA:
+		err := cpi.SetVMMetadata(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithDefaultError(fmt.Errorf("Error running SetVMMetadata: %s", err))
+		}
 		exitWithResult("")
 	case cpi.HAS_VM:
 		hasVM, err := cpi.HasVM(cpiConfig, req.Arguments)

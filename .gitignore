@@ -31,3 +31,5 @@ bin
 src/9fans.net/
 src/github.com/rogpeppe/
 src/golang.org/x/tools/
+
+src/github.com/mailgun/

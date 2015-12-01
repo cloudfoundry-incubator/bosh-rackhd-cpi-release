@@ -21,7 +21,7 @@ const (
 	Available   = "available"
 	Reserved    = "reserved"
 	Blocked     = "blocked"
-	Disk_Reason = "Node has missing disks"
+	DiskReason  = "Node has missing disks"
 	Maintenance = "maintenance"
 )
 
@@ -82,6 +82,29 @@ func GetNodes(c config.Cpi) ([]Node, error) {
 	return nodes, nil
 }
 
+func GetNodeByCID(c config.Cpi, cid string) (Node, error) {
+	var result Node
+
+	nodes, err := GetNodes(c)
+	if err != nil {
+		return Node{}, err
+	}
+
+	found := false
+	for _, node := range nodes {
+		if node.CID == cid {
+			result = node
+			found = true
+		}
+	}
+
+	if found == false {
+		return result, fmt.Errorf("cid %s was not found", cid)
+	}
+
+	return result, nil
+}
+
 func ReleaseNode(c config.Cpi, nodeID string) error {
 	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
 	reserveFlag := fmt.Sprintf(`{"status": "%s"}`, Available)
@@ -117,7 +140,7 @@ func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return NodeCatalog{}, fmt.Errorf("Failed getting nodes with status: %s, err: %s", resp.Status, err)
+		return NodeCatalog{}, fmt.Errorf("Failed getting node catalog with status: %s, err: %s", resp.Status, err)
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
@@ -136,8 +159,18 @@ func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
 
 func BlockNode(c config.Cpi, nodeID string) error {
 	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
-	blockFlag := fmt.Sprintf(`{"status": "%s", "status_reason": "%s"}`, Blocked, Disk_Reason)
-	body := ioutil.NopCloser(strings.NewReader(blockFlag))
+	blockFlag := fmt.Sprintf(`{"status": "%s", "status_reason": "%s"}`, Blocked, DiskReason)
+	return patchNode(url, blockFlag)
+}
+
+func SetNodeMetadata(c config.Cpi, nodeID string, metadata string) error {
+	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
+	metadataBytes := fmt.Sprintf(`{"metadata": %s}`, metadata)
+	return patchNode(url, metadataBytes)
+}
+
+func patchNode(url string, bytes string) error {
+	body := ioutil.NopCloser(strings.NewReader(bytes))
 	defer body.Close()
 
 	request, err := http.NewRequest("PATCH", url, body)
@@ -146,7 +179,7 @@ func BlockNode(c config.Cpi, nodeID string) error {
 	}
 
 	request.Header.Set("Content-Type", "application/json")
-	request.ContentLength = int64(len(blockFlag))
+	request.ContentLength = int64(len(bytes))
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {

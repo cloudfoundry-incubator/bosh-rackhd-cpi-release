@@ -17,21 +17,10 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 	}
 
 	cid = extInput[0].(string)
-
-	nodes, err := rackhdapi.GetNodes(c)
+	node, err := rackhdapi.GetNodeByCID(c, cid)
+	nodeID := node.ID
 	if err != nil {
 		return err
-	}
-
-	var nodeID string
-	for _, node := range nodes {
-		if node.CID == cid {
-			nodeID = node.ID
-		}
-	}
-
-	if nodeID == "" {
-		return errors.New("cid was not found")
 	}
 
 	workflowName, err := workflows.PublishDeprovisionNodeWorkflow(c, cid)

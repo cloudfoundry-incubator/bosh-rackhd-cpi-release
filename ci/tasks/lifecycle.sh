@@ -95,6 +95,28 @@ if [ -z "${vm_cid}" ] || [ ${vm_cid} == null ]; then
 fi
 echo "got vm cid: ${vm_cid}"
 
+# Prepare set_vm_metadata
+echo -e "\nPrepare metadata"
+cat > metadata <<EOF
+{
+  "director": "director-784430",
+  "deployment": "redis",
+  "job": "redis",
+  "index": "1"
+}
+EOF
+cat metadata
+
+echo -e "\nPrepare set vm metadata request"
+cat > set_vm_metadata_request <<EOF
+{"method": "set_vm_metadata", "arguments": [${vm_cid}, $(cat metadata)]}
+EOF
+cat set_vm_metadata_request
+
+# Run set_vm_metadata
+echo -e "\nRun set vm metadata method"
+cat set_vm_metadata_request | ./rackhd-cpi -configPath=${config_path} 2>&1
+
 # Prepare delete vm request
 echo -e "\nPrepare delete vm request"
 cat > delete_vm_request <<EOF

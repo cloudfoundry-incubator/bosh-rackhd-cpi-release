@@ -62,7 +62,7 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 		})
 	})
 
-	Describe("generateing the set of deprovision workflow tasks and workflow", func() {
+	Describe("generating the set of deprovision workflow tasks and workflow", func() {
 		It("publishes the tasks and workflow", func() {
 			u, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())
