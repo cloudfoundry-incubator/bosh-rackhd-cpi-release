@@ -20,6 +20,7 @@ base_dir=${PWD}
 mkdir -p ${base_dir}/keys
 director_private_key_path="${base_dir}/keys/director"
 echo "${DIRECTOR_PRIVATE_KEY_DATA}" > ${director_private_key_path}
+chmod 600 ${director_private_key_path}
 
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_DIRECTOR=${BOSH_DIRECTOR_PUBLIC_IP}
@@ -63,7 +64,6 @@ EOF
 
 cd bats
 ./write_gemfile
-rm Gemfile.lock
 bundle install
 
 # create dev release
