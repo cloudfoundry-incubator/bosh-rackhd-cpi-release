@@ -32,6 +32,10 @@ export BAT_INFRASTRUCTURE='rackhd'
 export BAT_NETWORKING='manual'
 export BAT_VCAP_PRIVATE_KEY=${director_private_key_path}
 
+cd bats
+./write_gemfile
+bundle install
+
 echo "using bosh CLI version..."
 bosh version
 
@@ -61,10 +65,6 @@ properties:
     static: [${PRIMARY_NETWORK_RANGE}]
     gateway: ${PRIMARY_NETWORK_GATEWAY}
 EOF
-
-cd bats
-./write_gemfile
-bundle install
 
 # create dev release
 pushd ${PWD}/spec/system/assets/bat-release

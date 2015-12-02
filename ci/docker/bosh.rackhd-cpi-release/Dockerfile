@@ -28,4 +28,4 @@ RUN echo eval "$(rbenv init -)" > /etc/profile.d/rbenv.sh && \
     source /etc/profile.d/rbenv.sh && \
     gem install rake -v '~> 10.0'  --no-ri --no-rdoc --force && \
     gem install rspec -v '~> 3.0.0'  --no-ri --no-rdoc && \
-    gem install bundler bosh_cli bosh_cli_plugin_micro bosh_common bosh-core bosh_cpi rspec-its rspec-instafail json nokogiri --no-ri --no-rdoc
+    gem install bundler rspec-its rspec-instafail json nokogiri --no-ri --no-rdoc
