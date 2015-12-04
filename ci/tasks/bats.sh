@@ -45,6 +45,7 @@ bosh -n target ${BOSH_DIRECTOR_PUBLIC_IP}
 cat > ${BAT_DEPLOYMENT_SPEC} <<EOF
 ---
 cpi: rackhd
+manifest_template_path: ${base_dir}/bosh-cpi-release/ci/templates/rackhd.yml.erb
 properties:
   key_name:  bats
   use_static_ip: true

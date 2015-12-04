@@ -1,0 +1,90 @@
+---
+name: <%= properties.name || "bat" %>
+director_uuid: <%= properties.uuid %>
+
+releases:
+  - name: bat
+    version: <%= properties.release || "latest" %>
+
+compilation:
+  workers: 1
+  network: default
+  reuse_compilation_vms: true
+  cloud_properties:
+    public_key: <%= properties.public_key %>
+    instance_type: <%= properties.instance_type || 'm1.small' %>
+    <% if properties.key_name %>
+    key_name: <%= properties.key_name %>
+    <% end %>
+    <% if properties.availability_zone %>
+    availability_zone: <%= properties.availability_zone %>
+    <% end %>
+
+update:
+  canaries: <%= properties.canaries || 1 %>
+  canary_watch_time: 3000-90000
+  update_watch_time: 3000-90000
+  max_in_flight: <%= properties.max_in_flight || 1 %>
+
+networks:
+  <% properties.networks.each do |network| %>
+- name: <%= network.name %>
+  type: <%= network.type %>
+  <% if network.type == 'manual' %>
+  subnets:
+  - range: <%= network.cidr %>
+    reserved:
+      <% network.reserved.each do |range| %>
+      - <%= range %>
+      <% end %>
+    static:
+      <% network.static.each do |range| %>
+      - <%= range %>
+      <% end %>
+    gateway: <%= network.gateway %>
+    dns: <%= p('dns').inspect %>
+  <% else %>
+  dns: <%= p('dns').inspect %>
+  <% end %>
+<% end %>
+
+resource_pools:
+  - name: common
+    network: default
+    size: <%= properties.pool_size %>
+    stemcell:
+      name: <%= properties.stemcell.name %>
+      version: '<%= properties.stemcell.version %>'
+    cloud_properties:
+      public_key: <%= properties.public_key %>
+jobs:
+  - name: <%= properties.job || "batlight" %>
+    templates: <% (properties.templates || ["batlight"]).each do |template| %>
+    - name: <%= template %>
+    <% end %>
+    instances: 1
+    resource_pool: common
+    <% if properties.persistent_disk %>
+    persistent_disk: <%= properties.persistent_disk %>
+    <% end %>
+    networks:
+    <% properties.job_networks.each_with_index do |network, i| %>
+      - name: <%= network.name %>
+        type: <%= network.type %>
+      <% if properties.use_static_ip %>
+        static_ips:
+        - <%= network.static_ip %>
+      <% end %>
+    <% end %>
+
+properties:
+  batlight:
+    <% if properties.batlight.fail %>
+    fail: <%= properties.batlight.fail %>
+    <% end %>
+    <% if properties.batlight.missing %>
+    missing: <%= properties.batlight.missing %>
+    <% end %>
+    <% if properties.batlight.drain_type %>
+    drain_type: <%= properties.batlight.drain_type %>
+    <% end %>
