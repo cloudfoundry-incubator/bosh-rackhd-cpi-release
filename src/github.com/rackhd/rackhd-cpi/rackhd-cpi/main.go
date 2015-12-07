@@ -32,11 +32,7 @@ func exitWithResult(result interface{}) {
 
 func main() {
 	logLevel := os.Getenv("RACKHD_CPI_LOG_LEVEL")
-	if logLevel != "" {
-		log.SetOutput(os.Stderr)
-	} else {
-		log.SetOutput(ioutil.Discard)
-	}
+	log.SetOutput(os.Stderr)
 
 	switch logLevel {
 	case "DEBUG":
