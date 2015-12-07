@@ -16,6 +16,7 @@ echo "Check to see if director exists at" $BOSH_DIRECTOR_PUBLIC_IP
 # check_for_rogue_vm $BOSH_DIRECTOR_PUBLIC_IP
 echo "Director" $BOSH_DIRECTOR_PUBLIC_IP "does not exist"
 
+gem install bosh_cli --no-ri --no-rdoc
 bosh -n target ${BOSH_VSPHERE_DIRECTOR}
 director_uuid=$(bosh status | grep UUID | tr -s ' ' | cut -d' ' -f3)
 echo "Director UUID = "$director_uuid
