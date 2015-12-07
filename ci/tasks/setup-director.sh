@@ -12,23 +12,13 @@ check_param RACKHD_API_URI
 check_param RACKHD_NETWORK
 check_param CPI_RELEASE_NAME
 
-echo "Check to see if director exists at" $BOSH_DIRECTOR_PUBLIC_IP
-# check_for_rogue_vm $BOSH_DIRECTOR_PUBLIC_IP
-echo "Director" $BOSH_DIRECTOR_PUBLIC_IP "does not exist"
+base_dir=${PWD}
 
 gem install bosh_cli --no-ri --no-rdoc
 bosh -n target ${BOSH_VSPHERE_DIRECTOR}
-director_uuid=$(bosh status | grep UUID | tr -s ' ' | cut -d' ' -f3)
-echo "Director UUID = "$director_uuid
+bosh --non-interactive --user admin --password admin upload release ${base_dir}/bosh-release/release.tgz
 
-echo "Upload Stemcell"
-
-echo "Upload BOSH Release to Director"
-bosh --non-interactive --user admin --password admin upload release bosh-release/release.tgz
-
-echo "Create CPI Release Tarball"
-
-pushd bosh-cpi-release/
+cd bosh-cpi-release/
 cat > config/private.yml << EOF
 ---
 blobstore:
@@ -36,11 +26,8 @@ blobstore:
     bucket_name: bosh-rackhd-cpi-blobs
 EOF
 
-  $(bosh create release --force --name="${CPI_RELEASE_NAME}" --with-tarball > create_release_output)
-  release_tarball_path=$(cat create_release_output | grep 'Release tarball' | cut -d ' ' -f4)
-  echo $release_tarball_path
-  bosh --user admin --password admin upload release $release_tarball_path
-popd
+bosh create release --force --name "${CPI_RELEASE_NAME}"
+bosh --user admin --password admin upload release
 
 public_key=$(echo ${BOSH_DIRECTOR_PUBLIC_KEY} | base64)
 password="\$6\$4gDD3aV0rdqlrKC\$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0"
@@ -48,7 +35,7 @@ password="\$6\$4gDD3aV0rdqlrKC\$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtn
 cat > "./director-manifest.yml" <<EOF
 ---
 name: ${DIRECTOR_DEPLOYMENT_NAME}
-director_uuid: ${director_uuid}
+director_uuid: $(bosh status --uuid)
 
 disk_pools:
 - name: disks
