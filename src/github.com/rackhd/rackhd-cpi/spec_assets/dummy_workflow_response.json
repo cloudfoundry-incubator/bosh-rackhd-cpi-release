@@ -1,0 +1,1036 @@
+{
+  "node": "5665a65a0561790005b77b85",
+  "_status": "failed",
+  "cancelled": false,
+  "completeEventString": "complete",
+  "context": {
+    "target": "5665a65a0561790005b77b85",
+    "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+    "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+    "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+    "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+    "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+  },
+  "createdAt": "2015-12-07T15:36:40.373Z",
+  "definition": {
+    "injectableName": "Graph.BOSH.ProvisionNode.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+    "friendlyName": "BOSH Provision Node.UPLOADED_BY_RACKHD_CPI",
+    "options": {
+      "defaults": {
+        "agentSettingsFile": "5665a65a0561790005b77b85",
+        "agentSettingsPath": "/var/vcap/bosh/agent-bootstrap-env.json",
+        "cid": "82f995e2-b550-42cc-88ee-6bae74f9fb46",
+        "downloadDir": "/opt/downloads",
+        "registrySettingsFile": null,
+        "registrySettingsPath": null,
+        "stemcellFile": "32b16930-a2d8-4fa8-4dbe-55d686110c73"
+      }
+    },
+    "tasks": [
+      {
+        "taskName": "Task.Linux.Bootstrap.Ubuntu",
+        "label": "bootstrap-ubuntu",
+        "ignoreFailure": true
+      },
+      {
+        "taskName": "Task.BOSH.Provision.Node.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+        "label": "provision-node",
+        "waitOn": {
+          "d2f9befd-dad6-4f33-bc28-377acff9f687": "finished"
+        }
+      },
+      {
+        "taskName": "Task.BOSH.SetNodeId.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+        "label": "set-id",
+        "waitOn": {
+          "997c87d1-9153-4a05-9c40-5a6a9411f7df": "succeeded"
+        }
+      },
+      {
+        "taskName": "Task.ProcShellReboot",
+        "label": "reboot",
+        "waitOn": {
+          "7fa26bc1-1c04-451b-b182-20ac7933b9b1": "succeeded"
+        }
+      }
+    ]
+  },
+  "failedStates": [
+    "failed",
+    "timeout",
+    "cancelled"
+  ],
+  "finishedStates": [
+    "failed",
+    "succeeded",
+    "timeout",
+    "cancelled"
+  ],
+  "finishedTasks": [
+    {
+      "definition": {
+        "friendlyName": "Bootstrap Ubuntu",
+        "injectableName": "Task.Linux.Bootstrap.Ubuntu",
+        "implementsTask": "Task.Base.Linux.Bootstrap",
+        "options": {
+          "kernelversion": "vmlinuz-3.13.0-32-generic",
+          "kernel": "common/vmlinuz-3.13.0-32-generic",
+          "initrd": "common/initrd.img-3.13.0-32-generic",
+          "basefs": "common/base.trusty.3.13.0-32.squashfs.img",
+          "overlayfs": "common/overlayfs_all_files.cpio.gz",
+          "profile": "linux.ipxe",
+          "comport": "ttyS0"
+        },
+        "properties": {
+          "os": {
+            "linux": {
+              "distribution": "ubuntu",
+              "release": "trusty",
+              "kernel": "3.13.0-32-generic",
+              "type": "microkernel"
+            }
+          },
+          "power": {
+            "state": "reboot"
+          }
+        },
+        "runJob": "Job.Linux.Bootstrap"
+      },
+      "cancelled": false,
+      "retriesAttempted": 0,
+      "retriesAllowed": 5,
+      "instanceId": "d2f9befd-dad6-4f33-bc28-377acff9f687",
+      "nodeId": "5665a65a0561790005b77b85",
+      "name": "Task.Linux.Bootstrap.Ubuntu",
+      "friendlyName": "Bootstrap Ubuntu",
+      "waitingOn": [],
+      "ignoreFailure": true,
+      "tags": [],
+      "properties": {
+        "os": {
+          "linux": {
+            "distribution": "ubuntu",
+            "release": "trusty",
+            "kernel": "3.13.0-32-generic",
+            "type": "microkernel"
+          }
+        },
+        "power": {
+          "state": "reboot"
+        }
+      },
+      "context": {},
+      "parentContext": {
+        "target": "5665a65a0561790005b77b85",
+        "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+        "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+      },
+      "state": "succeeded",
+      "successStates": [
+        "succeeded"
+      ],
+      "failedStates": [
+        "failed",
+        "timeout",
+        "cancelled"
+      ],
+      "options": {
+        "kernelversion": "vmlinuz-3.13.0-32-generic",
+        "kernel": "common/vmlinuz-3.13.0-32-generic",
+        "initrd": "common/initrd.img-3.13.0-32-generic",
+        "basefs": "common/base.trusty.3.13.0-32.squashfs.img",
+        "overlayfs": "common/overlayfs_all_files.cpio.gz",
+        "profile": "linux.ipxe",
+        "comport": "ttyS0"
+      },
+      "job": {
+        "options": {
+          "kernelversion": "vmlinuz-3.13.0-32-generic",
+          "kernel": "common/vmlinuz-3.13.0-32-generic",
+          "initrd": "common/initrd.img-3.13.0-32-generic",
+          "basefs": "common/base.trusty.3.13.0-32.squashfs.img",
+          "overlayfs": "common/overlayfs_all_files.cpio.gz",
+          "profile": "linux.ipxe",
+          "comport": "ttyS0"
+        },
+        "context": {
+          "target": "5665a65a0561790005b77b85",
+          "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+          "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+          "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+          "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+          "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+        },
+        "taskId": "d2f9befd-dad6-4f33-bc28-377acff9f687",
+        "nodeId": "5665a65a0561790005b77b85",
+        "profile": "linux.ipxe"
+      }
+    },
+    {
+      "definition": {
+        "injectableName": "Task.BOSH.Provision.Node.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+        "friendlyName": "Provision Node.UPLOADED_BY_RACKHD_CPI",
+        "implementsTask": "Task.Base.Linux.Commands",
+        "properties": {
+          "commands": {},
+          "os": {
+            "linux": {
+              "distribution": "ubuntu",
+              "release": "trusty",
+              "kernel": "3.13.0-32-generic",
+              "type": "microkernel"
+            }
+          },
+          "power": {
+            "state": "reboot"
+          }
+        },
+        "options": {
+          "agentSettingsFile": "5665a65a0561790005b77b85",
+          "agentSettingsMd5Uri": "{{ api.files }}/md5/{{ options.agentSettingsFile }}/latest",
+          "agentSettingsPath": "/var/vcap/bosh/agent-bootstrap-env.json",
+          "agentSettingsUri": "{{ api.files }}/{{ options.agentSettingsFile }}/latest",
+          "commands": [
+            "curl --retry 3 {{ options.stemcellUri }} -o {{ options.downloadDir }}/{{ options.stemcellFile }}",
+            "curl --retry 3 {{ options.agentSettingsUri }} -o {{ options.downloadDir }}/{{ options.agentSettingsFile }}",
+            "curl {{ options.stemcellFileMd5Uri }} | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
+            "curl {{ options.agentSettingsMd5Uri }} | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5",
+            "md5sum {{ options.downloadDir }}/{{ options.stemcellFile }} | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5",
+            "md5sum {{ options.downloadDir }}/{{ options.agentSettingsFile }} | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5",
+            "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)",
+            "test $(cat /opt/downloads/agentSettingsCalculatedMd5) = $(cat /opt/downloads/agentSettingsExpectedMd5)",
+            "sudo umount {{ options.device }} || true",
+            "sudo tar --to-stdout -xvf {{ options.downloadDir }}/{{ options.stemcellFile }} | sudo dd of={{ options.device }}",
+            "sudo sfdisk -R {{ options.device }}",
+            "sudo mount {{ options.device }}1 /mnt",
+            "sudo cp {{ options.downloadDir }}/{{ options.agentSettingsFile }} /mnt/{{ options.agentSettingsPath }}",
+            "sudo sync"
+          ],
+          "device": "/dev/sda",
+          "downloadDir": "/opt/downloads",
+          "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
+          "stemcellFile": "32b16930-a2d8-4fa8-4dbe-55d686110c73",
+          "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest"
+        },
+        "runJob": "Job.Linux.Commands"
+      },
+      "cancelled": false,
+      "retriesAttempted": 0,
+      "retriesAllowed": 5,
+      "instanceId": "997c87d1-9153-4a05-9c40-5a6a9411f7df",
+      "nodeId": "5665a65a0561790005b77b85",
+      "name": "Task.BOSH.Provision.Node.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+      "friendlyName": "Provision Node.UPLOADED_BY_RACKHD_CPI",
+      "waitingOn": {
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": "finished"
+      },
+      "ignoreFailure": false,
+      "tags": [],
+      "properties": {
+        "commands": {},
+        "os": {
+          "linux": {
+            "distribution": "ubuntu",
+            "release": "trusty",
+            "kernel": "3.13.0-32-generic",
+            "type": "microkernel"
+          }
+        },
+        "power": {
+          "state": "reboot"
+        }
+      },
+      "context": {},
+      "parentContext": {
+        "target": "5665a65a0561790005b77b85",
+        "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+        "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+      },
+      "state": "failed",
+      "successStates": [
+        "succeeded"
+      ],
+      "failedStates": [
+        "failed",
+        "timeout",
+        "cancelled"
+      ],
+      "options": {
+        "agentSettingsFile": "5665a65a0561790005b77b85",
+        "agentSettingsMd5Uri": "http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest",
+        "agentSettingsPath": "/var/vcap/bosh/agent-bootstrap-env.json",
+        "agentSettingsUri": "http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest",
+        "commands": [
+          "curl --retry 3 http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest -o /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73",
+          "curl --retry 3 http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest -o /opt/downloads/5665a65a0561790005b77b85",
+          "curl http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
+          "curl http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5",
+          "md5sum /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5",
+          "md5sum /opt/downloads/5665a65a0561790005b77b85 | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5",
+          "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)",
+          "test $(cat /opt/downloads/agentSettingsCalculatedMd5) = $(cat /opt/downloads/agentSettingsExpectedMd5)",
+          "sudo umount /dev/sda || true",
+          "sudo tar --to-stdout -xvf /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | sudo dd of=/dev/sda",
+          "sudo sfdisk -R /dev/sda",
+          "sudo mount /dev/sda1 /mnt",
+          "sudo cp /opt/downloads/5665a65a0561790005b77b85 /mnt//var/vcap/bosh/agent-bootstrap-env.json",
+          "sudo sync"
+        ],
+        "device": "/dev/sda",
+        "downloadDir": "/opt/downloads",
+        "stemcellFileMd5Uri": "http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest",
+        "stemcellFile": "32b16930-a2d8-4fa8-4dbe-55d686110c73",
+        "stemcellUri": "http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest",
+        "runOnlyOnce": true
+      },
+      "job": {
+        "options": {
+          "agentSettingsFile": "5665a65a0561790005b77b85",
+          "agentSettingsMd5Uri": "http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest",
+          "agentSettingsPath": "/var/vcap/bosh/agent-bootstrap-env.json",
+          "agentSettingsUri": "http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest",
+          "commands": [
+            "curl --retry 3 http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest -o /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73",
+            "curl --retry 3 http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest -o /opt/downloads/5665a65a0561790005b77b85",
+            "curl http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
+            "curl http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5",
+            "md5sum /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5",
+            "md5sum /opt/downloads/5665a65a0561790005b77b85 | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5",
+            "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)",
+            "test $(cat /opt/downloads/agentSettingsCalculatedMd5) = $(cat /opt/downloads/agentSettingsExpectedMd5)",
+            "sudo umount /dev/sda || true",
+            "sudo tar --to-stdout -xvf /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | sudo dd of=/dev/sda",
+            "sudo sfdisk -R /dev/sda",
+            "sudo mount /dev/sda1 /mnt",
+            "sudo cp /opt/downloads/5665a65a0561790005b77b85 /mnt//var/vcap/bosh/agent-bootstrap-env.json",
+            "sudo sync"
+          ],
+          "device": "/dev/sda",
+          "downloadDir": "/opt/downloads",
+          "stemcellFileMd5Uri": "http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest",
+          "stemcellFile": "32b16930-a2d8-4fa8-4dbe-55d686110c73",
+          "stemcellUri": "http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest",
+          "runOnlyOnce": true
+        },
+        "context": {
+          "target": "5665a65a0561790005b77b85",
+          "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+          "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+          "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+          "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+          "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+        },
+        "taskId": "997c87d1-9153-4a05-9c40-5a6a9411f7df",
+        "commands": [
+          {
+            "cmd": "curl --retry 3 http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest -o /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73"
+          },
+          {
+            "cmd": "curl --retry 3 http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest -o /opt/downloads/5665a65a0561790005b77b85"
+          },
+          {
+            "cmd": "curl http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5"
+          },
+          {
+            "cmd": "curl http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5"
+          },
+          {
+            "cmd": "md5sum /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5"
+          },
+          {
+            "cmd": "md5sum /opt/downloads/5665a65a0561790005b77b85 | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5"
+          },
+          {
+            "cmd": "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)"
+          },
+          {
+            "cmd": "test $(cat /opt/downloads/agentSettingsCalculatedMd5) = $(cat /opt/downloads/agentSettingsExpectedMd5)"
+          },
+          {
+            "cmd": "sudo umount /dev/sda || true"
+          },
+          {
+            "cmd": "sudo tar --to-stdout -xvf /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | sudo dd of=/dev/sda"
+          },
+          {
+            "cmd": "sudo sfdisk -R /dev/sda"
+          },
+          {
+            "cmd": "sudo mount /dev/sda1 /mnt"
+          },
+          {
+            "cmd": "sudo cp /opt/downloads/5665a65a0561790005b77b85 /mnt//var/vcap/bosh/agent-bootstrap-env.json"
+          },
+          {
+            "cmd": "sudo sync"
+          }
+        ],
+        "nodeId": "5665a65a0561790005b77b85",
+        "hasSentCommands": true
+      },
+      "error": {}
+    },
+    {
+      "definition": {
+        "injectableName": "Task.BOSH.SetNodeId.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+        "friendlyName": "Set Id and Reboot VM.UPLOADED_BY_RACKHD_CPI",
+        "implementsTask": "Task.Base.Linux.Commands",
+        "properties": {
+          "commands": {},
+          "os": {
+            "linux": {
+              "distribution": "ubuntu",
+              "release": "trusty",
+              "kernel": "3.13.0-32-generic",
+              "type": "microkernel"
+            }
+          },
+          "power": {
+            "state": "reboot"
+          }
+        },
+        "options": {
+          "cid": "82f995e2-b550-42cc-88ee-6bae74f9fb46",
+          "commands": [
+            "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'"
+          ]
+        },
+        "runJob": "Job.Linux.Commands"
+      },
+      "cancelled": false,
+      "retriesAttempted": 0,
+      "retriesAllowed": 5,
+      "instanceId": "7fa26bc1-1c04-451b-b182-20ac7933b9b1",
+      "nodeId": "5665a65a0561790005b77b85",
+      "name": "Task.BOSH.SetNodeId.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+      "friendlyName": "Set Id and Reboot VM.UPLOADED_BY_RACKHD_CPI",
+      "waitingOn": {
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": "succeeded"
+      },
+      "ignoreFailure": false,
+      "tags": [],
+      "properties": {
+        "commands": {},
+        "os": {
+          "linux": {
+            "distribution": "ubuntu",
+            "release": "trusty",
+            "kernel": "3.13.0-32-generic",
+            "type": "microkernel"
+          }
+        },
+        "power": {
+          "state": "reboot"
+        }
+      },
+      "context": {},
+      "parentContext": {
+        "target": "5665a65a0561790005b77b85",
+        "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+        "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+      },
+      "state": "cancelled",
+      "successStates": [
+        "succeeded"
+      ],
+      "failedStates": [
+        "failed",
+        "timeout",
+        "cancelled"
+      ],
+      "options": {
+        "cid": "82f995e2-b550-42cc-88ee-6bae74f9fb46",
+        "commands": [
+          "curl -X PATCH http://172.31.128.1:8080/api/current/nodes/5665a65a0561790005b77b85 -H \"Content-Type: application/json\" -d '{\"cid\": \"82f995e2-b550-42cc-88ee-6bae74f9fb46\" }'"
+        ]
+      },
+      "error": {
+        "message": "Cancelled by taskgraph with state failed",
+        "name": "TaskCancellationError",
+        "context": {}
+      }
+    },
+    {
+      "definition": {
+        "friendlyName": "Reboot Node via proc",
+        "injectableName": "Task.ProcShellReboot",
+        "implementsTask": "Task.Base.ShellReboot",
+        "options": {
+          "rebootCode": 1
+        },
+        "properties": {
+          "power": {
+            "state": "reboot"
+          },
+          "catalog": {
+            "type": "dmi"
+          },
+          "os": {
+            "linux": {
+              "distribution": "ubuntu",
+              "release": "trusty",
+              "kernel": "3.13.0-32-generic",
+              "type": "microkernel"
+            }
+          },
+          "commands": {}
+        },
+        "runJob": "Job.Linux.ShellReboot"
+      },
+      "cancelled": false,
+      "retriesAttempted": 0,
+      "retriesAllowed": 5,
+      "instanceId": "64d26e4a-270c-40bf-93be-7a965aa9ba95",
+      "nodeId": "5665a65a0561790005b77b85",
+      "name": "Task.ProcShellReboot",
+      "friendlyName": "Reboot Node via proc",
+      "waitingOn": {
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": "succeeded"
+      },
+      "ignoreFailure": false,
+      "tags": [],
+      "properties": {
+        "power": {
+          "state": "reboot"
+        },
+        "catalog": {
+          "type": "dmi"
+        },
+        "os": {
+          "linux": {
+            "distribution": "ubuntu",
+            "release": "trusty",
+            "kernel": "3.13.0-32-generic",
+            "type": "microkernel"
+          }
+        },
+        "commands": {}
+      },
+      "context": {},
+      "parentContext": {
+        "target": "5665a65a0561790005b77b85",
+        "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+        "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+      },
+      "state": "cancelled",
+      "successStates": [
+        "succeeded"
+      ],
+      "failedStates": [
+        "failed",
+        "timeout",
+        "cancelled"
+      ],
+      "options": {
+        "rebootCode": 1
+      },
+      "error": {
+        "message": "Cancelled by taskgraph with state failed",
+        "name": "TaskCancellationError",
+        "context": {}
+      }
+    }
+  ],
+  "injectableName": "Graph.BOSH.ProvisionNode.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+  "instanceId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+  "logContext": {
+    "graphInstance": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+    "graphName": "BOSH Provision Node.UPLOADED_BY_RACKHD_CPI",
+    "id": "5665a65a0561790005b77b85"
+  },
+  "name": "BOSH Provision Node.UPLOADED_BY_RACKHD_CPI",
+  "pendingTasks": [],
+  "ready": [],
+  "serviceGraph": null,
+  "tasks": {
+    "d2f9befd-dad6-4f33-bc28-377acff9f687": {
+      "definition": {
+        "friendlyName": "Bootstrap Ubuntu",
+        "injectableName": "Task.Linux.Bootstrap.Ubuntu",
+        "implementsTask": "Task.Base.Linux.Bootstrap",
+        "options": {
+          "kernelversion": "vmlinuz-3.13.0-32-generic",
+          "kernel": "common/vmlinuz-3.13.0-32-generic",
+          "initrd": "common/initrd.img-3.13.0-32-generic",
+          "basefs": "common/base.trusty.3.13.0-32.squashfs.img",
+          "overlayfs": "common/overlayfs_all_files.cpio.gz",
+          "profile": "linux.ipxe",
+          "comport": "ttyS0"
+        },
+        "properties": {
+          "os": {
+            "linux": {
+              "distribution": "ubuntu",
+              "release": "trusty",
+              "kernel": "3.13.0-32-generic",
+              "type": "microkernel"
+            }
+          },
+          "power": {
+            "state": "reboot"
+          }
+        },
+        "runJob": "Job.Linux.Bootstrap"
+      },
+      "cancelled": false,
+      "retriesAttempted": 0,
+      "retriesAllowed": 5,
+      "instanceId": "d2f9befd-dad6-4f33-bc28-377acff9f687",
+      "nodeId": "5665a65a0561790005b77b85",
+      "name": "Task.Linux.Bootstrap.Ubuntu",
+      "friendlyName": "Bootstrap Ubuntu",
+      "waitingOn": [],
+      "ignoreFailure": true,
+      "tags": [],
+      "properties": {
+        "os": {
+          "linux": {
+            "distribution": "ubuntu",
+            "release": "trusty",
+            "kernel": "3.13.0-32-generic",
+            "type": "microkernel"
+          }
+        },
+        "power": {
+          "state": "reboot"
+        }
+      },
+      "context": {},
+      "parentContext": {
+        "target": "5665a65a0561790005b77b85",
+        "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+        "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+      },
+      "state": "succeeded",
+      "successStates": [
+        "succeeded"
+      ],
+      "failedStates": [
+        "failed",
+        "timeout",
+        "cancelled"
+      ],
+      "options": {
+        "kernelversion": "vmlinuz-3.13.0-32-generic",
+        "kernel": "common/vmlinuz-3.13.0-32-generic",
+        "initrd": "common/initrd.img-3.13.0-32-generic",
+        "basefs": "common/base.trusty.3.13.0-32.squashfs.img",
+        "overlayfs": "common/overlayfs_all_files.cpio.gz",
+        "profile": "linux.ipxe",
+        "comport": "ttyS0"
+      },
+      "job": {
+        "options": {
+          "kernelversion": "vmlinuz-3.13.0-32-generic",
+          "kernel": "common/vmlinuz-3.13.0-32-generic",
+          "initrd": "common/initrd.img-3.13.0-32-generic",
+          "basefs": "common/base.trusty.3.13.0-32.squashfs.img",
+          "overlayfs": "common/overlayfs_all_files.cpio.gz",
+          "profile": "linux.ipxe",
+          "comport": "ttyS0"
+        },
+        "context": {
+          "target": "5665a65a0561790005b77b85",
+          "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+          "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+          "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+          "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+          "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+        },
+        "taskId": "d2f9befd-dad6-4f33-bc28-377acff9f687",
+        "nodeId": "5665a65a0561790005b77b85",
+        "profile": "linux.ipxe"
+      }
+    },
+    "997c87d1-9153-4a05-9c40-5a6a9411f7df": {
+      "definition": {
+        "injectableName": "Task.BOSH.Provision.Node.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+        "friendlyName": "Provision Node.UPLOADED_BY_RACKHD_CPI",
+        "implementsTask": "Task.Base.Linux.Commands",
+        "properties": {
+          "commands": {},
+          "os": {
+            "linux": {
+              "distribution": "ubuntu",
+              "release": "trusty",
+              "kernel": "3.13.0-32-generic",
+              "type": "microkernel"
+            }
+          },
+          "power": {
+            "state": "reboot"
+          }
+        },
+        "options": {
+          "agentSettingsFile": "5665a65a0561790005b77b85",
+          "agentSettingsMd5Uri": "{{ api.files }}/md5/{{ options.agentSettingsFile }}/latest",
+          "agentSettingsPath": "/var/vcap/bosh/agent-bootstrap-env.json",
+          "agentSettingsUri": "{{ api.files }}/{{ options.agentSettingsFile }}/latest",
+          "commands": [
+            "curl --retry 3 {{ options.stemcellUri }} -o {{ options.downloadDir }}/{{ options.stemcellFile }}",
+            "curl --retry 3 {{ options.agentSettingsUri }} -o {{ options.downloadDir }}/{{ options.agentSettingsFile }}",
+            "curl {{ options.stemcellFileMd5Uri }} | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
+            "curl {{ options.agentSettingsMd5Uri }} | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5",
+            "md5sum {{ options.downloadDir }}/{{ options.stemcellFile }} | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5",
+            "md5sum {{ options.downloadDir }}/{{ options.agentSettingsFile }} | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5",
+            "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)",
+            "test $(cat /opt/downloads/agentSettingsCalculatedMd5) = $(cat /opt/downloads/agentSettingsExpectedMd5)",
+            "sudo umount {{ options.device }} || true",
+            "sudo tar --to-stdout -xvf {{ options.downloadDir }}/{{ options.stemcellFile }} | sudo dd of={{ options.device }}",
+            "sudo sfdisk -R {{ options.device }}",
+            "sudo mount {{ options.device }}1 /mnt",
+            "sudo cp {{ options.downloadDir }}/{{ options.agentSettingsFile }} /mnt/{{ options.agentSettingsPath }}",
+            "sudo sync"
+          ],
+          "device": "/dev/sda",
+          "downloadDir": "/opt/downloads",
+          "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
+          "stemcellFile": "32b16930-a2d8-4fa8-4dbe-55d686110c73",
+          "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest"
+        },
+        "runJob": "Job.Linux.Commands"
+      },
+      "cancelled": false,
+      "retriesAttempted": 0,
+      "retriesAllowed": 5,
+      "instanceId": "997c87d1-9153-4a05-9c40-5a6a9411f7df",
+      "nodeId": "5665a65a0561790005b77b85",
+      "name": "Task.BOSH.Provision.Node.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+      "friendlyName": "Provision Node.UPLOADED_BY_RACKHD_CPI",
+      "waitingOn": {
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": "finished"
+      },
+      "ignoreFailure": false,
+      "tags": [],
+      "properties": {
+        "commands": {},
+        "os": {
+          "linux": {
+            "distribution": "ubuntu",
+            "release": "trusty",
+            "kernel": "3.13.0-32-generic",
+            "type": "microkernel"
+          }
+        },
+        "power": {
+          "state": "reboot"
+        }
+      },
+      "context": {},
+      "parentContext": {
+        "target": "5665a65a0561790005b77b85",
+        "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+        "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+      },
+      "state": "failed",
+      "successStates": [
+        "succeeded"
+      ],
+      "failedStates": [
+        "failed",
+        "timeout",
+        "cancelled"
+      ],
+      "options": {
+        "agentSettingsFile": "5665a65a0561790005b77b85",
+        "agentSettingsMd5Uri": "http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest",
+        "agentSettingsPath": "/var/vcap/bosh/agent-bootstrap-env.json",
+        "agentSettingsUri": "http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest",
+        "commands": [
+          "curl --retry 3 http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest -o /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73",
+          "curl --retry 3 http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest -o /opt/downloads/5665a65a0561790005b77b85",
+          "curl http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
+          "curl http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5",
+          "md5sum /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5",
+          "md5sum /opt/downloads/5665a65a0561790005b77b85 | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5",
+          "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)",
+          "test $(cat /opt/downloads/agentSettingsCalculatedMd5) = $(cat /opt/downloads/agentSettingsExpectedMd5)",
+          "sudo umount /dev/sda || true",
+          "sudo tar --to-stdout -xvf /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | sudo dd of=/dev/sda",
+          "sudo sfdisk -R /dev/sda",
+          "sudo mount /dev/sda1 /mnt",
+          "sudo cp /opt/downloads/5665a65a0561790005b77b85 /mnt//var/vcap/bosh/agent-bootstrap-env.json",
+          "sudo sync"
+        ],
+        "device": "/dev/sda",
+        "downloadDir": "/opt/downloads",
+        "stemcellFileMd5Uri": "http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest",
+        "stemcellFile": "32b16930-a2d8-4fa8-4dbe-55d686110c73",
+        "stemcellUri": "http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest",
+        "runOnlyOnce": true
+      },
+      "job": {
+        "options": {
+          "agentSettingsFile": "5665a65a0561790005b77b85",
+          "agentSettingsMd5Uri": "http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest",
+          "agentSettingsPath": "/var/vcap/bosh/agent-bootstrap-env.json",
+          "agentSettingsUri": "http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest",
+          "commands": [
+            "curl --retry 3 http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest -o /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73",
+            "curl --retry 3 http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest -o /opt/downloads/5665a65a0561790005b77b85",
+            "curl http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
+            "curl http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5",
+            "md5sum /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5",
+            "md5sum /opt/downloads/5665a65a0561790005b77b85 | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5",
+            "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)",
+            "test $(cat /opt/downloads/agentSettingsCalculatedMd5) = $(cat /opt/downloads/agentSettingsExpectedMd5)",
+            "sudo umount /dev/sda || true",
+            "sudo tar --to-stdout -xvf /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | sudo dd of=/dev/sda",
+            "sudo sfdisk -R /dev/sda",
+            "sudo mount /dev/sda1 /mnt",
+            "sudo cp /opt/downloads/5665a65a0561790005b77b85 /mnt//var/vcap/bosh/agent-bootstrap-env.json",
+            "sudo sync"
+          ],
+          "device": "/dev/sda",
+          "downloadDir": "/opt/downloads",
+          "stemcellFileMd5Uri": "http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest",
+          "stemcellFile": "32b16930-a2d8-4fa8-4dbe-55d686110c73",
+          "stemcellUri": "http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest",
+          "runOnlyOnce": true
+        },
+        "context": {
+          "target": "5665a65a0561790005b77b85",
+          "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+          "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+          "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+          "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+          "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+        },
+        "taskId": "997c87d1-9153-4a05-9c40-5a6a9411f7df",
+        "commands": [
+          {
+            "cmd": "curl --retry 3 http://172.31.128.1:8080/api/current/files/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest -o /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73"
+          },
+          {
+            "cmd": "curl --retry 3 http://172.31.128.1:8080/api/current/files/5665a65a0561790005b77b85/latest -o /opt/downloads/5665a65a0561790005b77b85"
+          },
+          {
+            "cmd": "curl http://172.31.128.1:8080/api/current/files/md5/32b16930-a2d8-4fa8-4dbe-55d686110c73/latest | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5"
+          },
+          {
+            "cmd": "curl http://172.31.128.1:8080/api/current/files/md5/5665a65a0561790005b77b85/latest | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5"
+          },
+          {
+            "cmd": "md5sum /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5"
+          },
+          {
+            "cmd": "md5sum /opt/downloads/5665a65a0561790005b77b85 | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5"
+          },
+          {
+            "cmd": "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)"
+          },
+          {
+            "cmd": "test $(cat /opt/downloads/agentSettingsCalculatedMd5) = $(cat /opt/downloads/agentSettingsExpectedMd5)"
+          },
+          {
+            "cmd": "sudo umount /dev/sda || true"
+          },
+          {
+            "cmd": "sudo tar --to-stdout -xvf /opt/downloads/32b16930-a2d8-4fa8-4dbe-55d686110c73 | sudo dd of=/dev/sda"
+          },
+          {
+            "cmd": "sudo sfdisk -R /dev/sda"
+          },
+          {
+            "cmd": "sudo mount /dev/sda1 /mnt"
+          },
+          {
+            "cmd": "sudo cp /opt/downloads/5665a65a0561790005b77b85 /mnt//var/vcap/bosh/agent-bootstrap-env.json"
+          },
+          {
+            "cmd": "sudo sync"
+          }
+        ],
+        "nodeId": "5665a65a0561790005b77b85",
+        "hasSentCommands": true
+      },
+      "error": {}
+    },
+    "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {
+      "definition": {
+        "injectableName": "Task.BOSH.SetNodeId.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+        "friendlyName": "Set Id and Reboot VM.UPLOADED_BY_RACKHD_CPI",
+        "implementsTask": "Task.Base.Linux.Commands",
+        "properties": {
+          "commands": {},
+          "os": {
+            "linux": {
+              "distribution": "ubuntu",
+              "release": "trusty",
+              "kernel": "3.13.0-32-generic",
+              "type": "microkernel"
+            }
+          },
+          "power": {
+            "state": "reboot"
+          }
+        },
+        "options": {
+          "cid": "82f995e2-b550-42cc-88ee-6bae74f9fb46",
+          "commands": [
+            "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'"
+          ]
+        },
+        "runJob": "Job.Linux.Commands"
+      },
+      "cancelled": false,
+      "retriesAttempted": 0,
+      "retriesAllowed": 5,
+      "instanceId": "7fa26bc1-1c04-451b-b182-20ac7933b9b1",
+      "nodeId": "5665a65a0561790005b77b85",
+      "name": "Task.BOSH.SetNodeId.82f995e2-b550-42cc-88ee-6bae74f9fb46",
+      "friendlyName": "Set Id and Reboot VM.UPLOADED_BY_RACKHD_CPI",
+      "waitingOn": {
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": "succeeded"
+      },
+      "ignoreFailure": false,
+      "tags": [],
+      "properties": {
+        "commands": {},
+        "os": {
+          "linux": {
+            "distribution": "ubuntu",
+            "release": "trusty",
+            "kernel": "3.13.0-32-generic",
+            "type": "microkernel"
+          }
+        },
+        "power": {
+          "state": "reboot"
+        }
+      },
+      "context": {},
+      "parentContext": {
+        "target": "5665a65a0561790005b77b85",
+        "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+        "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+      },
+      "state": "cancelled",
+      "successStates": [
+        "succeeded"
+      ],
+      "failedStates": [
+        "failed",
+        "timeout",
+        "cancelled"
+      ],
+      "options": {
+        "cid": "82f995e2-b550-42cc-88ee-6bae74f9fb46",
+        "commands": [
+          "curl -X PATCH http://172.31.128.1:8080/api/current/nodes/5665a65a0561790005b77b85 -H \"Content-Type: application/json\" -d '{\"cid\": \"82f995e2-b550-42cc-88ee-6bae74f9fb46\" }'"
+        ]
+      },
+      "error": {
+        "message": "Cancelled by taskgraph with state failed",
+        "name": "TaskCancellationError",
+        "context": {}
+      }
+    },
+    "64d26e4a-270c-40bf-93be-7a965aa9ba95": {
+      "definition": {
+        "friendlyName": "Reboot Node via proc",
+        "injectableName": "Task.ProcShellReboot",
+        "implementsTask": "Task.Base.ShellReboot",
+        "options": {
+          "rebootCode": 1
+        },
+        "properties": {
+          "power": {
+            "state": "reboot"
+          },
+          "catalog": {
+            "type": "dmi"
+          },
+          "os": {
+            "linux": {
+              "distribution": "ubuntu",
+              "release": "trusty",
+              "kernel": "3.13.0-32-generic",
+              "type": "microkernel"
+            }
+          },
+          "commands": {}
+        },
+        "runJob": "Job.Linux.ShellReboot"
+      },
+      "cancelled": false,
+      "retriesAttempted": 0,
+      "retriesAllowed": 5,
+      "instanceId": "64d26e4a-270c-40bf-93be-7a965aa9ba95",
+      "nodeId": "5665a65a0561790005b77b85",
+      "name": "Task.ProcShellReboot",
+      "friendlyName": "Reboot Node via proc",
+      "waitingOn": {
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": "succeeded"
+      },
+      "ignoreFailure": false,
+      "tags": [],
+      "properties": {
+        "power": {
+          "state": "reboot"
+        },
+        "catalog": {
+          "type": "dmi"
+        },
+        "os": {
+          "linux": {
+            "distribution": "ubuntu",
+            "release": "trusty",
+            "kernel": "3.13.0-32-generic",
+            "type": "microkernel"
+          }
+        },
+        "commands": {}
+      },
+      "context": {},
+      "parentContext": {
+        "target": "5665a65a0561790005b77b85",
+        "graphId": "e579ebad-826d-486c-ba6a-8d086ae2dc64",
+        "d2f9befd-dad6-4f33-bc28-377acff9f687": {},
+        "997c87d1-9153-4a05-9c40-5a6a9411f7df": {},
+        "7fa26bc1-1c04-451b-b182-20ac7933b9b1": {},
+        "64d26e4a-270c-40bf-93be-7a965aa9ba95": {}
+      },
+      "state": "cancelled",
+      "successStates": [
+        "succeeded"
+      ],
+      "failedStates": [
+        "failed",
+        "timeout",
+        "cancelled"
+      ],
+      "options": {
+        "rebootCode": 1
+      },
+      "error": {
+        "message": "Cancelled by taskgraph with state failed",
+        "name": "TaskCancellationError",
+        "context": {}
+      }
+    }
+  },
+  "updatedAt": "2015-12-07T15:36:58.405Z",
+  "id": "5665a788fd797bfc044efe6e"
+}

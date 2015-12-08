@@ -69,7 +69,7 @@ type RunWorkflowRequestBody struct {
 	Options map[string]interface{} `json:"options"`
 }
 
-type workflowFetcherFunc func(config.Cpi, string, string) (WorkflowResponse, error)
+type workflowFetcherFunc func(config.Cpi, string) (WorkflowResponse, error)
 
 type workflowPosterFunc func(config.Cpi, string, RunWorkflowRequestBody) (WorkflowResponse, error)
 
@@ -156,39 +156,27 @@ func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
 	return body, nil
 }
 
-func WorkflowFetcher(c config.Cpi, nodeID string, workflowID string) (WorkflowResponse, error) {
-	url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows", c.ApiServer, nodeID)
+func WorkflowFetcher(c config.Cpi, workflowID string) (WorkflowResponse, error) {
+	url := fmt.Sprintf("http://%s/api/common/workflows/%s", c.ApiServer, workflowID)
 	resp, err := http.Get(url)
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
+		return WorkflowResponse{}, fmt.Errorf("Error requesting workflow on node at url: %s, msg: %s", url, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		return WorkflowResponse{}, fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+		return WorkflowResponse{}, fmt.Errorf("Failed retrieving workflow at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
-	var workflows []WorkflowResponse
-	err = json.Unmarshal(body, &workflows)
+	var workflow WorkflowResponse
+	err = json.Unmarshal(body, &workflow)
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("Error unmarshalling active workflows: %s", err)
+		return WorkflowResponse{}, fmt.Errorf("Error unmarshalling workflow: %s", err)
 	}
 
-	var w *WorkflowResponse
-	for i := range workflows {
-		if workflows[i].ID == workflowID {
-			w = &workflows[i]
-			break
-		}
-	}
-
-	if w == nil {
-		return WorkflowResponse{}, fmt.Errorf("could not find workflow with id: %s on node: %s", workflowID, nodeID)
-	}
-
-	return *w, nil
+	return workflow, nil
 }
 
 func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (WorkflowResponse, error) {
@@ -231,7 +219,7 @@ func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (Wo
 }
 
 func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c config.Cpi, nodeID string, req RunWorkflowRequestBody) error {
-	workflowResponse, err := poster(c, nodeID, req)
+	postedWorkflow, err := poster(c, nodeID, req)
 	if err != nil {
 		return fmt.Errorf("Failed to post workflow: %s", err)
 	}
@@ -249,7 +237,7 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 
 			return fmt.Errorf("Timed out running workflow: %s on node: %s", req.Name, nodeID)
 		case <-retryChan:
-			wr, err := fetcher(c, nodeID, workflowResponse.ID)
+			wr, err := fetcher(c, postedWorkflow.ID)
 			if err != nil {
 				return fmt.Errorf("Unable to fetch workflow status: %s", err)
 			}

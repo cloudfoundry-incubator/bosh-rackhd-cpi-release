@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"strings"
+	"net/url"
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/config"
@@ -16,9 +18,61 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 )
 
+func loadWorkflowsResponse(assetPath string) []byte {
+	dummyResponseFile, err := os.Open(assetPath)
+	Expect(err).ToNot(HaveOccurred())
+	defer dummyResponseFile.Close()
+
+	workflowsResponse, err := ioutil.ReadAll(dummyResponseFile)
+	Expect(err).ToNot(HaveOccurred())
+
+	return workflowsResponse
+}
+
 var _ = Describe("Workflows", func() {
+
+	Describe("WorkflowFetcher", func () {
+		var server *ghttp.Server
+		var jsonReader *strings.Reader
+		var cpiConfig config.Cpi
+
+		BeforeEach(func() {
+			server = ghttp.NewServer()
+			serverURL, err := url.Parse(server.URL())
+			Expect(err).ToNot(HaveOccurred())
+			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+			cpiConfig, err = config.New(jsonReader)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			server.Close()
+		})
+
+		It("returns the workflow with the specified ID", func() {
+			httpResponse := loadWorkflowsResponse("../spec_assets/dummy_workflow_response.json")
+			var expectedResponse rackhdapi.WorkflowResponse
+			err := json.Unmarshal(httpResponse, &expectedResponse)
+			Expect(err).ToNot(HaveOccurred())
+
+			workflowID := "5665a788fd797bfc044efe6e"
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/workflows/%s", workflowID)),
+					ghttp.RespondWith(http.StatusOK, httpResponse),
+				),
+			)
+
+			response, err := rackhdapi.WorkflowFetcher(cpiConfig, workflowID)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+			Expect(response).To(Equal(expectedResponse))
+		})
+	})
 
 	Describe("PublishWorkflow", func() {
 		It("add workflow to library, retrieves updated list of tasks from task library", func() {
@@ -387,7 +441,7 @@ var _ = Describe("Workflows", func() {
 						return wr, nil
 					}
 
-					fakeWorkflowFetcher := func(config.Cpi, string, string) (rackhdapi.WorkflowResponse, error) {
+					fakeWorkflowFetcher := func(config.Cpi, string) (rackhdapi.WorkflowResponse, error) {
 						return wr, nil
 					}
 
