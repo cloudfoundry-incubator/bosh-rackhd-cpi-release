@@ -37,15 +37,16 @@ jobs:
         AGENT_PUBLIC_KEY:             {{agent_public_key}}
         STATIC_IP:                    {{static_ip}}
         GATEWAY:                      {{gateway}}
-  - put: vsphere-ubuntu-env
-    params: {release: vsphere-ubuntu-env}
+    ensure:
+      put: vsphere-ubuntu-env
+      params: {release: vsphere-ubuntu-env}
 
 - name: setup-director
   serial: true
   plan:
   - aggregate:
     - {trigger: true,  passed: [lifecycle], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-    - {trigger: false, get: bosh-release, resource: bosh-release}
+    - {trigger: false,                      get: bosh-release,       resource: bosh-release}
   - task: setup-director
     file: bosh-cpi-release/ci/tasks/setup-director.yml
     config:
@@ -64,8 +65,8 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [setup-director],    get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-    - {trigger: false, passed: [lifecycle],         get: stemcell,           resource: rackhd-openstack-stemcell}
-    - {trigger: true,                               get: bats,               resource: bosh-acceptance-tests}
+    - {trigger: false,                              get: stemcell,           resource: rackhd-openstack-stemcell}
+    - {trigger: false,                              get: bats,               resource: bosh-acceptance-tests}
   - put: vsphere-ubuntu-env
     params: {acquire: true}
   - task: test
@@ -82,16 +83,15 @@ jobs:
         PRIMARY_NETWORK_RANGE:              {{virtual_primary_network_range}}
         PRIMARY_NETWORK_MANUAL_IP:          {{virtual_primary_network_manual_ip}}
         BAT_SPEC:                           {{bat_spec}}
-  - put: vsphere-ubuntu-env
-    params: {release: vsphere-ubuntu-env}
+    ensure:
+      put: vsphere-ubuntu-env
+      params: {release: vsphere-ubuntu-env}
 
 - name: teardown-director
   serial: true
   plan:
   - aggregate:
     - {trigger: true, passed: [bats-virtual], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-#  - get: vsphere-ubuntu-env
-#    passed: [bats-virtual]
   - task: teardown-director
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
@@ -99,15 +99,13 @@ jobs:
         BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
         CPI_RELEASE_NAME:                   {{cpi_release_name}}
         DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}
-#  - put: vsphere-ubuntu-env
-#    params: {release: vsphere-ubuntu-env}
 
 - name: promote-candidate
   serial: true
   plan:
   - aggregate:
-    - {trigger: true, passed: [bats-virtual], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-    - {trigger: false, get: release-version-semver, params: {bump: major}}
+    - {trigger: true,   passed: [bats-virtual], get: bosh-cpi-release,        resource: bosh-rackhd-cpi-release}
+    - {trigger: false,                          get: release-version-semver,  params: {bump: major}}
 
   - task: promote
     file: bosh-cpi-release/ci/tasks/promote-candidate.yml
