@@ -95,6 +95,24 @@ if [ -z "${vm_cid}" ] || [ ${vm_cid} == null ]; then
 fi
 echo "got vm cid: ${vm_cid}"
 
+# Prepare has_vm method
+echo -e "\nRun has_vm method"
+cat > has_vm <<EOF
+{"method": "has_vm", "arguments": [${vm_cid}]}
+EOF
+cat has_vm
+
+# Run has_vm method
+result=$(cat has_vm | ./rackhd-cpi --configPath=${config_path} | jq .result)
+if [ -z "${result}" ]; then
+  echo "invalid result returned from has_vm"
+  exit 1
+elif [ ${result} != true ]; then
+  echo "vm ${vm_cid} not found"
+  exit 1
+fi
+echo "vm ${vm_cid} found"
+
 # Prepare set_vm_metadata
 echo -e "\nPrepare metadata"
 cat > metadata <<EOF
@@ -127,6 +145,17 @@ cat delete_vm_request
 # Run delete vm method
 echo -e "\nRun delete vm method"
 cat delete_vm_request | ./rackhd-cpi -configPath=${config_path} 2>&1
+
+# Run has_vm method
+result=$(cat has_vm | ./rackhd-cpi --configPath=${config_path} | jq .result)
+if [ -z "${result}" ]; then
+  echo "invalid result returned from has_vm"
+  exit 1
+elif [ ${result} != false ]; then
+  echo "vm ${vm_cid} found after deletion"
+  exit 1
+fi
+echo "vm ${vm_cid} deleted"
 
 # Prepare delete stemcell request
 echo -e "\nPrepare delete stemcell request"
