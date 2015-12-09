@@ -14,7 +14,7 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: false,   get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
+    - {trigger: true,   get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
   - task: test
     file: bosh-cpi-release/ci/tasks/integration.yml
     config:
