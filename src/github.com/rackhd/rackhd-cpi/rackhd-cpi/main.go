@@ -78,7 +78,7 @@ func main() {
 	}
 
 	if !implemented {
-		exitWithDefaultError(fmt.Errorf("Method: %s is not implemented", req.Method))
+		exitWithNotSupportedError(fmt.Errorf("Method: %s is not implemented", req.Method))
 	}
 
 	switch req.Method {
@@ -118,11 +118,6 @@ func main() {
 			exitWithDefaultError(fmt.Errorf("Error running HasVM: %s", err))
 		}
 		exitWithResult(hasVM)
-	case cpi.CONFIGURE_NETWORKS:
-		err := cpi.ConfigureNetworks(cpiConfig, req.Arguments)
-		if err != nil {
-			exitWithNotSupportedError(fmt.Errorf("Error running ConfigureNetworks: %s", err))
-		}
 	default:
 		exitWithDefaultError(fmt.Errorf("Unexpected command: %s dispatched...aborting", req.Method))
 	}
