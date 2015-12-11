@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	log "github.com/Sirupsen/logrus"
@@ -15,24 +17,31 @@ import (
 	"github.com/rackhd/rackhd-cpi/cpi"
 )
 
+var responseLogBuffer *bytes.Buffer
+
 func exitWithDefaultError(err error) {
-	fmt.Println(bosh.BuildDefaultErrorResponse(err, false, ""))
+	fmt.Println(bosh.BuildDefaultErrorResponse(err, false, responseLogBuffer.String()))
+	responseLogBuffer.Reset()
 	os.Exit(1)
 }
 
 func exitWithNotSupportedError(err error) {
-	fmt.Println(bosh.BuildErrorResponse(err, bosh.NotSupportedErrorType, false, ""))
+	fmt.Println(bosh.BuildErrorResponse(err, bosh.NotSupportedErrorType, false, responseLogBuffer.String()))
+	responseLogBuffer.Reset()
 	os.Exit(1)
 }
 
 func exitWithResult(result interface{}) {
-	fmt.Println(bosh.BuildResultResponse(result, ""))
+	fmt.Println(bosh.BuildResultResponse(result, responseLogBuffer.String()))
+	responseLogBuffer.Reset()
 	os.Exit(0)
 }
 
 func main() {
+	responseLogBuffer = new(bytes.Buffer)
+	multiWriter := io.MultiWriter(os.Stderr, responseLogBuffer)
 	logLevel := os.Getenv("RACKHD_CPI_LOG_LEVEL")
-	log.SetOutput(os.Stderr)
+	log.SetOutput(multiWriter)
 
 	switch logLevel {
 	case "DEBUG":
