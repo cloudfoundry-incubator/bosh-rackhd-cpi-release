@@ -15,7 +15,6 @@ var _ = Describe("ImplementsMethod", func() {
 		Expect(cpi.ImplementsMethod("create_stemcell")).To(BeTrue())
 		Expect(cpi.ImplementsMethod("delete_stemcell")).To(BeTrue())
 		Expect(cpi.ImplementsMethod("set_vm_metadata")).To(BeTrue())
-		Expect(cpi.ImplementsMethod("configure_networks")).To(BeTrue())
 	})
 
 	It("returns false if the CPI currently does not implement the method", func() {
@@ -28,6 +27,7 @@ var _ = Describe("ImplementsMethod", func() {
 		Expect(cpi.ImplementsMethod("snapshot_disk")).To(BeFalse())
 		Expect(cpi.ImplementsMethod("delete_snapshot")).To(BeFalse())
 		Expect(cpi.ImplementsMethod("current_vm_id")).To(BeFalse())
+		Expect(cpi.ImplementsMethod("configure_networks")).To(BeFalse())
 	})
 
 	It("returns an error if the method is invalid", func() {
