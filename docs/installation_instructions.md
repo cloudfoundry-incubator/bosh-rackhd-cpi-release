@@ -16,11 +16,18 @@ You should then be able to query the server for its catalog of nodes with `curl 
 
 ### Download Packages
 
-Next, install BOSH init: <https://bosh.io/docs/install-bosh-init.html>
+Install BOSH init: <https://bosh.io/docs/install-bosh-init.html>
 
-Download a BOSH OpenStack stemcell for Ubuntu Trusty: <https://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw>.
+Download a BOSH OpenStack stemcell for Ubuntu Trusty: <https://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw>
 
-Download the RackHD CPI release at somewhere.
+Download the RackHD CPI release: <https://github.com/EMC-CMD/bosh-rackhd-cpi-release> 
+
+Then, build a release: 
+
+```
+$ cd bosh-rackhd-cpi-release
+$ bosh create release
+```
 
 ### Create Public Key
 
