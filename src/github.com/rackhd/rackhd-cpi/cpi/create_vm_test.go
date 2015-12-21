@@ -365,12 +365,20 @@ var _ = Describe("The VM Creation Workflow", func() {
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", expectedNodes[0].ID)),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+				),
+				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", expectedNodes[0].ID)),
 					ghttp.RespondWith(http.StatusOK, firstExpectedNodeCatalogData),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", expectedNodes[0].ID)),
 					ghttp.VerifyJSON(fmt.Sprintf(`{"status": "%s", "status_reason": "%s"}`, "blocked", "Node has missing disks")),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", expectedNodes[1].ID)),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", expectedNodes[1].ID)),
@@ -505,6 +513,16 @@ var _ = Describe("The VM Creation Workflow", func() {
 	Describe("selecting an available node", func() {
 		It("returns an error if there are no free nodes available", func() {
 			nodes := loadNodes("../spec_assets/dummy_all_reserved_nodes_response.json")
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+				),
+			)
 
 			_, err := randomSelectAvailableNode(cpiConfig, nodes)
 
@@ -513,6 +531,16 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 		It("selects a free node for provisioning", func() {
 			nodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+				),
+			)
 
 			rackHDID, err := randomSelectAvailableNode(cpiConfig, nodes)
 
@@ -522,6 +550,16 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 		It("return an error if all nodes are created vms with cids", func() {
 			nodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+				),
+			)
 
 			_, err := randomSelectAvailableNode(cpiConfig, nodes)
 
