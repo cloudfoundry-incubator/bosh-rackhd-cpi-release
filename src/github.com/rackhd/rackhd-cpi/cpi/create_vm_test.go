@@ -45,6 +45,17 @@ func loadNodes(nodePath string) []rackhdapi.Node {
 	return nodes
 }
 
+func loadWorkflowsResponse(assetPath string) []byte {
+	dummyResponseFile, err := os.Open(assetPath)
+	Expect(err).ToNot(HaveOccurred())
+	defer dummyResponseFile.Close()
+
+	workflowsResponse, err := ioutil.ReadAll(dummyResponseFile)
+	Expect(err).ToNot(HaveOccurred())
+
+	return workflowsResponse
+}
+
 func loadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
 	dummyCatalogfile, err := os.Open(nodeCatalogPath)
 	Expect(err).ToNot(HaveOccurred())
@@ -61,6 +72,23 @@ func loadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
 }
 
 var _ = Describe("The VM Creation Workflow", func() {
+	var server *ghttp.Server
+	var jsonReader *strings.Reader
+	var cpiConfig config.Cpi
+
+	BeforeEach(func() {
+		server = ghttp.NewServer()
+		serverURL, err := url.Parse(server.URL())
+		Expect(err).ToNot(HaveOccurred())
+		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+		cpiConfig, err = config.New(jsonReader)
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	AfterEach(func() {
+		server.Close()
+	})
+
 	Describe("parsing director input", func() {
 		It("return the fields given a valid config", func() {
 			jsonInput := []byte(`[
@@ -102,6 +130,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("network config has unexpected type in: string. Expecting a map"))
 		})
+
 		It("returns an error if more than one network is provided", func() {
 			jsonInput := []byte(`[
     		"4149ba0f-38d9-4485-476f-1581be36f290",
@@ -319,23 +348,6 @@ var _ = Describe("The VM Creation Workflow", func() {
 	})
 
 	Describe("trying to reserve a node without an ephemeral disk", func() {
-		var server *ghttp.Server
-		var jsonReader *strings.Reader
-		var cpiConfig config.Cpi
-
-		BeforeEach(func() {
-			server = ghttp.NewServer()
-			serverURL, err := url.Parse(server.URL())
-			Expect(err).ToNot(HaveOccurred())
-			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
-			cpiConfig, err = config.New(jsonReader)
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		AfterEach(func() {
-			server.Close()
-		})
-
 		It("blocks the node", func() {
 			expectedNodes := loadNodes("../spec_assets/dummy_two_node_response.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
@@ -494,7 +506,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		It("returns an error if there are no free nodes available", func() {
 			nodes := loadNodes("../spec_assets/dummy_all_reserved_nodes_response.json")
 
-			_, err := randomSelectAvailableNode(nodes)
+			_, err := randomSelectAvailableNode(cpiConfig, nodes)
 
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
@@ -502,7 +514,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		It("selects a free node for provisioning", func() {
 			nodes := loadNodes("../spec_assets/dummy_two_node_response.json")
 
-			rackHDID, err := randomSelectAvailableNode(nodes)
+			rackHDID, err := randomSelectAvailableNode(cpiConfig, nodes)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(rackHDID).To(Equal("55e79ea54e66816f6152fff9"))
@@ -511,7 +523,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		It("return an error if all nodes are created vms with cids", func() {
 			nodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
 
-			_, err := randomSelectAvailableNode(nodes)
+			_, err := randomSelectAvailableNode(cpiConfig, nodes)
 
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
@@ -639,6 +651,28 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err = json.Unmarshal(nodeBytes, &node)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(node.Status).To(Equal(rackhdapi.Available))
+		})
+	})
+
+	Describe("when a node has an active workflow", func() {
+		It("skips the node", func() {
+			rawWorkflow := loadWorkflowsResponse("../spec_assets/dummy_workflow_response.json")
+			httpResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
+			var expectedResponse []rackhdapi.WorkflowResponse
+			err := json.Unmarshal(httpResponse, &expectedResponse)
+			Expect(err).ToNot(HaveOccurred())
+
+			nodeID := "5665a65a0561790005b77b85"
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodeID)),
+					ghttp.RespondWith(http.StatusOK, httpResponse),
+				),
+			)
+
+			nodes := loadNodes("../spec_assets/dummy_one_node_running_workflow.json")
+			_, err = randomSelectAvailableNode(cpiConfig, nodes)
+			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 	})
 })

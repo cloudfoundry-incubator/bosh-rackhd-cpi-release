@@ -176,8 +176,9 @@ func blockNodesWithoutEphemeralDisk(c config.Cpi) error {
 	if err != nil {
 		return err
 	}
+
 	for i := range nodes {
-		if nodeIsAvailable(nodes[i]) {
+		if nodeIsAvailable(c, nodes[i]) {
 			nodeCatalog, err := rackhdapi.GetNodeCatalog(c, nodes[i].ID)
 			if err != nil {
 				return err
@@ -211,7 +212,7 @@ func selectNodeFromRackHD(c config.Cpi) (string, error) {
 		return "", err
 	}
 
-	nodeID, err := randomSelectAvailableNode(nodes)
+	nodeID, err := randomSelectAvailableNode(c, nodes)
 	if err != nil || nodeID == "" {
 		return "", err
 	}
@@ -220,8 +221,8 @@ func selectNodeFromRackHD(c config.Cpi) (string, error) {
 	return nodeID, nil
 }
 
-func randomSelectAvailableNode(nodes []rackhdapi.Node) (string, error) {
-	availableNodes := getAllAvailableNodes(nodes)
+func randomSelectAvailableNode(c config.Cpi, nodes []rackhdapi.Node) (string, error) {
+	availableNodes := getAllAvailableNodes(c, nodes)
 	if len(availableNodes) == 0 {
 		return "", errors.New("all nodes have been reserved")
 	}
@@ -233,11 +234,11 @@ func randomSelectAvailableNode(nodes []rackhdapi.Node) (string, error) {
 	return availableNodes[i].ID, nil
 }
 
-func getAllAvailableNodes(nodes []rackhdapi.Node) []rackhdapi.Node {
+func getAllAvailableNodes(c config.Cpi, nodes []rackhdapi.Node) []rackhdapi.Node {
 	var n []rackhdapi.Node
 
 	for i := range nodes {
-		if nodeIsAvailable(nodes[i]) {
+		if nodeIsAvailable(c, nodes[i]) {
 			n = append(n, nodes[i])
 		}
 	}
@@ -245,6 +246,7 @@ func getAllAvailableNodes(nodes []rackhdapi.Node) []rackhdapi.Node {
 	return n
 }
 
-func nodeIsAvailable(n rackhdapi.Node) bool {
-	return (n.Status == "" || n.Status == rackhdapi.Available) && n.CID == ""
+func nodeIsAvailable(c config.Cpi, n rackhdapi.Node) bool {
+	workflows, _ := rackhdapi.GetActiveWorkflows(c, n.ID)
+	return (n.Status == "" || n.Status == rackhdapi.Available) && (n.CID == "") && (len(workflows) == 0)
 }

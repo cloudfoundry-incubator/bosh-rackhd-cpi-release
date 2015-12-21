@@ -33,24 +33,47 @@ func loadWorkflowsResponse(assetPath string) []byte {
 }
 
 var _ = Describe("Workflows", func() {
+	var server *ghttp.Server
+	var jsonReader *strings.Reader
+	var cpiConfig config.Cpi
 
-	Describe("WorkflowFetcher", func () {
-		var server *ghttp.Server
-		var jsonReader *strings.Reader
-		var cpiConfig config.Cpi
+	BeforeEach(func() {
+		server = ghttp.NewServer()
+		serverURL, err := url.Parse(server.URL())
+		Expect(err).ToNot(HaveOccurred())
+		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+		cpiConfig, err = config.New(jsonReader)
+		Expect(err).ToNot(HaveOccurred())
+	})
 
-		BeforeEach(func() {
-			server = ghttp.NewServer()
-			serverURL, err := url.Parse(server.URL())
+	AfterEach(func() {
+		server.Close()
+	})
+
+	Describe("GetActiveWorkflows", func() {
+		It("returns a node's active workflow", func() {
+			rawWorkflow := loadWorkflowsResponse("../spec_assets/dummy_workflow_response.json")
+			httpResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
+			var expectedResponse []rackhdapi.WorkflowResponse
+			err := json.Unmarshal(httpResponse, &expectedResponse)
 			Expect(err).ToNot(HaveOccurred())
-			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
-			cpiConfig, err = config.New(jsonReader)
-			Expect(err).ToNot(HaveOccurred())
-		})
 
-		AfterEach(func() {
-			server.Close()
+			nodeID := "nodeID"
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodeID)),
+					ghttp.RespondWith(http.StatusOK, httpResponse),
+				),
+			)
+
+			response, err := rackhdapi.GetActiveWorkflows(cpiConfig, nodeID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+			Expect(response).To(Equal(expectedResponse))
 		})
+	})
+
+	Describe("WorkflowFetcher", func() {
 
 		It("returns the workflow with the specified ID", func() {
 			httpResponse := loadWorkflowsResponse("../spec_assets/dummy_workflow_response.json")

@@ -296,7 +296,7 @@ func KillActiveWorkflow(c config.Cpi, nodeID string) error {
 	return nil
 }
 
-func getActiveWorkflows(c config.Cpi, nodeID string) ([]WorkflowResponse, error) {
+func GetActiveWorkflows(c config.Cpi, nodeID string) ([]WorkflowResponse, error) {
 	var workflows []WorkflowResponse
 
 	url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
