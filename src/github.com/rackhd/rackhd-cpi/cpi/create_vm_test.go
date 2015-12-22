@@ -354,6 +354,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 			secondExpectedNodeCatalogData, err := json.Marshal(secondExpectedNodeCatalog)
 			Expect(err).ToNot(HaveOccurred())
 
+			node0HttpResponse, err := json.Marshal(expectedNodes[0])
+			Expect(err).ToNot(HaveOccurred())
+			node1HttpResponse, err := json.Marshal(expectedNodes[1])
+			Expect(err).ToNot(HaveOccurred())
+
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/api/common/nodes"),
@@ -362,6 +367,10 @@ var _ = Describe("The VM Creation Workflow", func() {
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", expectedNodes[0].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", expectedNodes[0].ID)),
+					ghttp.RespondWith(http.StatusOK, node0HttpResponse),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", expectedNodes[0].ID)),
@@ -374,6 +383,10 @@ var _ = Describe("The VM Creation Workflow", func() {
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", expectedNodes[1].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", expectedNodes[1].ID)),
+					ghttp.RespondWith(http.StatusOK, node1HttpResponse),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", expectedNodes[1].ID)),
@@ -509,32 +522,58 @@ var _ = Describe("The VM Creation Workflow", func() {
 		It("returns an error if there are no free nodes available", func() {
 			nodes := loadNodes("../spec_assets/dummy_all_reserved_nodes_response.json")
 
+			node0HttpResponse, err := json.Marshal(nodes[0])
+			Expect(err).ToNot(HaveOccurred())
+			node1HttpResponse, err := json.Marshal(nodes[1])
+			Expect(err).ToNot(HaveOccurred())
+
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID)),
+					ghttp.RespondWith(http.StatusOK, node0HttpResponse),
+				),
+				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[1].ID)),
+					ghttp.RespondWith(http.StatusOK, node1HttpResponse),
+				),
 			)
 
-			_, err := randomSelectAvailableNode(cpiConfig, nodes)
+			_, err = randomSelectAvailableNode(cpiConfig, nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 
 		It("selects a free node for provisioning", func() {
 			nodes := loadNodes("../spec_assets/dummy_two_node_response.json")
 
+			node0HttpResponse, err := json.Marshal(nodes[0])
+			Expect(err).ToNot(HaveOccurred())
+			node1HttpResponse, err := json.Marshal(nodes[1])
+			Expect(err).ToNot(HaveOccurred())
+
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID)),
+					ghttp.RespondWith(http.StatusOK, node0HttpResponse),
+				),
+				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[1].ID)),
+					ghttp.RespondWith(http.StatusOK, node1HttpResponse),
 				),
 			)
 
@@ -547,18 +586,31 @@ var _ = Describe("The VM Creation Workflow", func() {
 		It("return an error if all nodes are created vms with cids", func() {
 			nodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
 
+			node0HttpResponse, err := json.Marshal(nodes[0])
+			Expect(err).ToNot(HaveOccurred())
+			node1HttpResponse, err := json.Marshal(nodes[1])
+			Expect(err).ToNot(HaveOccurred())
+
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID)),
+					ghttp.RespondWith(http.StatusOK, node0HttpResponse),
+				),
+				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[1].ID)),
+					ghttp.RespondWith(http.StatusOK, node1HttpResponse),
+				),
 			)
 
-			_, err := randomSelectAvailableNode(cpiConfig, nodes)
+			_, err = randomSelectAvailableNode(cpiConfig, nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 	})
@@ -696,11 +748,45 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(httpWorkflowsResponse, &expectedResponse)
 			Expect(err).ToNot(HaveOccurred())
 
+			httpNodeResponse := loadJSON("../spec_assets/dummy_one_node_response.json")
+
 			nodeID := "5665a65a0561790005b77b85"
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodeID)),
 					ghttp.RespondWith(http.StatusOK, httpWorkflowsResponse),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+					ghttp.RespondWith(http.StatusOK, httpNodeResponse),
+				),
+			)
+
+			nodes := loadNodes("../spec_assets/dummy_one_node_running_workflow.json")
+			_, err = randomSelectAvailableNode(cpiConfig, nodes)
+			Expect(err).To(MatchError("all nodes have been reserved"))
+		})
+	})
+
+	Describe("when a node does not have obmsettings", func() {
+		It("skips the node", func() {
+			rawWorkflow := loadJSON("../spec_assets/dummy_workflow_response.json")
+			httpWorkflowsResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
+			var expectedResponse []rackhdapi.WorkflowResponse
+			err := json.Unmarshal(httpWorkflowsResponse, &expectedResponse)
+			Expect(err).ToNot(HaveOccurred())
+
+			httpNodeResponse := loadJSON("../spec_assets/dummy_one_node_without_obmsettings_response.json")
+
+			nodeID := "5665a65a0561790005b77b85"
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodeID)),
+					ghttp.RespondWith(http.StatusNoContent, []byte{}),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+					ghttp.RespondWith(http.StatusOK, httpNodeResponse),
 				),
 			)
 

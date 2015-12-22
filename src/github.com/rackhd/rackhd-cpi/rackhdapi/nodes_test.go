@@ -17,7 +17,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 )
 
-func loadNodes(nodePath string) []rackhdapi.Node {
+func loadJSON(nodePath string) []byte {
 	dummyResponseFile, err := os.Open(nodePath)
 	Expect(err).ToNot(HaveOccurred())
 	defer dummyResponseFile.Close()
@@ -25,8 +25,24 @@ func loadNodes(nodePath string) []rackhdapi.Node {
 	dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
 	Expect(err).ToNot(HaveOccurred())
 
+	return dummyResponseBytes
+}
+
+func loadNode(nodePath string) rackhdapi.Node {
+	dummyResponseBytes := loadJSON(nodePath)
+
+	node := rackhdapi.Node{}
+	err := json.Unmarshal(dummyResponseBytes, &node)
+	Expect(err).ToNot(HaveOccurred())
+
+	return node
+}
+
+func loadNodes(nodePath string) []rackhdapi.Node {
+	dummyResponseBytes := loadJSON(nodePath)
+
 	nodes := []rackhdapi.Node{}
-	err = json.Unmarshal(dummyResponseBytes, &nodes)
+	err := json.Unmarshal(dummyResponseBytes, &nodes)
 	Expect(err).ToNot(HaveOccurred())
 
 	return nodes
@@ -101,6 +117,27 @@ var _ = Describe("Nodes", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(node).To(Equal(expectedNodes[0]))
+		})
+	})
+
+	Describe("GetOBMSettings", func() {
+		It("returns a node's OBM settings", func() {
+			dummy_response_path := "../spec_assets/dummy_one_node_response.json"
+			httpResponse := loadJSON(dummy_response_path)
+			expectedResponse := loadNode(dummy_response_path)
+
+			nodeID := "nodeID"
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+					ghttp.RespondWith(http.StatusOK, httpResponse),
+				),
+			)
+
+			response, err := rackhdapi.GetOBMSettings(cpiConfig, nodeID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+			Expect(response).To(Equal(expectedResponse.OBMSettings))
 		})
 	})
 

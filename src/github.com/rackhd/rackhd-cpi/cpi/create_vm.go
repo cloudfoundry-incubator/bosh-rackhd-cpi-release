@@ -240,6 +240,7 @@ func getAllAvailableNodes(c config.Cpi, nodes []rackhdapi.Node) []rackhdapi.Node
 	for i := range nodes {
 		if nodeIsAvailable(c, nodes[i]) {
 			n = append(n, nodes[i])
+			log.Debug(fmt.Sprintf("node: %s is avaliable", nodes[i].ID))
 		}
 	}
 
@@ -248,5 +249,6 @@ func getAllAvailableNodes(c config.Cpi, nodes []rackhdapi.Node) []rackhdapi.Node
 
 func nodeIsAvailable(c config.Cpi, n rackhdapi.Node) bool {
 	workflows, _ := rackhdapi.GetActiveWorkflows(c, n.ID)
-	return (n.Status == "" || n.Status == rackhdapi.Available) && (n.CID == "") && (len(workflows) == 0)
+	obmSettings, _ := rackhdapi.GetOBMSettings(c, n.ID)
+	return (n.Status == "" || n.Status == rackhdapi.Available) && (n.CID == "") && (len(workflows) == 0) && (len(obmSettings) > 0)
 }

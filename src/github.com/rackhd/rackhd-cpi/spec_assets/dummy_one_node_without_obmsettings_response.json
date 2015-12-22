@@ -1,0 +1,16 @@
+{
+  "workflows": [],
+  "catalogs": [],
+  "autoDiscover": false,
+  "createdAt": "2015-09-03T01:13:09.677Z",
+  "identifiers": [
+    "00:1e:67:c2:67:06",
+    "00:1e:67:c2:67:07"
+  ],
+  "obmSettings": [],
+  "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+  "sku": "55e79e0e4e66816f6152ffe6",
+  "type": "compute",
+  "updatedAt": "2015-09-03T01:15:43.515Z",
+  "id": "5665a65a0561790005b77b85"
+}

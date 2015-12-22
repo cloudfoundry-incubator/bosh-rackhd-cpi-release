@@ -49,11 +49,17 @@ type NetworkAddress struct {
 	Family string `json:"family"`
 }
 
+type OBMSetting struct {
+	Config  interface{} `json:"config"`
+	Service string      `json:"service"`
+}
+
 type Node struct {
-	Workflows []interface{} `json:"workflows"`
-	Status    string        `json:"status"`
-	ID        string        `json:"id"`
-	CID       string        `json:"cid"`
+	Workflows   []interface{} `json:"workflows"`
+	Status      string        `json:"status"`
+	ID          string        `json:"id"`
+	CID         string        `json:"cid"`
+	OBMSettings []OBMSetting  `json:"obmSettings"`
 }
 
 func GetNodes(c config.Cpi) ([]Node, error) {
@@ -103,6 +109,32 @@ func GetNodeByCID(c config.Cpi, cid string) (Node, error) {
 	}
 
 	return result, nil
+}
+
+func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {
+	nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
+	resp, err := http.Get(nodeURL)
+	if err != nil {
+		return nil, fmt.Errorf("error getting node %s", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Failed getting node with status: %s, err: %s", resp.Status, err)
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading node body %s", err)
+	}
+
+	var node Node
+	err = json.Unmarshal(b, &node)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshal node body %s", err)
+	}
+
+	return node.OBMSettings, nil
 }
 
 func ReleaseNode(c config.Cpi, nodeID string) error {
