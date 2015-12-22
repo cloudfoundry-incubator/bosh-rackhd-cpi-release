@@ -23,7 +23,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
-	nodeID, err := tryReservation(c, agentID, blockNodesWithoutEphemeralDisk, selectNodeFromRackHD, reserveNodeFromRackHD)
+	nodeID, err := tryReservation(c, agentID, func(config.Cpi) error { return nil }, selectNodeFromRackHD, reserveNodeFromRackHD)
 	if err != nil {
 		return "", err
 	}
