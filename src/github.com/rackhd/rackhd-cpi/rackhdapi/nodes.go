@@ -50,8 +50,8 @@ type NetworkAddress struct {
 }
 
 type OBMSetting struct {
-	Config  interface{} `json:"config"`
-	Service string      `json:"service"`
+	Config      interface{} `json:"config"`
+	ServiceName string      `json:"service"`
 }
 
 type Node struct {
