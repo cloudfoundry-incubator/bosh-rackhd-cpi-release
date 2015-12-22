@@ -30,7 +30,7 @@ import (
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
-func loadNodes(nodePath string) []rackhdapi.Node {
+func loadJSON(nodePath string) []byte {
 	dummyResponseFile, err := os.Open(nodePath)
 	Expect(err).ToNot(HaveOccurred())
 	defer dummyResponseFile.Close()
@@ -38,22 +38,17 @@ func loadNodes(nodePath string) []rackhdapi.Node {
 	dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
 	Expect(err).ToNot(HaveOccurred())
 
+	return dummyResponseBytes
+}
+
+func loadNodes(nodePath string) []rackhdapi.Node {
+	dummyResponseBytes := loadJSON(nodePath)
+
 	nodes := []rackhdapi.Node{}
-	err = json.Unmarshal(dummyResponseBytes, &nodes)
+	err := json.Unmarshal(dummyResponseBytes, &nodes)
 	Expect(err).ToNot(HaveOccurred())
 
 	return nodes
-}
-
-func loadWorkflowsResponse(assetPath string) []byte {
-	dummyResponseFile, err := os.Open(assetPath)
-	Expect(err).ToNot(HaveOccurred())
-	defer dummyResponseFile.Close()
-
-	workflowsResponse, err := ioutil.ReadAll(dummyResponseFile)
-	Expect(err).ToNot(HaveOccurred())
-
-	return workflowsResponse
 }
 
 func loadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
@@ -366,7 +361,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", expectedNodes[0].ID)),
-					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", expectedNodes[0].ID)),
@@ -378,7 +373,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", expectedNodes[1].ID)),
-					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", expectedNodes[1].ID)),
@@ -513,32 +508,33 @@ var _ = Describe("The VM Creation Workflow", func() {
 	Describe("selecting an available node", func() {
 		It("returns an error if there are no free nodes available", func() {
 			nodes := loadNodes("../spec_assets/dummy_all_reserved_nodes_response.json")
+
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
-					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
-					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 			)
 
 			_, err := randomSelectAvailableNode(cpiConfig, nodes)
-
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 
 		It("selects a free node for provisioning", func() {
 			nodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
-					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
-					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 			)
 
@@ -550,19 +546,19 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 		It("return an error if all nodes are created vms with cids", func() {
 			nodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
+
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
-					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
-					ghttp.RespondWith(http.StatusOK, []byte("[]")),
+					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
 			)
 
 			_, err := randomSelectAvailableNode(cpiConfig, nodes)
-
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 	})
@@ -694,17 +690,17 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("when a node has an active workflow", func() {
 		It("skips the node", func() {
-			rawWorkflow := loadWorkflowsResponse("../spec_assets/dummy_workflow_response.json")
-			httpResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
+			rawWorkflow := loadJSON("../spec_assets/dummy_workflow_response.json")
+			httpWorkflowsResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
 			var expectedResponse []rackhdapi.WorkflowResponse
-			err := json.Unmarshal(httpResponse, &expectedResponse)
+			err := json.Unmarshal(httpWorkflowsResponse, &expectedResponse)
 			Expect(err).ToNot(HaveOccurred())
 
 			nodeID := "5665a65a0561790005b77b85"
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodeID)),
-					ghttp.RespondWith(http.StatusOK, httpResponse),
+					ghttp.RespondWith(http.StatusOK, httpWorkflowsResponse),
 				),
 			)
 

@@ -51,26 +51,46 @@ var _ = Describe("Workflows", func() {
 	})
 
 	Describe("GetActiveWorkflows", func() {
-		It("returns a node's active workflow", func() {
-			rawWorkflow := loadWorkflowsResponse("../spec_assets/dummy_workflow_response.json")
-			httpResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
-			var expectedResponse []rackhdapi.WorkflowResponse
-			err := json.Unmarshal(httpResponse, &expectedResponse)
-			Expect(err).ToNot(HaveOccurred())
+		Context("there is a running workflow", func() {
+			It("returns a node's active workflow", func() {
+				rawWorkflow := loadWorkflowsResponse("../spec_assets/dummy_workflow_response.json")
+				httpResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
+				var expectedResponse []rackhdapi.WorkflowResponse
+				err := json.Unmarshal(httpResponse, &expectedResponse)
+				Expect(err).ToNot(HaveOccurred())
 
-			nodeID := "nodeID"
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodeID)),
-					ghttp.RespondWith(http.StatusOK, httpResponse),
-				),
-			)
+				nodeID := "nodeID"
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodeID)),
+						ghttp.RespondWith(http.StatusOK, httpResponse),
+					),
+				)
 
-			response, err := rackhdapi.GetActiveWorkflows(cpiConfig, nodeID)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(server.ReceivedRequests()).To(HaveLen(1))
-			Expect(response).To(Equal(expectedResponse))
+				response, err := rackhdapi.GetActiveWorkflows(cpiConfig, nodeID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+				Expect(response).To(Equal(expectedResponse))
+			})
 		})
+
+		Context("there is no running workflow", func() {
+			It("returns nil", func() {
+				nodeID := "nodeID"
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodeID)),
+						ghttp.RespondWith(http.StatusNoContent, []byte{}),
+					),
+				)
+
+				response, err := rackhdapi.GetActiveWorkflows(cpiConfig, nodeID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+				Expect(response).To(BeNil())
+			})
+		})
+
 	})
 
 	Describe("WorkflowFetcher", func() {

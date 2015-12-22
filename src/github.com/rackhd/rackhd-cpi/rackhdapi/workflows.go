@@ -302,20 +302,24 @@ func GetActiveWorkflows(c config.Cpi, nodeID string) ([]WorkflowResponse, error)
 	url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
 	resp, err := http.Get(url)
 	if err != nil {
-		return []WorkflowResponse{}, fmt.Errorf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
+		return nil, fmt.Errorf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
 	}
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode == 204 {
+		return nil, nil
+	}
+
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		return []WorkflowResponse{}, fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+		return nil, fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &workflows)
 	if err != nil {
-		return []WorkflowResponse{}, fmt.Errorf("Error unmarshalling active workflows: %s", err)
+		return nil, fmt.Errorf("Error unmarshalling active workflows: %s", err)
 	}
 
 	return workflows, nil
