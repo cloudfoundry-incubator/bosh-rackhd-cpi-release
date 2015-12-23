@@ -1,7 +1,11 @@
 {
   "friendlyName": "BOSH Deprovision Node",
   "injectableName": "Graph.BOSH.DeprovisionNode",
-  "options": {},
+  "options": {
+    "defaults": {
+      "obmServiceName": null
+    }
+  },
   "tasks": [
     {
       "label": "set-boot-pxe",

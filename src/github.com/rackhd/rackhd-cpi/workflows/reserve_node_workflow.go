@@ -11,7 +11,11 @@ import (
 var reserveNodeWorkflowTemplate = []byte(`{
   "friendlyName": "BOSH Reserve Node",
   "injectableName": "Graph.BOSH.ReserveNode",
-  "options": null,
+	"options": {
+    "defaults": {
+      "obmServiceName": null
+    }
+  },
   "tasks": [
     {
       "label": "set-boot-pxe",
@@ -42,16 +46,40 @@ var reserveNodeWorkflowTemplate = []byte(`{
   ]
 }`)
 
+type reserveNodeWorkflowOptions struct {
+	OBMServiceName *string `json:"obmServiceName"`
+}
+
+type reserveNodeWorkflowDefaultOptionsContainer struct {
+	Defaults reserveNodeWorkflowOptions `json:"defaults"`
+}
+
+type reserveNodeWorkflowOptionsContainer struct {
+	Options reserveNodeWorkflowDefaultOptionsContainer `json:"options"`
+}
+
 type reserveNodeWorkflow struct {
 	*rackhdapi.WorkflowStub
-	Tasks   []rackhdapi.WorkflowTask `json:"tasks"`
-	Options map[string]interface{}   `json:"options"`
+	*reserveNodeWorkflowOptionsContainer
+	Tasks []rackhdapi.WorkflowTask `json:"tasks"`
 }
 
 func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
+	options := reserveNodeWorkflowOptions{}
+
+	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
+	if err != nil {
+		return err
+	}
+
+	if isAMTService {
+		obmName := rackhdapi.OBMSettingAMTServiceName
+		options.OBMServiceName = &obmName
+	}
+
 	req := rackhdapi.RunWorkflowRequestBody{
 		Name:    workflowName,
-		Options: map[string]interface{}{},
+		Options: map[string]interface{}{"defaults": options},
 	}
 
 	return rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, c, nodeID, req)

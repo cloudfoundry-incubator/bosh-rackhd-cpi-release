@@ -1,7 +1,11 @@
 {
   "friendlyName": "BOSH Reserve Node",
   "injectableName": "Graph.BOSH.ReserveNode",
-  "options": null,
+  "options": {
+    "defaults": {
+      "obmServiceName": null
+    }
+  },
   "tasks": [
     {
       "label": "set-boot-pxe",

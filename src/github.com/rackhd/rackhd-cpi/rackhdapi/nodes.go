@@ -2,6 +2,7 @@ package rackhdapi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -134,7 +135,26 @@ func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {
 		return nil, fmt.Errorf("error unmarshal node body %s", err)
 	}
 
+	if len(node.OBMSettings) == 0 {
+		return nil, errors.New("error: got empty obm settings")
+	}
+
 	return node.OBMSettings, nil
+}
+
+func IsAMTService(c config.Cpi, nodeID string) (bool, error) {
+	obmSettings, err := GetOBMSettings(c, nodeID)
+	if err != nil {
+		return false, fmt.Errorf("error retrieving obm settings of node: %s, error: %v", nodeID, err)
+	}
+
+	for _, setting := range obmSettings {
+		if setting.ServiceName == OBMSettingAMTServiceName {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func ReleaseNode(c config.Cpi, nodeID string) error {

@@ -15,7 +15,7 @@
         "password": "password1",
         "user": "root"
       },
-      "service": "ipmi-obm-service"
+      "service": "amt-obm-service"
     }
   ],
   "sku": "55e79e0e4e66816f6152ffe6",

@@ -80,15 +80,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", fmt.Errorf("error publishing provision workflow: %s", err)
 	}
 
-	envPath := rackhdapi.RackHDEnvPath
-	options := workflows.ProvisionNodeWorkflowOptions{
-		AgentSettingsFile: &nodeID,
-		AgentSettingsPath: &envPath,
-		CID:               &vmCID,
-		StemcellFile:      &stemcellCID,
-	}
-
-	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, options)
+	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, vmCID, stemcellCID)
 	if err != nil {
 		return "", fmt.Errorf("error running provision workflow: %s", err)
 	}

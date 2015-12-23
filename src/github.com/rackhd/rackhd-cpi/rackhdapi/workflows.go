@@ -185,26 +185,6 @@ func WorkflowFetcher(c config.Cpi, workflowID string) (WorkflowResponse, error) 
 }
 
 func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (WorkflowResponse, error) {
-	obmSettings, err := GetOBMSettings(c, nodeID)
-	if err != nil {
-		fmt.Errorf("error retrieving obm settings of node: %s, error: %v", nodeID, err)
-	}
-
-	if len(obmSettings) == 0 {
-		return WorkflowResponse{}, errors.New("error: got empty obm settings")
-	}
-
-	for _, setting := range obmSettings {
-		if setting.ServiceName == OBMSettingAMTServiceName {
-			req.Options = map[string]interface{}{
-				"defaults": map[string]string{
-					"obmServiceName": OBMSettingAMTServiceName,
-				},
-			}
-			break
-		}
-	}
-
 	url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows/", c.ApiServer, nodeID)
 	body, err := json.Marshal(req)
 	if err != nil {

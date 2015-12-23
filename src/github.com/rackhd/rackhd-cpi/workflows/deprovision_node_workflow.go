@@ -11,7 +11,11 @@ import (
 var deprovisionNodeWorkflowTemplate = []byte(`{
   "friendlyName": "BOSH Deprovision Node",
   "injectableName": "Graph.BOSH.DeprovisionNode",
-  "options": {},
+	"options": {
+		"defaults": {
+	  	"obmServiceName": null
+	  }
+	},
   "tasks": [
     {
       "label": "set-boot-pxe",
@@ -49,16 +53,40 @@ var deprovisionNodeWorkflowTemplate = []byte(`{
   ]
 }`)
 
+type deprovisionNodeWorkflowOptions struct {
+	OBMServiceName *string `json:"obmServiceName"`
+}
+
+type deprovisionNodeWorkflowDefaultOptionsContainer struct {
+	Defaults deprovisionNodeWorkflowOptions `json:"defaults"`
+}
+
+type deprovisionNodeWorkflowOptionsContainer struct {
+	Options deprovisionNodeWorkflowDefaultOptionsContainer `json:"options"`
+}
+
 type deprovisionNodeWorkflow struct {
 	*rackhdapi.WorkflowStub
-	*rackhdapi.OptionContainer
+	*deprovisionNodeWorkflowOptionsContainer
 	Tasks []rackhdapi.WorkflowTask `json:"tasks"`
 }
 
 func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
+	options := deprovisionNodeWorkflowOptions{}
+
+	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
+	if err != nil {
+		return err
+	}
+
+	if isAMTService {
+		obmName := rackhdapi.OBMSettingAMTServiceName
+		options.OBMServiceName = &obmName
+	}
+
 	req := rackhdapi.RunWorkflowRequestBody{
 		Name:    workflowName,
-		Options: map[string]interface{}{},
+		Options: map[string]interface{}{"defaults": options},
 	}
 
 	return rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, c, nodeID, req)

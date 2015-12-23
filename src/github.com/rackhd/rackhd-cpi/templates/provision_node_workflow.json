@@ -7,6 +7,7 @@
       "agentSettingsPath": null,
       "cid": null,
       "downloadDir": "/opt/downloads",
+      "obmServiceName": null,
       "registrySettingsFile": null,
       "registrySettingsPath": null,
       "stemcellFile": null

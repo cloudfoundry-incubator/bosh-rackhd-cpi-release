@@ -19,6 +19,7 @@ var provisionNodeWorkflowTemplate = []byte(`{
       "agentSettingsPath": null,
       "cid": null,
       "downloadDir": "/opt/downloads",
+			"obmServiceName": null,
       "registrySettingsFile": null,
       "registrySettingsPath": null,
       "stemcellFile": null
@@ -59,6 +60,7 @@ type ProvisionNodeWorkflowOptions struct {
 	AgentSettingsPath    *string `json:"agentSettingsPath"`
 	CID                  *string `json:"cid"`
 	DownloadDir          string  `json:"downloadDir,omitempty"`
+	OBMServiceName       *string `json:"obmServiceName"`
 	RegistrySettingsFile *string `json:"registrySettingsFile"`
 	RegistrySettingsPath *string `json:"registrySettingsPath"`
 	StemcellFile         *string `json:"stemcellFile"`
@@ -78,7 +80,12 @@ type provisionNodeWorkflow struct {
 	Tasks []rackhdapi.WorkflowTask `json:"tasks"`
 }
 
-func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, options ProvisionNodeWorkflowOptions) error {
+func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, vmCID string, stemcellCID string) error {
+	options, err := buildProvisionWorkflowOptions(c, nodeID, workflowName, vmCID, stemcellCID)
+	if err != nil {
+		return err
+	}
+
 	req := rackhdapi.RunWorkflowRequestBody{
 		Name:    workflowName,
 		Options: map[string]interface{}{"defaults": options},
@@ -167,4 +174,26 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	}
 
 	return [][]byte{pBytes, sBytes}, wBytes, nil
+}
+
+func buildProvisionWorkflowOptions(c config.Cpi, nodeID string, workflowName string, vmCID string, stemcellCID string) (ProvisionNodeWorkflowOptions, error) {
+	envPath := rackhdapi.RackHDEnvPath
+	options := ProvisionNodeWorkflowOptions{
+		AgentSettingsFile: &nodeID,
+		AgentSettingsPath: &envPath,
+		CID:               &vmCID,
+		StemcellFile:      &stemcellCID,
+	}
+
+	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
+	if err != nil {
+		return ProvisionNodeWorkflowOptions{}, fmt.Errorf("error retrieving obm settings from node: %s", nodeID)
+	}
+
+	if isAMTService {
+		obmName := rackhdapi.OBMSettingAMTServiceName
+		options.OBMServiceName = &obmName
+	}
+
+	return options, nil
 }
