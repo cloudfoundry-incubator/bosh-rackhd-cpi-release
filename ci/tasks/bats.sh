@@ -14,6 +14,7 @@ check_param PRIMARY_NETWORK_RANGE
 check_param PRIMARY_NETWORK_MANUAL_IP
 check_param SECONDARY_STATIC_IP
 check_param BAT_SPEC
+check_param BAT_STEMCELL_NAME
 
 base_dir=${PWD}
 
@@ -55,7 +56,7 @@ properties:
   instances: 1
   uuid: $(bosh status --uuid)
   stemcell:
-    name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
+    name: ${BAT_STEMCELL_NAME}
     version: latest
   networks:
   - name: default

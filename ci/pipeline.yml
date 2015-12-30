@@ -4,7 +4,7 @@ groups:
     jobs:
       - integration
       - lifecycle
-      - bats-virtual
+      - bats-centos
       - setup-director
       - teardown-director
       - promote-candidate
@@ -27,7 +27,7 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                         get: stemcell,           resource: rackhd-openstack-stemcell}
-  - put: vsphere-ubuntu-env
+  - put: emccmd-env
     params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
@@ -38,8 +38,8 @@ jobs:
         STATIC_IP:                    {{static_ip}}
         GATEWAY:                      {{gateway}}
     ensure:
-      put: vsphere-ubuntu-env
-      params: {release: vsphere-ubuntu-env}
+      put: emccmd-env
+      params: {release: emccmd-env}
 
 - name: setup-director
   serial: true
@@ -60,14 +60,14 @@ jobs:
         CPI_RELEASE_NAME:                   {{cpi_release_name}}
         DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}
 
-- name: bats-virtual
+- name: bats-centos
   serial: true
   plan:
   - aggregate:
     - {trigger: true,  passed: [setup-director],    get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                              get: stemcell,           resource: rackhd-openstack-stemcell}
     - {trigger: false,                              get: bats,               resource: bosh-acceptance-tests}
-  - put: vsphere-ubuntu-env
+  - put: emccmd-env
     params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/bats.yml
@@ -83,15 +83,16 @@ jobs:
         PRIMARY_NETWORK_RANGE:              {{virtual_primary_network_range}}
         PRIMARY_NETWORK_MANUAL_IP:          {{virtual_primary_network_manual_ip}}
         BAT_SPEC:                           {{bat_spec}}
+        BAT_STEMCELL_NAME:                  {{bat_stemcell_name}}
     ensure:
-      put: vsphere-ubuntu-env
-      params: {release: vsphere-ubuntu-env}
+      put: emccmd-env
+      params: {release: emccmd-env}
 
 - name: teardown-director
   serial: true
   plan:
   - aggregate:
-    - {trigger: true, passed: [bats-virtual], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+    - {trigger: true, passed: [bats-centos], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
   - task: teardown-director
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
@@ -104,7 +105,7 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: true,   passed: [bats-virtual], get: bosh-cpi-release,        resource: bosh-rackhd-cpi-release}
+    - {trigger: true,   passed: [bats-centos], get: bosh-cpi-release,        resource: bosh-rackhd-cpi-release}
     - {trigger: false,                          get: release-version-semver,  params: {bump: major}}
 
   - task: promote
@@ -138,21 +139,21 @@ resources:
   - name: rackhd-openstack-stemcell
     type: bosh-io-stemcell
     source:
-      name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
+      name: bosh-openstack-kvm-centos-7-go_agent-raw
 
   - name: bosh-acceptance-tests
     type: git
     source:
       uri: git@github.com:EMC-CMD/bosh-acceptance-tests.git
-      branch: master
+      branch: PR-SSH_TO_BOSH_SSH
       private_key: {{github_key__bosh-acceptance-tests}}
 
-  - name: vsphere-ubuntu-env
+  - name: emccmd-env
     type: pool
     source:
       uri: git@github.com:EMC-CMD/emccmd-environments.git
       branch: master
-      pool: vsphere-ubuntu
+      pool: vsphere-centos
       private_key: {{github_key__emccmd-environments}}
 
   - name: release-version-semver
