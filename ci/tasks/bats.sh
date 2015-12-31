@@ -15,6 +15,7 @@ check_param PRIMARY_NETWORK_MANUAL_IP
 check_param SECONDARY_STATIC_IP
 check_param BAT_SPEC
 check_param BAT_STEMCELL_NAME
+check_param BAT_DEPLOYMENT_NAME
 
 base_dir=${PWD}
 
@@ -48,6 +49,7 @@ cat > ${BAT_DEPLOYMENT_SPEC} <<EOF
 cpi: rackhd
 manifest_template_path: ${base_dir}/bosh-cpi-release/ci/templates/rackhd.yml.erb
 properties:
+  name: ${BAT_DEPLOYMENT_NAME}
   key_name:  bats
   use_static_ip: true
   second_static_ip: ${SECONDARY_STATIC_IP}

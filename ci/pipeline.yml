@@ -5,6 +5,7 @@ groups:
       - integration
       - lifecycle
       - bats-centos
+      - bats-ubuntu
       - setup-director
       - teardown-director
       - promote-candidate
@@ -26,8 +27,8 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-    - {trigger: false,                         get: stemcell,           resource: rackhd-openstack-stemcell}
-  - put: emccmd-env
+    - {trigger: false,                         get: stemcell,           resource: rackhd-openstack-ubuntu-stemcell}
+  - put: emccmd-env-lifecycle
     params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
@@ -35,11 +36,11 @@ jobs:
       params:
         RACKHD_API_URI:               {{rackhd_server_ip}}
         AGENT_PUBLIC_KEY:             {{agent_public_key}}
-        STATIC_IP:                    {{static_ip}}
+        STATIC_IP:                    {{lifecycle_static_ip}}
         GATEWAY:                      {{gateway}}
     ensure:
-      put: emccmd-env
-      params: {release: emccmd-env}
+      put: emccmd-env-lifecycle
+      params: {release: emccmd-env-lifecycle}
 
 - name: setup-director
   serial: true
@@ -52,8 +53,8 @@ jobs:
     config:
       params:
         BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
-        BOSH_DIRECTOR_PUBLIC_IP:            {{virtual_bosh_director_public_ip}}
-        BOSH_DIRECTOR_PRIVATE_IP:           {{virtual_bosh_director_private_ip}}
+        BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
+        BOSH_DIRECTOR_PRIVATE_IP:           {{bosh_director_private_ip}}
         BOSH_DIRECTOR_PUBLIC_KEY:           {{director_public_key}}
         RACKHD_API_URI:                     {{rackhd_server_ip}}
         RACKHD_NETWORK:                     {{rackhd_network}}
@@ -65,9 +66,9 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,  passed: [setup-director],    get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-    - {trigger: false,                              get: stemcell,           resource: rackhd-openstack-stemcell}
+    - {trigger: false,                              get: stemcell,           resource: rackhd-openstack-centos-stemcell}
     - {trigger: false,                              get: bats,               resource: bosh-acceptance-tests}
-  - put: emccmd-env
+  - put: emccmd-env-bats
     params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/bats.yml
@@ -75,24 +76,54 @@ jobs:
       params:
         AGENT_PUBLIC_KEY:                   {{agent_public_key}}
         DIRECTOR_PRIVATE_KEY_DATA:          {{director_private_key}}
-        BOSH_DIRECTOR_PUBLIC_IP:            {{virtual_bosh_director_public_ip}}
-        BOSH_DIRECTOR_PRIVATE_IP:           {{virtual_bosh_director_private_ip}}
-        SECONDARY_STATIC_IP:                {{virtual_secondary_static_ip}}
-        PRIMARY_NETWORK_CIDR:               {{virtual_primary_network_cidr}}
-        PRIMARY_NETWORK_GATEWAY:            {{virtual_primary_network_gateway}}
-        PRIMARY_NETWORK_RANGE:              {{virtual_primary_network_range}}
-        PRIMARY_NETWORK_MANUAL_IP:          {{virtual_primary_network_manual_ip}}
+        BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
+        BOSH_DIRECTOR_PRIVATE_IP:           {{bosh_director_private_ip}}
+        PRIMARY_NETWORK_CIDR:               {{centos_primary_network_cidr}}
+        PRIMARY_NETWORK_GATEWAY:            {{centos_primary_network_gateway}}
+        PRIMARY_NETWORK_RANGE:              {{centos_primary_network_range}}
+        PRIMARY_NETWORK_MANUAL_IP:          {{centos_primary_network_manual_ip}}
+        SECONDARY_STATIC_IP:                {{centos_secondary_static_ip}}
         BAT_SPEC:                           {{bat_spec}}
-        BAT_STEMCELL_NAME:                  {{bat_stemcell_name}}
+        BAT_STEMCELL_NAME:                  bosh-openstack-kvm-centos-7-go_agent-raw
+        BAT_DEPLOYMENT_NAME:                bat-centos
     ensure:
-      put: emccmd-env
-      params: {release: emccmd-env}
+      put: emccmd-env-bats
+      params: {release: emccmd-env-bats}
+
+- name: bats-ubuntu
+  serial: true
+  plan:
+  - aggregate:
+    - {trigger: true,  passed: [setup-director],    get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+    - {trigger: false,                              get: stemcell,           resource: rackhd-openstack-ubuntu-stemcell}
+    - {trigger: false,                              get: bats,               resource: bosh-acceptance-tests}
+  - put: emccmd-env-bats
+    params: {acquire: true}
+  - task: test
+    file: bosh-cpi-release/ci/tasks/bats.yml
+    config:
+      params:
+        AGENT_PUBLIC_KEY:                   {{agent_public_key}}
+        DIRECTOR_PRIVATE_KEY_DATA:          {{director_private_key}}
+        BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
+        BOSH_DIRECTOR_PRIVATE_IP:           {{bosh_director_private_ip}}
+        PRIMARY_NETWORK_CIDR:               {{ubuntu_primary_network_cidr}}
+        PRIMARY_NETWORK_GATEWAY:            {{ubuntu_primary_network_gateway}}
+        PRIMARY_NETWORK_RANGE:              {{ubuntu_primary_network_range}}
+        PRIMARY_NETWORK_MANUAL_IP:          {{ubuntu_primary_network_manual_ip}}
+        SECONDARY_STATIC_IP:                {{ubuntu_secondary_static_ip}}
+        BAT_SPEC:                           {{bat_spec}}
+        BAT_STEMCELL_NAME:                  bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
+        BAT_DEPLOYMENT_NAME:                bat-ubuntu
+    ensure:
+      put: emccmd-env-bats
+      params: {release: emccmd-env-bats}
 
 - name: teardown-director
   serial: true
   plan:
   - aggregate:
-    - {trigger: true, passed: [bats-centos], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+    - {trigger: true, passed: [bats-centos, bats-ubuntu], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
   - task: teardown-director
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
@@ -105,7 +136,7 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - {trigger: true,   passed: [bats-centos], get: bosh-cpi-release,        resource: bosh-rackhd-cpi-release}
+    - {trigger: true, passed: [bats-centos, bats-ubuntu], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                          get: release-version-semver,  params: {bump: major}}
 
   - task: promote
@@ -136,7 +167,12 @@ resources:
   - <<: *bosh-cpi-release-resource
     name: bosh-cpi-release-out
 
-  - name: rackhd-openstack-stemcell
+  - name: rackhd-openstack-ubuntu-stemcell
+    type: bosh-io-stemcell
+    source:
+      name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
+
+  - name: rackhd-openstack-centos-stemcell
     type: bosh-io-stemcell
     source:
       name: bosh-openstack-kvm-centos-7-go_agent-raw
@@ -148,12 +184,20 @@ resources:
       branch: PR-SSH_TO_BOSH_SSH
       private_key: {{github_key__bosh-acceptance-tests}}
 
-  - name: emccmd-env
+  - name: emccmd-env-lifecycle
     type: pool
     source:
       uri: git@github.com:EMC-CMD/emccmd-environments.git
       branch: master
-      pool: vsphere-centos
+      pool: lifecycle
+      private_key: {{github_key__emccmd-environments}}
+
+  - name: emccmd-env-bats
+    type: pool
+    source:
+      uri: git@github.com:EMC-CMD/emccmd-environments.git
+      branch: master
+      pool: bats
       private_key: {{github_key__emccmd-environments}}
 
   - name: release-version-semver
