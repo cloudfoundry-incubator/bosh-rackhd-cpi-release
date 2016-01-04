@@ -52,6 +52,8 @@ func main() {
 		log.SetLevel(log.ErrorLevel)
 	case "FATAL":
 		log.SetLevel(log.FatalLevel)
+	default:
+		log.SetLevel(log.DebugLevel)
 	}
 
 	configPath := flag.String("configPath", "", "Path to configuration file")
