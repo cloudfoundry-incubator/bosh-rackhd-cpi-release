@@ -129,6 +129,12 @@ func main() {
 			exitWithDefaultError(fmt.Errorf("Error running HasVM: %s", err))
 		}
 		exitWithResult(hasVM)
+	case cpi.DELETE_DISK:
+		err := cpi.DeleteDisk(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithDefaultError(fmt.Errorf("Error running DeleteDisk: %s", err))
+		}
+		exitWithResult("")
 	default:
 		exitWithDefaultError(fmt.Errorf("Unexpected command: %s dispatched...aborting", req.Method))
 	}

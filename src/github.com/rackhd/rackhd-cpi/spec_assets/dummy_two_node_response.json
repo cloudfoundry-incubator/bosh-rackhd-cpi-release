@@ -2,6 +2,13 @@
   {
     "workflows": [],
     "catalogs": [],
+    "bosh_cpi": {
+      "persistent_disk": {
+        "disk_cid": "valid_disk_cid_1",
+        "location": "/dev/sdb",
+        "attached": false
+      }
+    },
     "autoDiscover": false,
     "createdAt": "2015-09-03T01:13:09.677Z",
     "identifiers": [
@@ -27,6 +34,13 @@
   {
     "workflows": [],
     "catalogs": [],
+    "bosh_cpi": {
+      "persistent_disk": {
+        "disk_cid": "valid_disk_cid_2",
+        "location": "/dev/sdb",
+        "attached": true
+      }
+    },
     "autoDiscover": false,
     "createdAt": "2015-09-03T01:13:21.870Z",
     "identifiers": [

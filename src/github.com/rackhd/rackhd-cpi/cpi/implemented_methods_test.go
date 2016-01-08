@@ -15,12 +15,12 @@ var _ = Describe("ImplementsMethod", func() {
 		Expect(cpi.ImplementsMethod("create_stemcell")).To(BeTrue())
 		Expect(cpi.ImplementsMethod("delete_stemcell")).To(BeTrue())
 		Expect(cpi.ImplementsMethod("set_vm_metadata")).To(BeTrue())
+		Expect(cpi.ImplementsMethod("delete_disk")).To(BeTrue())
 	})
 
 	It("returns false if the CPI currently does not implement the method", func() {
 		Expect(cpi.ImplementsMethod("reboot_vm")).To(BeFalse())
 		Expect(cpi.ImplementsMethod("create_disk")).To(BeFalse())
-		Expect(cpi.ImplementsMethod("delete_disk")).To(BeFalse())
 		Expect(cpi.ImplementsMethod("attach_disk")).To(BeFalse())
 		Expect(cpi.ImplementsMethod("has_disk")).To(BeFalse())
 		Expect(cpi.ImplementsMethod("get_disks")).To(BeFalse())

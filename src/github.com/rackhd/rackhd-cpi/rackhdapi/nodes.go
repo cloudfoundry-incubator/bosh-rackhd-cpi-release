@@ -1,6 +1,7 @@
 package rackhdapi
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -55,11 +56,22 @@ type OBMSetting struct {
 	ServiceName string      `json:"service"`
 }
 
+type CPISettings struct {
+	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
+}
+
+type PersistentDiskSettings struct {
+	DiskCID    string `json:"disk_cid"`
+	Location   string `json:"location"`
+	IsAttached bool   `json:"attached"`
+}
+
 type Node struct {
 	Workflows   []interface{} `json:"workflows"`
 	Status      string        `json:"status"`
 	ID          string        `json:"id"`
 	CID         string        `json:"cid"`
+	CPI         CPISettings   `json:"bosh_cpi"`
 	OBMSettings []OBMSetting  `json:"obmSettings"`
 }
 
@@ -210,28 +222,25 @@ func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
 }
 
 func BlockNode(c config.Cpi, nodeID string) error {
-	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
-	blockFlag := fmt.Sprintf(`{"status": "%s", "status_reason": "%s"}`, Blocked, DiskReason)
-	return patchNode(url, blockFlag)
+	blockFlag := []byte(fmt.Sprintf("{\"status\": \"%s\", \"status_reason\": \"%s\"}", Blocked, DiskReason))
+	return PatchNode(c, nodeID, blockFlag)
 }
 
 func SetNodeMetadata(c config.Cpi, nodeID string, metadata string) error {
-	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
-	metadataBytes := fmt.Sprintf(`{"metadata": %s}`, metadata)
-	return patchNode(url, metadataBytes)
+	metadataBytes := []byte(fmt.Sprintf("{\"metadata\": %s}", metadata))
+	return PatchNode(c, nodeID, metadataBytes)
 }
 
-func patchNode(url string, bytes string) error {
-	body := ioutil.NopCloser(strings.NewReader(bytes))
-	defer body.Close()
+func PatchNode(c config.Cpi, nodeID string, body []byte) error {
+	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
 
-	request, err := http.NewRequest("PATCH", url, body)
+	request, err := http.NewRequest("PATCH", url, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("Error building request to api server: %s", err)
 	}
 
 	request.Header.Set("Content-Type", "application/json")
-	request.ContentLength = int64(len(bytes))
+	request.ContentLength = int64(len(body))
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
