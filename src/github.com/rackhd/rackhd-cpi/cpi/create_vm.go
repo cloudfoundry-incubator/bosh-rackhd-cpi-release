@@ -50,13 +50,10 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	env := bosh.AgentEnv{
 		AgentID:   agentID,
 		Blobstore: c.Agent.Blobstore,
-		Disks: map[string]string{
-			"system":    "/dev/sda",
-			"ephemeral": "/dev/sdb",
-		},
-		Mbus:     c.Agent.Mbus,
-		Networks: map[string]bosh.Network{netName: netSpec},
-		NTP:      c.Agent.Ntp,
+		Disks:     c.Agent.Disks,
+		Mbus:      c.Agent.Mbus,
+		Networks:  map[string]bosh.Network{netName: netSpec},
+		NTP:       c.Agent.Ntp,
 		VM: map[string]string{
 			"id":   nodeID,
 			"name": nodeID,

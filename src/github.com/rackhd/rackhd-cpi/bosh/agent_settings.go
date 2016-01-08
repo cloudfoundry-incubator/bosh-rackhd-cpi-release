@@ -33,7 +33,7 @@ type Network struct {
 type AgentEnv struct {
 	AgentID    string                 `json:"agent_id"`
 	Blobstore  map[string]interface{} `json:"blobstore"`
-	Disks      map[string]string      `json:"disks"`
+	Disks      map[string]interface{} `json:"disks"`
 	Env        map[string]interface{} `json:"env"`
 	Mbus       string                 `json:"mbus"`
 	Networks   map[string]Network     `json:"networks"`

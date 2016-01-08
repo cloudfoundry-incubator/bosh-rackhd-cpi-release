@@ -43,7 +43,7 @@ var _ = Describe("Setting VM Metadata", func() {
 			server = ghttp.NewServer()
 			serverURL, err := url.Parse(server.URL())
 			Expect(err).ToNot(HaveOccurred())
-			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":1}`, serverURL.Host))
 			cpiConfig, err = config.New(jsonReader)
 			Expect(err).ToNot(HaveOccurred())
 		})

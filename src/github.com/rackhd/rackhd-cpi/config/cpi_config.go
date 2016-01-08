@@ -14,6 +14,7 @@ import (
 const (
 	defaultMaxCreateVMAttempts       = 5
 	defaultRunWorkflowTimeoutSeconds = 20 * 60
+	defaultSystemDisk                = "/dev/sda"
 )
 
 type Cpi struct {
@@ -24,9 +25,10 @@ type Cpi struct {
 }
 
 type AgentConfig struct {
-	Blobstore map[string]interface{}
-	Mbus      string   `json:"mbus"`
-	Ntp       []string `json:"ntp"`
+	Blobstore map[string]interface{} `json:"blobstore"`
+	Mbus      string                 `json:"mbus"`
+	Ntp       []string               `json:"ntp"`
+	Disks     map[string]interface{} `json:"disks"`
 }
 
 func DefaultMaxCreateVMAttempts() int { return defaultMaxCreateVMAttempts }
@@ -74,6 +76,15 @@ func isAgentConfigValid(config AgentConfig) bool {
 	}
 
 	if len(config.Blobstore) == 0 {
+		return false
+	}
+
+	if len(config.Disks) == 0 {
+		return false
+	}
+
+	_, systemDiskExist := config.Disks["system"]
+	if !systemDiskExist {
 		return false
 	}
 

@@ -33,7 +33,16 @@ cat > config_file <<EOF
         "blobstore_path": "/var/vcap/micro_bosh/data/cache"
       }
     },
-    "mbus":"https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868"
+    "mbus":"https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868",
+    "disks": {
+      "system": "/dev/sda",
+      "persistent": {
+        "persistent-disk1": {
+          "path": "/dev/sdb",
+          "volume_id": "1"
+        }
+      }
+    }
   }
 }
 EOF
