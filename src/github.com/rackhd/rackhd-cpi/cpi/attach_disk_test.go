@@ -48,7 +48,7 @@ var _ = Describe("AttachDisk", func() {
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
+				expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
 				expectedNodesData, err := json.Marshal(expectedNodes)
 				Expect(err).ToNot(HaveOccurred())
 				server.AppendHandlers(
@@ -75,7 +75,7 @@ var _ = Describe("AttachDisk", func() {
 					err := json.Unmarshal(jsonInput, &extInput)
 					Expect(err).ToNot(HaveOccurred())
 
-					expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
+					expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
 					expectedNodesData, err := json.Marshal(expectedNodes)
 					Expect(err).ToNot(HaveOccurred())
 					server.AppendHandlers(
@@ -101,7 +101,7 @@ var _ = Describe("AttachDisk", func() {
 					err := json.Unmarshal(jsonInput, &extInput)
 					Expect(err).NotTo(HaveOccurred())
 
-					expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
+					expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
 					expectedNodesData, err := json.Marshal(expectedNodes)
 					Expect(err).ToNot(HaveOccurred())
 
@@ -144,7 +144,7 @@ var _ = Describe("AttachDisk", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
+			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(

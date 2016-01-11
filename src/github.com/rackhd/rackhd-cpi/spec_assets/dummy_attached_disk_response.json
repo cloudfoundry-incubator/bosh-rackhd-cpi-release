@@ -3,6 +3,7 @@
     "workflows": [],
     "catalogs": [],
     "bosh_cpi": {
+      "vm_cid": "valid_vm_cid_1",
       "persistent_disk": {
         "disk_cid": "valid_disk_cid_1",
         "location": "/dev/sdb",
@@ -35,6 +36,7 @@
     "workflows": [],
     "catalogs": [],
     "bosh_cpi": {
+      "vm_cid": "valid_vm_cid_2",
       "persistent_disk": {
         "disk_cid": "valid_disk_cid_2",
         "location": "/dev/sdb",
