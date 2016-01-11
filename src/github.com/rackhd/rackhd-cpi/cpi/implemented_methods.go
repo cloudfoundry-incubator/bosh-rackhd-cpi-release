@@ -19,6 +19,7 @@ const (
 	CREATE_DISK     = "create_disk"
 	DELETE_DISK     = "delete_disk"
 	ATTACH_DISK     = "attach_disk"
+	DETACH_DISK     = "detach_disk"
 	HAS_DISK        = "has_disk"
 	GET_DISKS       = "get_disks"
 	SNAPSHOT_DISK   = "snapshot_disk"
@@ -38,7 +39,8 @@ var cpiMethods = map[string]bool{
 	DELETE_STEMCELL:    true,
 	CREATE_DISK:        false,
 	DELETE_DISK:        true,
-	ATTACH_DISK:        false,
+	ATTACH_DISK:        true,
+	DETACH_DISK:        true,
 	HAS_DISK:           false,
 	GET_DISKS:          false,
 	SNAPSHOT_DISK:      false,

@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	DefaultErrorType      = "Bosh::Clouds::CloudError"
-	NotSupportedErrorType = "Bosh::Clouds::NotSupported"
+	DefaultErrorType        = "Bosh::Clouds::CloudError"
+	NotImplementedErrorType = "Bosh::Clouds::NotImplemented"
 )
 
 type ResponseError struct {

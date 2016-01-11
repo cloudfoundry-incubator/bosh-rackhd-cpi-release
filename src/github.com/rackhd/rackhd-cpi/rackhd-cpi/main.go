@@ -25,8 +25,8 @@ func exitWithDefaultError(err error) {
 	os.Exit(1)
 }
 
-func exitWithNotSupportedError(err error) {
-	fmt.Println(bosh.BuildErrorResponse(err, bosh.NotSupportedErrorType, false, responseLogBuffer.String()))
+func exitWithNotImplementedError(err error) {
+	fmt.Println(bosh.BuildErrorResponse(err, bosh.NotImplementedErrorType, false, responseLogBuffer.String()))
 	responseLogBuffer.Reset()
 	os.Exit(1)
 }
@@ -89,7 +89,7 @@ func main() {
 	}
 
 	if !implemented {
-		exitWithNotSupportedError(fmt.Errorf("Method: %s is not implemented", req.Method))
+		exitWithNotImplementedError(fmt.Errorf("Method: %s is not implemented", req.Method))
 	}
 
 	switch req.Method {
@@ -139,6 +139,12 @@ func main() {
 		err := cpi.AttachDisk(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running AttachDisk: %s", err))
+		}
+		exitWithResult("")
+	case cpi.DETACH_DISK:
+		err := cpi.DetachDisk(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithDefaultError(fmt.Errorf("Error running DetachDisk: %s", err))
 		}
 		exitWithResult("")
 	default:
