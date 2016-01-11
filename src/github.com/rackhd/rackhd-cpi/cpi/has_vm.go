@@ -23,7 +23,7 @@ func HasVM(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 	}
 
 	for _, node := range nodes {
-		if node.CID == cid {
+		if node.CPI.VMCID == cid {
 			return true, nil
 		}
 	}

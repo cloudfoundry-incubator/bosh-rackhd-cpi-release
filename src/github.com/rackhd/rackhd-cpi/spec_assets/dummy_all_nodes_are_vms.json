@@ -19,7 +19,14 @@
         "service": "ipmi-obm-service"
       }
     ],
-    "cid": "vm-5678",
+    "bosh_cpi": {
+      "vm_cid": "vm-5678",
+      "persistent_disk": {
+        "disk_cid": "valid_disk_cid_2",
+        "location": "/dev/sdb",
+        "attached": true
+      }
+    },
     "sku": "55e79e0e4e66816f6152ffe6",
     "type": "compute",
     "updatedAt": "2015-09-03T01:15:43.515Z",
@@ -45,7 +52,14 @@
         "service": "ipmi-obm-service"
       }
     ],
-    "cid": "vm-1234",
+    "bosh_cpi": {
+      "vm_cid": "vm-1234",
+      "persistent_disk": {
+        "disk_cid": "valid_disk_cid_2",
+        "location": "/dev/sdb",
+        "attached": true
+      }
+    },
     "sku": "55e79e0e4e66816f6152ffe6",
     "type": "compute",
     "updatedAt": "2015-09-14T15:47:55.323Z",

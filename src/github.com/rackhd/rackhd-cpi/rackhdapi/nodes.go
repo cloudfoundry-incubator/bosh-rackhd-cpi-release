@@ -112,7 +112,7 @@ func GetNodeByCID(c config.Cpi, cid string) (Node, error) {
 
 	found := false
 	for _, node := range nodes {
-		if node.CID == cid {
+		if node.CPI.VMCID == cid {
 			result = node
 			found = true
 		}
