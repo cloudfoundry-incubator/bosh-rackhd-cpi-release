@@ -135,6 +135,12 @@ func main() {
 			exitWithDefaultError(fmt.Errorf("Error running DeleteDisk: %s", err))
 		}
 		exitWithResult("")
+	case cpi.ATTACH_DISK:
+		err := cpi.AttachDisk(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithDefaultError(fmt.Errorf("Error running AttachDisk: %s", err))
+		}
+		exitWithResult("")
 	default:
 		exitWithDefaultError(fmt.Errorf("Unexpected command: %s dispatched...aborting", req.Method))
 	}

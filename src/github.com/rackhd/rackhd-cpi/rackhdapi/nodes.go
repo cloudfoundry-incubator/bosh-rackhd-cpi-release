@@ -57,6 +57,7 @@ type OBMSetting struct {
 }
 
 type CPISettings struct {
+	VMCID          string                 `json:"vm_cid"`
 	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
 }
 
