@@ -37,7 +37,7 @@ var _ = Describe("AttachDisk", func() {
 	})
 
 	Context("given a disk CID that exists", func() {
-		It("returns an error", func() {
+		It("returns true", func() {
 			jsonInput := []byte(`[
 					"valid_disk_cid_1"
 				]`)
@@ -63,7 +63,7 @@ var _ = Describe("AttachDisk", func() {
 	})
 
 	Context("given a disk CID that not exists", func() {
-		It("returns an error", func() {
+		It("returns false", func() {
 			jsonInput := []byte(`[
 					"invalid_disk_cid_1"
 				]`)
