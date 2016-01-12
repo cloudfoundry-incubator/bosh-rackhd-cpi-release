@@ -18,6 +18,16 @@ gem install bosh_cli --no-ri --no-rdoc
 bosh -n target ${BOSH_VSPHERE_DIRECTOR}
 bosh --non-interactive --user admin --password admin upload release ${base_dir}/bosh-release/release.tgz
 
+if bosh -n --user admin --password admin deployments | grep -F ${DIRECTOR_DEPLOYMENT_NAME}
+then
+  bosh -n --user admin --password admin delete deployment ${DIRECTOR_DEPLOYMENT_NAME}
+fi
+
+if bosh -n --user admin --password admin releases | grep -F ${CPI_RELEASE_NAME}
+then
+  bosh -n --user admin --password admin delete release ${CPI_RELEASE_NAME}
+fi
+
 cd bosh-cpi-release/
 cat > config/private.yml << EOF
 ---
