@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -147,6 +148,12 @@ func main() {
 			exitWithDefaultError(fmt.Errorf("Error running DetachDisk: %s", err))
 		}
 		exitWithResult("")
+	case cpi.HAS_DISK:
+		diskExists, err := cpi.HasDisk(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithDefaultError(fmt.Errorf("Error running DetachDisk: %s", err))
+		}
+		exitWithResult(strconv.FormatBool(diskExists))
 	default:
 		exitWithDefaultError(fmt.Errorf("Unexpected command: %s dispatched...aborting", req.Method))
 	}
