@@ -35,6 +35,7 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                         get: stemcell,           resource: rackhd-openstack-ubuntu-stemcell}
+  - get: emccmd-env-ci
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
@@ -54,6 +55,7 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [lifecycle], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                      get: bosh-release,       resource: bosh-release}
+  - get: emccmd-env-ci
   - task: setup-director
     file: bosh-cpi-release/ci/tasks/setup-director.yml
     config:
@@ -78,6 +80,7 @@ jobs:
     - {trigger: true,  passed: [setup-director],    get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                              get: stemcell,           resource: rackhd-openstack-centos-stemcell}
     - {trigger: false,                              get: bats,               resource: bosh-acceptance-tests}
+  - get: emccmd-env-ci
   - put: emccmd-env-bats
     params: {acquire: true}
   - task: test
@@ -108,6 +111,7 @@ jobs:
     - {trigger: true,  passed: [setup-director],    get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                              get: stemcell,           resource: rackhd-openstack-ubuntu-stemcell}
     - {trigger: false,                              get: bats,               resource: bosh-acceptance-tests}
+  - get: emccmd-env-ci
   - put: emccmd-env-bats
     params: {acquire: true}
   - task: test
@@ -139,6 +143,7 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true, passed: [bats-centos, bats-ubuntu], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
+  - get: emccmd-env-ci
   - task: teardown-director
     file: bosh-cpi-release/ci/tasks/teardown-director.yml
     config:
