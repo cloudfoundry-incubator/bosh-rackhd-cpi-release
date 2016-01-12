@@ -65,5 +65,60 @@
     "type": "compute",
     "updatedAt": "2015-09-14T15:47:55.323Z",
     "id": "55e79eb14e66816f6152fffb"
+  },
+  {
+    "workflows": [],
+    "catalogs": [],
+    "bosh_cpi": {
+      "vm_cid": "valid_vm_cid_3"
+    },
+    "autoDiscover": false,
+    "createdAt": "2015-09-03T01:13:21.870Z",
+    "identifiers": [
+      "01:1e:67:c4:e1:a0",
+      "01:1e:67:c4:e1:a1"
+    ],
+    "name": "01:1e:67:c4:e1:a0,00:1e:67:c4:e1:a1",
+    "obmSettings": [
+      {
+        "config": {
+          "host": "01:1e:67:6a:27:95",
+          "password": "password1",
+          "user": "root"
+        },
+        "service": "ipmi-obm-service"
+      }
+    ],
+    "status": "reserved",
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "updatedAt": "2015-09-14T15:47:55.323Z",
+    "id": "51e79eb14e66816f6152fffb"
+  },
+  {
+    "workflows": [],
+    "catalogs": [],
+    "autoDiscover": false,
+    "createdAt": "2015-09-03T01:13:21.870Z",
+    "identifiers": [
+      "02:1e:67:c4:e1:a0",
+      "02:1e:67:c4:e1:a1"
+    ],
+    "name": "02:1e:67:c4:e1:a0,00:1e:67:c4:e1:a1",
+    "obmSettings": [
+      {
+        "config": {
+          "host": "02:1e:67:6a:27:95",
+          "password": "password1",
+          "user": "root"
+        },
+        "service": "ipmi-obm-service"
+      }
+    ],
+    "status": "reserved",
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "updatedAt": "2015-09-14T15:47:55.323Z",
+    "id": "52e79eb14e66816f6152fffb"
   }
 ]

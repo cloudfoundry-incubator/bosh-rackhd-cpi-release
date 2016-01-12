@@ -42,7 +42,7 @@ var cpiMethods = map[string]bool{
 	ATTACH_DISK:        true,
 	DETACH_DISK:        true,
 	HAS_DISK:           true,
-	GET_DISKS:          false,
+	GET_DISKS:          true,
 	SNAPSHOT_DISK:      false,
 	DELETE_SNAPSHOT:    false,
 	CURRENT_VM_ID:      false,

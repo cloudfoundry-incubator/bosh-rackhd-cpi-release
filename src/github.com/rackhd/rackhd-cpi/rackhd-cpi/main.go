@@ -151,9 +151,20 @@ func main() {
 	case cpi.HAS_DISK:
 		diskExists, err := cpi.HasDisk(cpiConfig, req.Arguments)
 		if err != nil {
-			exitWithDefaultError(fmt.Errorf("Error running DetachDisk: %s", err))
+			exitWithDefaultError(fmt.Errorf("Error running HasDisk: %s", err))
 		}
 		exitWithResult(strconv.FormatBool(diskExists))
+	case cpi.GET_DISKS:
+		diskCIDs, err := cpi.GetDisks(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithDefaultError(fmt.Errorf("Error running GetDisks: %s", err))
+		}
+
+		diskCIDsJSON, err := json.Marshal(diskCIDs)
+		if err != nil {
+			exitWithDefaultError(fmt.Errorf("Error running GetDisks: %s", err))
+		}
+		exitWithResult(diskCIDsJSON)
 	default:
 		exitWithDefaultError(fmt.Errorf("Unexpected command: %s dispatched...aborting", req.Method))
 	}
