@@ -26,15 +26,15 @@ func DeleteDisk(c config.Cpi, extInput bosh.MethodArguments) error {
 	}
 
 	for _, node := range nodes {
-		if node.CPI.PersistentDisk.DiskCID == diskCID {
-			if node.CPI.PersistentDisk.IsAttached {
+		if node.PersistentDisk.DiskCID == diskCID {
+			if node.PersistentDisk.IsAttached {
 				return fmt.Errorf("Disk: %s is attached\n", diskCID)
 			}
 
-			body := rackhdapi.CPISettings{
+			container := rackhdapi.PersistentDiskSettingsContainer{
 				PersistentDisk: rackhdapi.PersistentDiskSettings{},
 			}
-			bodyBytes, err := json.Marshal(body)
+			bodyBytes, err := json.Marshal(container)
 			if err != nil {
 				return err
 			}

@@ -32,18 +32,21 @@ func DetachDisk(c config.Cpi, extInput bosh.MethodArguments) error {
 	}
 
 	for _, node := range nodes {
-		if node.CPI.PersistentDisk.DiskCID == diskCID {
-			if !node.CPI.PersistentDisk.IsAttached {
+		if node.PersistentDisk.DiskCID == diskCID {
+			if !node.PersistentDisk.IsAttached {
 				return fmt.Errorf("Disk: %s is detached\n", diskCID)
 			}
 
-			if node.CPI.VMCID != vmCID {
+			if node.CID != vmCID {
 				return fmt.Errorf("Disk %s does not belong to VM %s\n", diskCID, vmCID)
 			}
 
-			node.CPI.PersistentDisk.IsAttached = false
-			body := node.CPI
-			bodyBytes, err := json.Marshal(body)
+			container := rackhdapi.PersistentDiskSettingsContainer{
+				PersistentDisk: node.PersistentDisk,
+			}
+			container.PersistentDisk.IsAttached = false
+
+			bodyBytes, err := json.Marshal(container)
 			if err != nil {
 				return err
 			}

@@ -2,7 +2,6 @@ package cpi
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 
 	"github.com/rackhd/rackhd-cpi/bosh"
@@ -19,20 +18,14 @@ func GetDisks(c config.Cpi, extInput bosh.MethodArguments) ([]string, error) {
 
 	vmCID = extInput[0].(string)
 
-	nodes, err := rackhdapi.GetNodes(c)
+	node, err := rackhdapi.GetNodeByVMCID(c, vmCID)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, node := range nodes {
-		if node.CPI.VMCID == vmCID {
-			var result []string = []string{}
-			if node.CPI.PersistentDisk.DiskCID != "" {
-				result = []string{node.CPI.PersistentDisk.DiskCID}
-			}
-			return result, nil
-		}
+	var result []string = []string{}
+	if node.PersistentDisk.DiskCID != "" {
+		result = []string{node.PersistentDisk.DiskCID}
 	}
-
-	return nil, fmt.Errorf("VM: %s not found\n", vmCID)
+	return result, nil
 }

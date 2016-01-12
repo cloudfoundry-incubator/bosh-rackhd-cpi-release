@@ -113,7 +113,7 @@ elif [ ${result} != true ]; then
 fi
 echo "vm ${vm_cid} found"
 
-# Prepare set_vm_metadata
+# Prepare metadata
 echo -e "\nPrepare metadata"
 cat > metadata <<EOF
 {
@@ -125,6 +125,7 @@ cat > metadata <<EOF
 EOF
 cat metadata
 
+# Prepare set vm metadata request
 echo -e "\nPrepare set vm metadata request"
 cat > set_vm_metadata_request <<EOF
 {"method": "set_vm_metadata", "arguments": [${vm_cid}, $(cat metadata)]}
@@ -134,6 +135,66 @@ cat set_vm_metadata_request
 # Run set_vm_metadata
 echo -e "\nRun set vm metadata method"
 cat set_vm_metadata_request | ./rackhd-cpi -configPath=${config_path} 2>&1
+
+# Prepare create_disk
+echo -e "\nPrepare create disk"
+cat > create_disk <<EOF
+[
+  100,
+  {},
+  ${vm_cid}
+]
+EOF
+cat create_disk
+
+# Prepare create disk request
+echo -e "\nPrepare create disk request"
+cat > create_disk_request <<EOF
+{"method": "create_disk", "arguments": $(cat create_disk)}
+EOF
+cat create_disk_request
+
+# Run create_disk
+disk_cid=$(cat create_disk_request | ./rackhd-cpi --configPath=${config_path} | jq .result)
+echo disk_cid
+if [ -z "${disk_cid}" ]; then
+  echo "invalid result returned from create_disk"
+  exit 1
+fi
+echo "disk ${disk_cid} found"
+
+# Prepare attach disk request
+echo -e "\nPrepare attach disk request"
+cat > attach_disk_request <<EOF
+{"method": "attach_disk", "arguments": [${vm_cid}, ${disk_cid}]}
+EOF
+cat attach_disk_request
+
+# Run attach_disk
+echo -e "\nRun attach disk method"
+cat attach_disk_request | ./rackhd-cpi --configPath=${config_path} 2>&1
+
+# Prepare detach disk request
+echo -e "\nPrepare detach disk request"
+cat > detach_disk_request <<EOF
+{"method": "detach_disk", "arguments": [${vm_cid}, ${disk_cid}]}
+EOF
+cat detach_disk_request
+
+# Run detach_disk
+echo -e "\nRun detach disk method"
+cat detach_disk_request | ./rackhd-cpi --configPath=${config_path} 2>&1
+
+# Prepare delete disk request
+echo -e "\nPrepare delete disk request"
+cat > delete_disk_request <<EOF
+{"method": "delete_disk", "arguments": [${disk_cid}]}
+EOF
+cat delete_disk_request
+
+# Run delete_disk
+echo -e "\nRun delete disk method"
+cat delete_disk_request | ./rackhd-cpi --configPath=${config_path} 2>&1
 
 # Prepare delete vm request
 echo -e "\nPrepare delete vm request"

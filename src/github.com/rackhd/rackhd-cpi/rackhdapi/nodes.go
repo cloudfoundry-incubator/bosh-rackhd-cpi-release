@@ -27,13 +27,21 @@ const (
 	Maintenance = "maintenance"
 )
 
+const (
+	PersistentDiskLocation = "sdb"
+)
+
 type NodeCatalog struct {
 	Data CatalogData `json:"data"`
 }
 
+type Device struct {
+	Size string `json:"size"`
+}
+
 type CatalogData struct {
-	NetworkData  NetworkCatalog         `json:"network"`
-	BlockDevices map[string]interface{} `json:"block_device"`
+	NetworkData  NetworkCatalog    `json:"network"`
+	BlockDevices map[string]Device `json:"block_device"`
 }
 
 type NetworkCatalog struct {
@@ -56,8 +64,7 @@ type OBMSetting struct {
 	ServiceName string      `json:"service"`
 }
 
-type CPISettings struct {
-	VMCID          string                 `json:"vm_cid"`
+type PersistentDiskSettingsContainer struct {
 	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
 }
 
@@ -68,12 +75,12 @@ type PersistentDiskSettings struct {
 }
 
 type Node struct {
-	Workflows   []interface{} `json:"workflows"`
-	Status      string        `json:"status"`
-	ID          string        `json:"id"`
-	CID         string        `json:"cid"`
-	CPI         CPISettings   `json:"bosh_cpi"`
-	OBMSettings []OBMSetting  `json:"obmSettings"`
+	Workflows      []interface{}          `json:"workflows"`
+	Status         string                 `json:"status"`
+	ID             string                 `json:"id"`
+	CID            string                 `json:"cid"`
+	OBMSettings    []OBMSetting           `json:"obmSettings"`
+	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
 }
 
 func GetNodes(c config.Cpi) ([]Node, error) {
@@ -102,27 +109,19 @@ func GetNodes(c config.Cpi) ([]Node, error) {
 	return nodes, nil
 }
 
-func GetNodeByCID(c config.Cpi, cid string) (Node, error) {
-	var result Node
-
+func GetNodeByVMCID(c config.Cpi, cid string) (Node, error) {
 	nodes, err := GetNodes(c)
 	if err != nil {
 		return Node{}, err
 	}
 
-	found := false
 	for _, node := range nodes {
-		if node.CPI.VMCID == cid {
-			result = node
-			found = true
+		if node.CID == cid {
+			return node, nil
 		}
 	}
 
-	if found == false {
-		return result, fmt.Errorf("cid %s was not found", cid)
-	}
-
-	return result, nil
+	return Node{}, fmt.Errorf("vm with cid: %s was not found", cid)
 }
 
 func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {

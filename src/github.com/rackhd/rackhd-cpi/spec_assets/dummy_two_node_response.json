@@ -2,12 +2,10 @@
   {
     "workflows": [],
     "catalogs": [],
-    "bosh_cpi": {
-      "persistent_disk": {
-        "disk_cid": "",
-        "location": "",
-        "attached": false
-      }
+    "persistent_disk": {
+      "disk_cid": "",
+      "location": "",
+      "attached": false
     },
     "autoDiscover": false,
     "createdAt": "2015-09-03T01:13:09.677Z",
@@ -34,13 +32,11 @@
   {
     "workflows": [],
     "catalogs": [],
-    "bosh_cpi": {
-      "vm_cid": "vm-1234",
-      "persistent_disk": {
-        "disk_cid": "valid_disk_cid_2",
-        "location": "/dev/sdb",
-        "attached": true
-      }
+    "cid": "vm-1234",
+    "persistent_disk": {
+      "disk_cid": "valid_disk_cid_2",
+      "location": "/dev/sdb",
+      "attached": true
     },
     "autoDiscover": false,
     "createdAt": "2015-09-03T01:13:21.870Z",

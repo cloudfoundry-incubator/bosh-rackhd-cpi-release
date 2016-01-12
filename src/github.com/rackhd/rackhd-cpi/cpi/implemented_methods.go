@@ -37,7 +37,7 @@ var cpiMethods = map[string]bool{
 	CONFIGURE_NETWORKS: false,
 	CREATE_STEMCELL:    true,
 	DELETE_STEMCELL:    true,
-	CREATE_DISK:        false,
+	CREATE_DISK:        true,
 	DELETE_DISK:        true,
 	ATTACH_DISK:        true,
 	DETACH_DISK:        true,

@@ -17,7 +17,7 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 	}
 
 	cid = extInput[0].(string)
-	node, err := rackhdapi.GetNodeByCID(c, cid)
+	node, err := rackhdapi.GetNodeByVMCID(c, cid)
 	nodeID := node.ID
 	if err != nil {
 		return err

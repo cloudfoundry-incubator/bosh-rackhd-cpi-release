@@ -30,3 +30,18 @@ func LoadNodes(nodePath string) []rackhdapi.Node {
 
 	return nodes
 }
+
+func LoadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
+	dummyCatalogfile, err := os.Open(nodeCatalogPath)
+	Expect(err).ToNot(HaveOccurred())
+	defer dummyCatalogfile.Close()
+
+	b, err := ioutil.ReadAll(dummyCatalogfile)
+	Expect(err).ToNot(HaveOccurred())
+
+	nodeCatalog := rackhdapi.NodeCatalog{}
+
+	err = json.Unmarshal(b, &nodeCatalog)
+	Expect(err).ToNot(HaveOccurred())
+	return nodeCatalog
+}

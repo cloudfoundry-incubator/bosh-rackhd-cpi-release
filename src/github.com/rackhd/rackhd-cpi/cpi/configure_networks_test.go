@@ -1,10 +1,9 @@
 package cpi_test
 
 import (
-	"github.com/rackhd/rackhd-cpi/cpi"
-	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/bosh"
-
+	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/cpi"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

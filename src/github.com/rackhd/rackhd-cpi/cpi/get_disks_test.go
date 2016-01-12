@@ -113,7 +113,7 @@ var _ = Describe("GetDisks", func() {
 
 			_, err = GetDisks(cpiConfig, extInput)
 			Expect(err).ToNot(BeNil())
-			Expect(err).To(MatchError("VM: invalid_vm_cid_3 not found\n"))
+			Expect(err).To(MatchError("vm with cid: invalid_vm_cid_3 was not found"))
 			Expect(len(server.ReceivedRequests())).To(Equal(1))
 		})
 	})

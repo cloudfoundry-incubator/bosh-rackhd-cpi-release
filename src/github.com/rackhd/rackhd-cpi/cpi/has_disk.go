@@ -24,7 +24,7 @@ func HasDisk(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 	}
 
 	for _, node := range nodes {
-		if node.CPI.PersistentDisk.DiskCID == diskCID {
+		if node.PersistentDisk.DiskCID == diskCID {
 			return true, nil
 		}
 	}

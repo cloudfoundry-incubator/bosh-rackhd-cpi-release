@@ -243,12 +243,12 @@ func nodeIsAvailable(c config.Cpi, n rackhdapi.Node) bool {
 	workflows, _ := rackhdapi.GetActiveWorkflows(c, n.ID)
 	obmSettings, _ := rackhdapi.GetOBMSettings(c, n.ID)
 	return (n.Status == "" || n.Status == rackhdapi.Available) &&
-		(n.CPI.VMCID == "") &&
+		(n.CID == "") &&
 		(len(workflows) == 0) &&
 		(len(obmSettings) > 0) &&
 		!hasPersistentDisk(n)
 }
 
 func hasPersistentDisk(n rackhdapi.Node) bool {
-	return n.CPI.PersistentDisk.DiskCID != ""
+	return n.PersistentDisk.DiskCID != ""
 }

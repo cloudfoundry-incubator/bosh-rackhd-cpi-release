@@ -105,8 +105,7 @@ var _ = Describe("DetachDisk", func() {
 					expectedNodesData, err := json.Marshal(expectedNodes)
 					Expect(err).ToNot(HaveOccurred())
 
-					body := rackhdapi.CPISettings{
-						VMCID: "valid_vm_cid_2",
+					body := rackhdapi.PersistentDiskSettingsContainer{
 						PersistentDisk: rackhdapi.PersistentDiskSettings{
 							DiskCID:    "valid_disk_cid_2",
 							Location:   "/dev/sdb",

@@ -130,6 +130,12 @@ func main() {
 			exitWithDefaultError(fmt.Errorf("Error running HasVM: %s", err))
 		}
 		exitWithResult(hasVM)
+	case cpi.CREATE_DISK:
+		diskCID, err := cpi.CreateDisk(cpiConfig, req.Arguments)
+		if err != nil {
+			exitWithDefaultError(fmt.Errorf("Error running CreateDisk: %s", err))
+		}
+		exitWithResult(diskCID)
 	case cpi.DELETE_DISK:
 		err := cpi.DeleteDisk(cpiConfig, req.Arguments)
 		if err != nil {

@@ -31,7 +31,7 @@ func SetVMMetadata(c config.Cpi, extInput bosh.MethodArguments) error {
 		}
 	}
 
-	node, err := rackhdapi.GetNodeByCID(c, cid)
+	node, err := rackhdapi.GetNodeByVMCID(c, cid)
 	nodeID := node.ID
 	if err != nil {
 		return err

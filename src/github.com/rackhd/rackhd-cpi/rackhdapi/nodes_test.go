@@ -113,7 +113,7 @@ var _ = Describe("Nodes", func() {
 				),
 			)
 
-			node, err := rackhdapi.GetNodeByCID(cpiConfig, "vm-5678")
+			node, err := rackhdapi.GetNodeByVMCID(cpiConfig, "vm-5678")
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(node).To(Equal(expectedNodes[0]))
