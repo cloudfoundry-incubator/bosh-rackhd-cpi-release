@@ -17,11 +17,16 @@ jobs:
   plan:
   - aggregate:
     - {trigger: true,   get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
+  - put: emccmd-env-ci
+    params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/integration.yml
     config:
       params:
         RACKHD_API_URI:              {{rackhd_server_ip}}
+    on_failure:
+      put: emccmd-env-ci
+      params: {release: emccmd-env-ci}
 
 - name: lifecycle
   serial: true
@@ -30,8 +35,6 @@ jobs:
   - aggregate:
     - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
     - {trigger: false,                         get: stemcell,           resource: rackhd-openstack-ubuntu-stemcell}
-  - put: emccmd-env-lifecycle
-    params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
@@ -40,9 +43,9 @@ jobs:
         AGENT_PUBLIC_KEY:             {{agent_public_key}}
         STATIC_IP:                    {{lifecycle_static_ip}}
         GATEWAY:                      {{gateway}}
-    ensure:
-      put: emccmd-env-lifecycle
-      params: {release: emccmd-env-lifecycle}
+    on_failure:
+      put: emccmd-env-ci
+      params: {release: emccmd-env-ci}
 
 - name: setup-director
   serial: true
@@ -63,6 +66,9 @@ jobs:
         RACKHD_NETWORK:                     {{rackhd_network}}
         CPI_RELEASE_NAME:                   {{cpi_release_name}}
         DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}
+    on_failure:
+      put: emccmd-env-ci
+      params: {release: emccmd-env-ci}
 
 - name: bats-centos
   serial: true
@@ -123,6 +129,9 @@ jobs:
     ensure:
       put: emccmd-env-bats
       params: {release: emccmd-env-bats}
+    on_failure:
+      put: emccmd-env-ci
+      params: {release: emccmd-env-ci}
 
 - name: teardown-director
   serial: true
@@ -137,6 +146,9 @@ jobs:
         BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
         CPI_RELEASE_NAME:                   {{cpi_release_name}}
         DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}
+    ensure:
+      put: emccmd-env-ci
+      params: {release: emccmd-env-ci}
 
 - name: promote-candidate
   serial: true
@@ -191,7 +203,7 @@ resources:
       branch: pr-coretag
       private_key: {{github_key__bosh-acceptance-tests}}
 
-  - name: emccmd-env-lifecycle
+  - name: emccmd-env-ci
     type: pool
     source:
       uri: git@github.com:EMC-CMD/emccmd-environments.git
