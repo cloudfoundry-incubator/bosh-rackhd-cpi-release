@@ -36,7 +36,7 @@ var _ = Describe("response handling", func() {
 		It("wraps custom errors in a CpiResponse", func() {
 			testErrMsg := "a test error"
 			testErr := errors.New(testErrMsg)
-			errResp := bosh.BuildErrorResponse(testErr, bosh.NotSupportedErrorType, false, "")
+			errResp := bosh.BuildErrorResponse(testErr, bosh.NotImplementedErrorType, false, "")
 			errRespBytes := []byte(errResp)
 
 			targetResponse := bosh.CpiResponse{}
@@ -47,7 +47,7 @@ var _ = Describe("response handling", func() {
 			Expect(targetResponse.Log).To(BeEmpty())
 
 			targetResponseErr := targetResponse.Error
-			Expect(targetResponseErr.Type).To(Equal(bosh.NotSupportedErrorType))
+			Expect(targetResponseErr.Type).To(Equal(bosh.NotImplementedErrorType))
 			Expect(targetResponseErr.Message).To(Equal(testErrMsg))
 			Expect(targetResponseErr.Retryable).To(BeFalse())
 		})
