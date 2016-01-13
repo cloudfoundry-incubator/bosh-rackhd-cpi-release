@@ -13,7 +13,6 @@ groups:
 jobs:
 - name: integration
   serial: true
-  serial_groups: ["rackhd-ci"]
   plan:
   - aggregate:
     - {trigger: true,   get: bosh-cpi-release,     resource: bosh-rackhd-cpi-release}
@@ -30,7 +29,6 @@ jobs:
 
 - name: lifecycle
   serial: true
-  serial_groups: ["rackhd-ci"]
   plan:
   - aggregate:
     - {trigger: true,  passed: [integration],  get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
@@ -50,7 +48,6 @@ jobs:
 
 - name: setup-director
   serial: true
-  serial_groups: ["rackhd-ci"]
   plan:
   - aggregate:
     - {trigger: true,  passed: [lifecycle], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
@@ -74,7 +71,6 @@ jobs:
 
 - name: bats-centos
   serial: true
-  serial_groups: ["rackhd-ci"]
   plan:
   - aggregate:
     - {trigger: true,  passed: [setup-director],    get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
@@ -105,7 +101,6 @@ jobs:
 
 - name: bats-ubuntu
   serial: true
-  serial_groups: ["rackhd-ci"]
   plan:
   - aggregate:
     - {trigger: true,  passed: [setup-director],    get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
@@ -139,7 +134,6 @@ jobs:
 
 - name: teardown-director
   serial: true
-  serial_groups: ["rackhd-ci"]
   plan:
   - aggregate:
     - {trigger: true, passed: [bats-centos, bats-ubuntu], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
@@ -157,7 +151,6 @@ jobs:
 
 - name: promote-candidate
   serial: true
-  serial_groups: ["rackhd-ci"]
   plan:
   - aggregate:
     - {trigger: true, passed: [bats-centos, bats-ubuntu], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
