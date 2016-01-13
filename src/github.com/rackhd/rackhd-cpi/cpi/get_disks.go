@@ -23,9 +23,11 @@ func GetDisks(c config.Cpi, extInput bosh.MethodArguments) ([]string, error) {
 		return nil, err
 	}
 
-	var result []string = []string{}
 	if node.PersistentDisk.DiskCID != "" {
-		result = []string{node.PersistentDisk.DiskCID}
+		result := make([]string, 1)
+		result[0] = node.PersistentDisk.DiskCID
+		return result, nil
+	} else {
+		return make([]string, 0), nil
 	}
-	return result, nil
 }

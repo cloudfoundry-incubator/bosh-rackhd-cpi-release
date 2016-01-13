@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -159,18 +158,13 @@ func main() {
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running HasDisk: %s", err))
 		}
-		exitWithResult(strconv.FormatBool(diskExists))
+		exitWithResult(diskExists)
 	case cpi.GET_DISKS:
 		diskCIDs, err := cpi.GetDisks(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running GetDisks: %s", err))
 		}
-
-		diskCIDsJSON, err := json.Marshal(diskCIDs)
-		if err != nil {
-			exitWithDefaultError(fmt.Errorf("Error running GetDisks: %s", err))
-		}
-		exitWithResult(diskCIDsJSON)
+		exitWithResult(diskCIDs)
 	default:
 		exitWithDefaultError(fmt.Errorf("Unexpected command: %s dispatched...aborting", req.Method))
 	}

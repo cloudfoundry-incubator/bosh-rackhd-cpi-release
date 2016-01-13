@@ -85,7 +85,7 @@ var _ = Describe("GetDisks", func() {
 
 				result, err := GetDisks(cpiConfig, extInput)
 				Expect(err).To(BeNil())
-				expectedResult := []string{}
+				expectedResult := make([]string, 0)
 				Expect(result).To(Equal(expectedResult))
 				Expect(len(server.ReceivedRequests())).To(Equal(1))
 			})

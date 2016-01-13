@@ -157,11 +157,46 @@ cat create_disk_request
 # Run create_disk
 disk_cid=$(cat create_disk_request | ./rackhd-cpi --configPath=${config_path} | jq .result)
 echo $disk_cid
-if [ -z "${disk_cid}" ]; then
+if [ -z "${disk_cid}" ] || [ "${disk_cid}" == "null" ]; then
   echo "invalid result returned from create_disk"
   exit 1
 fi
 echo "disk ${disk_cid} found"
+
+# Prepare has_disk method
+echo -e "\nRun has_disk method"
+cat > has_disk <<EOF
+{"method": "has_disk", "arguments": [${disk_cid}]}
+EOF
+cat has_disk
+
+# Run has_disk method
+result=$(cat has_disk | ./rackhd-cpi --configPath=${config_path} | jq .result)
+if [ -z "${result}" ] || [ "${result}" == "null" ]; then
+  echo "invalid result returned from has_disk"
+  exit 1
+elif [ ${result} != true ]; then
+  echo "disk ${disk_cid} not found"
+  exit 1
+fi
+echo "disk ${disk_cid} found"
+
+# Prepare get disks request
+echo -e "\nPrepare get_disks request"
+cat > get_disks_request <<EOF
+{"method": "get_disks", "arguments": [${vm_cid}]}
+EOF
+cat get_disks_request
+
+# Run get disks
+get_disks_result=$(cat get_disks_request | ./rackhd-cpi --configPath=${config_path} | jq .result)
+echo $get_disks_result
+if echo $get_disks_result | grep -F ${disk_cid} && ! echo $get_disks_result | grep -F ","; then
+  echo "disk ${disk_cid} found"
+else
+  echo "invalid result returned from get_disks"
+  exit 1
+fi
 
 # Prepare attach disk request
 echo -e "\nPrepare attach disk request"
