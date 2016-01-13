@@ -33,16 +33,7 @@ cat > config_file <<EOF
         "blobstore_path": "/var/vcap/micro_bosh/data/cache"
       }
     },
-    "mbus":"https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868",
-    "disks": {
-      "system": "/dev/sda",
-      "persistent": {
-        "persistent-disk1": {
-          "path": "/dev/sdb",
-          "volume_id": "1"
-        }
-      }
-    }
+    "mbus":"https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868"
   }
 }
 EOF
@@ -165,7 +156,7 @@ cat create_disk_request
 
 # Run create_disk
 disk_cid=$(cat create_disk_request | ./rackhd-cpi --configPath=${config_path} | jq .result)
-echo disk_cid
+echo $disk_cid
 if [ -z "${disk_cid}" ]; then
   echo "invalid result returned from create_disk"
   exit 1
