@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-set -e -x
+set -e
 
 source bosh-cpi-release/ci/tasks/utils.sh
+source bosh-cpi-release/ci/tasks/lifecycle-helpers.sh
 
 check_param RACKHD_API_URI
 check_param AGENT_PUBLIC_KEY
@@ -22,7 +23,7 @@ source .envrc
 go build github.com/rackhd/rackhd-cpi/rackhd-cpi
 
 # Prepare config file
-echo "Prepare config file"
+printf "%s\n" "Prepare config file"
 cat > config_file <<EOF
 {
   "apiserver": "${RACKHD_API_URI}:8080",
@@ -41,7 +42,7 @@ cat config_file
 config_path=${PWD}/config_file
 
 # Prepare bosh network configuration
-echo -e "\nPrepare bosh network configuration. Bosh network is"
+printf "%s\n" "Prepare bosh network configuration. Bosh network is"
 cat > bosh_networks <<EOF
 {
   "default": {
@@ -60,206 +61,63 @@ cat > bosh_networks <<EOF
 EOF
 cat bosh_networks
 
-# Prepare create stemcell request
-echo -e "\nPrepare create stemcell request. Request is"
-cat > create_stemcell_request <<EOF
-{"method": "create_stemcell", "arguments": ["${stemcell_path}"]}
-EOF
-cat create_stemcell_request
+do_create_stemcell ${config_path} ${stemcell_path}
+printf "%s\n" "Stemcell ${stemcell_id} created"
 
-# Run create stemcell method
-echo -e "\nRun create stemcell method"
-response=$(cat create_stemcell_request | ./rackhd-cpi -configPath=${config_path})
-echo ${response}
-stemcell_id=$(echo ${response} | jq .result)
-if [ -z "${stemcell_id}" ] || [ ${stemcell_id} == null ]; then
-  echo "can not retrieve stemcell id"
+do_create_vm ${config_path} ${stemcell_id} ${AGENT_PUBLIC_KEY}
+printf "%s\n" "VM ${vm_cid} created"
+
+do_has_vm ${config_path} ${vm_cid}
+printf "%s\n" "Has_vm returned result ${has_vm_result} after creation"
+if [ -z "${has_vm_result}" ]; then
+  printf "%s\n" "Invalid result returned from has_vm"
+  exit 1
+elif [ ${has_vm_result} != true ]; then
+  printf "%s\n" "VM ${vm_cid} not found--aborting"
   exit 1
 fi
-echo "got stemcell id: ${stemcell_id}"
 
-# Prepare create vm request
-echo -e "\nPrepare create vm request"
-agent_id=$(uuidgen)
-cat > create_vm_request <<EOF
-{"method": "create_vm", "arguments": ["${agent_id}", ${stemcell_id}, {"public_key": "${AGENT_PUBLIC_KEY}"}, $(cat bosh_networks)]}
-EOF
-cat create_vm_request
+do_set_vm_metadata ${config_path} ${vm_cid}
 
-# Run create vm method
-echo -e "\nRun create vm method"
-vm_cid=$(cat create_vm_request | ./rackhd-cpi -configPath=${config_path} | jq .result)
-if [ -z "${vm_cid}" ] || [ ${vm_cid} == null ]; then
-  echo "can not retrieve vm cid"
+do_create_disk ${config_path} ${vm_cid}
+printf "%s\n" "Persistent disk ${disk_cid} created"
+
+do_has_disk ${config_path} ${disk_cid}
+printf "%s\n" "Result ${has_disk_result} returned from has_disk"
+if [ -z "${has_disk_result}" ] || [ "${has_disk_result}" == "null" ]; then
+  printf "%s\n" "Invalid result returned from has_disk"
+  exit 1
+elif [ ${has_disk_result} != true ]; then
+  printf "%s\n" "Disk ${disk_cid} not found"
   exit 1
 fi
-echo "got vm cid: ${vm_cid}"
 
-# Prepare has_vm method
-echo -e "\nRun has_vm method"
-cat > has_vm <<EOF
-{"method": "has_vm", "arguments": [${vm_cid}]}
-EOF
-cat has_vm
-
-# Run has_vm method
-result=$(cat has_vm | ./rackhd-cpi --configPath=${config_path} | jq .result)
-if [ -z "${result}" ]; then
-  echo "invalid result returned from has_vm"
-  exit 1
-elif [ ${result} != true ]; then
-  echo "vm ${vm_cid} not found"
-  exit 1
-fi
-echo "vm ${vm_cid} found"
-
-# Prepare metadata
-echo -e "\nPrepare metadata"
-cat > metadata <<EOF
-{
-  "director": "director-784430",
-  "deployment": "redis",
-  "job": "redis",
-  "index": "1"
-}
-EOF
-cat metadata
-
-# Prepare set vm metadata request
-echo -e "\nPrepare set vm metadata request"
-cat > set_vm_metadata_request <<EOF
-{"method": "set_vm_metadata", "arguments": [${vm_cid}, $(cat metadata)]}
-EOF
-cat set_vm_metadata_request
-
-# Run set_vm_metadata
-echo -e "\nRun set vm metadata method"
-cat set_vm_metadata_request | ./rackhd-cpi -configPath=${config_path} 2>&1
-
-# Prepare create_disk
-echo -e "\nPrepare create disk"
-cat > create_disk <<EOF
-[
-  100,
-  {},
-  ${vm_cid}
-]
-EOF
-cat create_disk
-
-# Prepare create disk request
-echo -e "\nPrepare create disk request"
-cat > create_disk_request <<EOF
-{"method": "create_disk", "arguments": $(cat create_disk)}
-EOF
-cat create_disk_request
-
-# Run create_disk
-disk_cid=$(cat create_disk_request | ./rackhd-cpi --configPath=${config_path} | jq .result)
-echo $disk_cid
-if [ -z "${disk_cid}" ] || [ "${disk_cid}" == "null" ]; then
-  echo "invalid result returned from create_disk"
-  exit 1
-fi
-echo "disk ${disk_cid} found"
-
-# Prepare has_disk method
-echo -e "\nRun has_disk method"
-cat > has_disk <<EOF
-{"method": "has_disk", "arguments": [${disk_cid}]}
-EOF
-cat has_disk
-
-# Run has_disk method
-result=$(cat has_disk | ./rackhd-cpi --configPath=${config_path} | jq .result)
-if [ -z "${result}" ] || [ "${result}" == "null" ]; then
-  echo "invalid result returned from has_disk"
-  exit 1
-elif [ ${result} != true ]; then
-  echo "disk ${disk_cid} not found"
-  exit 1
-fi
-echo "disk ${disk_cid} found"
-
-# Prepare get disks request
-echo -e "\nPrepare get_disks request"
-cat > get_disks_request <<EOF
-{"method": "get_disks", "arguments": [${vm_cid}]}
-EOF
-cat get_disks_request
-
-# Run get disks
-get_disks_result=$(cat get_disks_request | ./rackhd-cpi --configPath=${config_path} | jq .result)
-echo $get_disks_result
+do_get_disks ${config_path} ${vm_cid} ${disk_cid}
+printf "%s\n" "Result ${get_disks_result} returned from get_disks"
 if echo $get_disks_result | grep -F ${disk_cid} && ! echo $get_disks_result | grep -F ","; then
-  echo "disk ${disk_cid} found"
+  printf "%s\n" "Disk ${disk_cid} found"
 else
-  echo "invalid result returned from get_disks"
+  printf "%s\n" "Invalid result returned from get_disks"
   exit 1
 fi
 
-# Prepare attach disk request
-echo -e "\nPrepare attach disk request"
-cat > attach_disk_request <<EOF
-{"method": "attach_disk", "arguments": [${vm_cid}, ${disk_cid}]}
-EOF
-cat attach_disk_request
+do_attach_disk ${config_path} ${vm_cid} ${disk_cid}
 
-# Run attach_disk
-echo -e "\nRun attach disk method"
-cat attach_disk_request | ./rackhd-cpi --configPath=${config_path} 2>&1
+do_detach_disk ${config_path} ${vm_cid} ${disk_cid}
 
-# Prepare detach disk request
-echo -e "\nPrepare detach disk request"
-cat > detach_disk_request <<EOF
-{"method": "detach_disk", "arguments": [${vm_cid}, ${disk_cid}]}
-EOF
-cat detach_disk_request
+do_delete_disk ${config_path} ${disk_cid}
 
-# Run detach_disk
-echo -e "\nRun detach disk method"
-cat detach_disk_request | ./rackhd-cpi --configPath=${config_path} 2>&1
+do_delete_vm ${config_path} ${vm_cid}
+# do_delete_stemcell
 
-# Prepare delete disk request
-echo -e "\nPrepare delete disk request"
-cat > delete_disk_request <<EOF
-{"method": "delete_disk", "arguments": [${disk_cid}]}
-EOF
-cat delete_disk_request
-
-# Run delete_disk
-echo -e "\nRun delete disk method"
-cat delete_disk_request | ./rackhd-cpi --configPath=${config_path} 2>&1
-
-# Prepare delete vm request
-echo -e "\nPrepare delete vm request"
-cat > delete_vm_request <<EOF
-{"method": "delete_vm", "arguments": [${vm_cid}]}
-EOF
-cat delete_vm_request
-
-# Run delete vm method
-echo -e "\nRun delete vm method"
-cat delete_vm_request | ./rackhd-cpi -configPath=${config_path} 2>&1
-
-# Run has_vm method
-result=$(cat has_vm | ./rackhd-cpi --configPath=${config_path} | jq .result)
-if [ -z "${result}" ]; then
-  echo "invalid result returned from has_vm"
+do_has_vm ${config_path} ${vm_cid}
+printf "%s\n" "has_vm returned result ${has_vm_result} after deletion"
+if [ -z "${has_vm_result}" ]; then
+  printf "%s\n" "invalid result returned from has_vm"
   exit 1
-elif [ ${result} != false ]; then
-  echo "vm ${vm_cid} found after deletion"
+elif [ ${has_vm_result} != false ]; then
+  printf "%s\n" "vm ${vm_cid} found--aborting"
   exit 1
 fi
-echo "vm ${vm_cid} deleted"
 
-# Prepare delete stemcell request
-echo -e "\nPrepare delete stemcell request"
-cat > delete_stemcell_request <<EOF
-{"method": "delete_stemcell", "arguments": [${stemcell_id}]}
-EOF
-cat delete_stemcell_request
-
-# Run delete stemcell method
-echo -e "\nRun delete stemcell method"
-cat delete_stemcell_request | ./rackhd-cpi -configPath=${config_path}
+do_delete_stemcell ${config_path} ${stemcell_id}

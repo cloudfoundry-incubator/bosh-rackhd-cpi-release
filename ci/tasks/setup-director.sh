@@ -89,10 +89,10 @@ networks:
   - name: vm-network
     type: manual
     subnets:
-      - range: 192.168.10.0/24
+      - range: 192.168.0.0/16
         gateway: 192.168.10.1
         dns: [192.168.10.1]
-        reserved: [192.168.10.2 - 192.168.10.210]
+        reserved: [192.168.0.0 - 192.168.9.255]
         static:
           - ${BOSH_DIRECTOR_PUBLIC_IP} - ${BOSH_DIRECTOR_PUBLIC_IP}
         cloud_properties: {name: 'VM Network'}
