@@ -92,7 +92,7 @@ networks:
       - range: 192.168.0.0/16
         gateway: 192.168.10.1
         dns: [192.168.10.1]
-        reserved: [192.168.0.0 - 192.168.9.255]
+        reserved: [192.168.0.2 - 192.168.9.255]
         static:
           - ${BOSH_DIRECTOR_PUBLIC_IP} - ${BOSH_DIRECTOR_PUBLIC_IP}
         cloud_properties: {name: 'VM Network'}
