@@ -56,7 +56,7 @@ resource_pools:
   network: vm-network
   stemcell:
     name: bosh-vsphere-esxi-ubuntu-trusty-go_agent
-    version: 3120
+    version: latest
   cloud_properties:
     cpu: 4
     ram: 4_096
