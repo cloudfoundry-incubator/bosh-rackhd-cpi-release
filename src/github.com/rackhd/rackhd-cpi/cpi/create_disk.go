@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
@@ -50,14 +49,9 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", fmt.Errorf("error creating disk with size %vMB for VM %s: insufficient available disk space", diskSizeInMB, vmCID)
 	}
 
-	uuid, err := uuid.NewV4()
-	if err != nil {
-		return "", fmt.Errorf("error generating UUID: %s", err)
-	}
-
 	container := rackhdapi.PersistentDiskSettingsContainer{
 		PersistentDisk: rackhdapi.PersistentDiskSettings{
-			DiskCID:    uuid.String(),
+			DiskCID:    node.ID,
 			Location:   fmt.Sprintf("/dev/%s", rackhdapi.PersistentDiskLocation),
 			IsAttached: false,
 		},
@@ -73,7 +67,7 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
-	return uuid.String(), nil
+	return node.ID, nil
 }
 
 func parseCreateDiskInput(extInput bosh.MethodArguments) (int, string, error) {

@@ -51,7 +51,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		Disks: map[string]interface{}{
 			"system": "/dev/sda",
 			"persistent": map[string]interface{}{
-				"persistent-disk-1": map[string]string{
+				nodeID: map[string]string{
 					"volume_id": "1",
 					"path":      "/dev/sdb",
 				},
