@@ -95,17 +95,41 @@ var _ = Describe("The VM Creation Workflow", func() {
 								"type": "dynamic"
 						}
 				},
-				[],
+				["diskCID"],
 				{}]`)
 			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
+
 			Expect(err).ToNot(HaveOccurred())
-			agentID, vmCID, publicKey, networks, err := parseCreateVMInput(extInput)
+			agentID, vmCID, publicKey, networks, diskCIDs, err := parseCreateVMInput(extInput)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(agentID).To(Equal("4149ba0f-38d9-4485-476f-1581be36f290"))
 			Expect(vmCID).To(Equal("vm-478585"))
+			Expect(diskCIDs).To(Equal("diskCID"))
 			Expect(publicKey).To(Equal("1234"))
 			Expect(networks).ToNot(BeEmpty())
+		})
+
+		It("returns an error if passed an unexpected type for network configuration", func() {
+			jsonInput := []byte(`[
+				"4149ba0f-38d9-4485-476f-1581be36f290",
+				"vm-478585",
+				{},
+				{
+						"private": {
+								"type": "dynamic"
+						}
+				},
+				"aint gon work disks",
+				{}]`)
+
+			var extInput bosh.MethodArguments
+			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
+
+			_, _, _, _, _, err = parseCreateVMInput(extInput)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError("disk config has unexpected type in: string. Expecting an array"))
 		})
 
 		It("returns an error if passed an unexpected type for network configuration", func() {
@@ -121,7 +145,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, _, err = parseCreateVMInput(extInput)
+			_, _, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("network config has unexpected type in: string. Expecting a map"))
 		})
@@ -146,7 +170,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, _, err = parseCreateVMInput(extInput)
+			_, _, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(MatchError("config error: Only one network supported, provided length: 2"))
 		})
 
@@ -169,7 +193,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, networks, err := parseCreateVMInput(extInput)
+			_, _, _, networks, _, err := parseCreateVMInput(extInput)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(networks).ToNot(BeEmpty())
 			Expect(networks["private"].NetworkType).To(Equal(bosh.ManualNetworkType))
@@ -195,7 +219,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, _, err = parseCreateVMInput(extInput)
+			_, _, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(MatchError("agent id cannot be empty"))
 		})
 
@@ -219,7 +243,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, _, err = parseCreateVMInput(extInput)
+			_, _, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(MatchError("agent id has unexpected type: map[string]interface {}. Expecting a string"))
 		})
 
@@ -238,7 +262,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
-			_, _, _, _, err = parseCreateVMInput(extInput)
+			_, _, _, _, _, err = parseCreateVMInput(extInput)
 			Expect(err).To(MatchError("public key has unexpected type: float64. Expecting a string"))
 		})
 
@@ -262,7 +286,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, _, _, _, err = parseCreateVMInput(extInput)
+				_, _, _, _, _, err = parseCreateVMInput(extInput)
 				Expect(err).To(MatchError("config error: ip must be specified for manual network"))
 			})
 
@@ -285,7 +309,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, _, _, _, err = parseCreateVMInput(extInput)
+				_, _, _, _, _, err = parseCreateVMInput(extInput)
 				Expect(err).To(MatchError("config error: gateway must be specified for manual network"))
 			})
 
@@ -308,7 +332,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, _, _, _, err = parseCreateVMInput(extInput)
+				_, _, _, _, _, err = parseCreateVMInput(extInput)
 				Expect(err).To(MatchError("config error: netmask must be specified for manual network"))
 			})
 		})
@@ -414,8 +438,9 @@ var _ = Describe("The VM Creation Workflow", func() {
 			_, err = tryReservation(
 				cpiConfig,
 				"agentID",
+				"",
 				blockNodesWithoutEphemeralDisk,
-				func(config.Cpi) (string, error) { return "", nil },
+				func(config.Cpi, string) (string, error) { return "", nil },
 				func(config.Cpi, string, string) error { return nil },
 			)
 		})
@@ -529,7 +554,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			testSpec := bosh.Network{
 				NetworkType: bosh.DynamicNetworkType,
 			}
-			_, _, _, netSpec, err := parseCreateVMInput(extInput)
+			_, _, _, netSpec, _, err := parseCreateVMInput(extInput)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(netSpec).To(Equal(map[string]bosh.Network{"private": testSpec}))
 		})
@@ -565,6 +590,27 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 			_, err = randomSelectAvailableNode(cpiConfig, nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
+		})
+
+		Context("with a disk CID", func() {
+			It("selects the node with the disk CID", func() {
+				nodes := loadNodes("../spec_assets/dummy_create_vm_with_disk_response.json")
+
+				nodesResponse, err := json.Marshal(nodes)
+				Expect(err).ToNot(HaveOccurred())
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes")),
+						ghttp.RespondWith(http.StatusOK, nodesResponse),
+					),
+				)
+
+				rackHDID, err := SelectNodeFromRackHD(cpiConfig, "disk-1234")
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(rackHDID).To(Equal("5665a65a0561790005b77b85"))
+			})
 		})
 
 		It("selects a free node for provisioning", func() {
@@ -640,8 +686,9 @@ var _ = Describe("The VM Creation Workflow", func() {
 			nodeID, err := tryReservation(
 				c,
 				"agentID",
+				"",
 				func(config.Cpi) error { return nil },
-				func(config.Cpi) (string, error) { return "node-1234", nil },
+				func(config.Cpi, string) (string, error) { return "node-1234", nil },
 				func(config.Cpi, string, string) error { return nil },
 			)
 			Expect(err).ToNot(HaveOccurred())
@@ -656,8 +703,9 @@ var _ = Describe("The VM Creation Workflow", func() {
 			nodeID, err := tryReservation(
 				c,
 				"agentID",
+				"",
 				func(config.Cpi) error { return nil },
-				func(config.Cpi) (string, error) { return "node-1234", nil },
+				func(config.Cpi, string) (string, error) { return "node-1234", nil },
 				func(config.Cpi, string, string) error { return errors.New("error") },
 			)
 			Expect(err).To(MatchError("unable to reserve node"))
@@ -670,7 +718,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			tries := 0
-			flakeySelectionFunc := func(config.Cpi) (string, error) {
+			flakeySelectionFunc := func(config.Cpi, string) (string, error) {
 				if tries < 2 {
 					tries++
 					return "", errors.New("")
@@ -680,6 +728,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			nodeID, err := tryReservation(
 				c,
 				"agentID",
+				"",
 				func(config.Cpi) error { return nil },
 				flakeySelectionFunc,
 				func(config.Cpi, string, string) error { return nil },
@@ -730,14 +779,15 @@ var _ = Describe("The VM Creation Workflow", func() {
 				return errors.New("fake error doing reservation")
 			}
 
-			_, err = selectNodeFromRackHD(c)
+			_, err = SelectNodeFromRackHD(c, "")
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = tryReservation(
 				c,
 				"agentID",
+				"",
 				func(config.Cpi) error { return nil },
-				selectNodeFromRackHD,
+				SelectNodeFromRackHD,
 				flakeyReservationFunc,
 			)
 

@@ -18,13 +18,22 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
-	node, err := rackhdapi.GetNodeByVMCID(c, vmCID)
-	if err != nil {
-		return "", err
-	}
+	var node rackhdapi.Node
+	if vmCID != "" {
+		node, err = rackhdapi.GetNodeByVMCID(c, vmCID)
+		if err != nil {
+			return "", err
+		}
 
-	if node.PersistentDisk.DiskCID != "" {
-		return "", fmt.Errorf("error creating disk: VM %s already has a persistent disk", vmCID)
+		if node.PersistentDisk.DiskCID != "" {
+			return "", fmt.Errorf("error creating disk: VM %s already has a persistent disk", vmCID)
+		}
+	} else {
+		nodeID, err := SelectNodeFromRackHD(c, "")
+		if err != nil {
+			return "", err
+		}
+		node.ID = nodeID
 	}
 
 	catalog, err := rackhdapi.GetNodeCatalog(c, node.ID)
@@ -78,9 +87,6 @@ func parseCreateDiskInput(extInput bosh.MethodArguments) (int, string, error) {
 	}
 
 	vmCID = vmCIDInput.(string)
-	if vmCID == "" {
-		return 0, "", fmt.Errorf("vmCID cannot be empty")
-	}
 
 	return diskSizeInMB, vmCID, nil
 }

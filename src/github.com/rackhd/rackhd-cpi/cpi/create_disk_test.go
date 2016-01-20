@@ -94,7 +94,7 @@ var _ = Describe("CreateDisk", func() {
 		})
 	})
 
-	Context("there is a available disk", func() {
+	Context("there is an available disk", func() {
 		Context("without enough disk space", func() {
 			It("returns an error", func() {
 				jsonInput := []byte(`[
@@ -133,40 +133,90 @@ var _ = Describe("CreateDisk", func() {
 		})
 
 		Context("with enough disk space", func() {
-			It("creates the disk and returns the disk cid", func() {
-				jsonInput := []byte(`[
-							25000,
-							{
-								"some": "options"
-							},
-							"vm-1234"
-						]`)
-				var extInput bosh.MethodArguments
-				err := json.Unmarshal(jsonInput, &extInput)
-				Expect(err).NotTo(HaveOccurred())
+			Context("If VM cid is empty", func() {
+				It("creates the disk and returns the disk cid", func() {
+					jsonInput := []byte(`[
+								25000,
+								{
+									"some": "options"
+								},
+								""
+							]`)
+					var extInput bosh.MethodArguments
+					err := json.Unmarshal(jsonInput, &extInput)
+					Expect(err).NotTo(HaveOccurred())
 
-				expectedNodes := helpers.LoadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
-				expectedNodesData, err := json.Marshal(expectedNodes)
-				Expect(err).ToNot(HaveOccurred())
-				expectedNodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
-				expectedNodeCatalogData, err := json.Marshal(expectedNodeCatalog)
-				Expect(err).ToNot(HaveOccurred())
+					expectedNodes := helpers.LoadNodes("../spec_assets/dummy_create_disk_nodes_response.json")
+					expectedNodesData, err := json.Marshal(expectedNodes)
+					Expect(err).ToNot(HaveOccurred())
+					expectedNodeData, err := json.Marshal(expectedNodes[0])
+					Expect(err).ToNot(HaveOccurred())
+					expectedNodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_create_disk_catalog_response.json")
+					expectedNodeCatalogData, err := json.Marshal(expectedNodeCatalog)
+					Expect(err).ToNot(HaveOccurred())
 
-				server.AppendHandlers(
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/api/common/nodes"),
-						ghttp.RespondWith(http.StatusOK, expectedNodesData),
-					),
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/api/common/nodes/55e79eb14e66816f6152fffb/catalogs/ohai"),
-						ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
-					),
-					ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79eb14e66816f6152fffb"),
-				)
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/api/common/nodes"),
+							ghttp.RespondWith(http.StatusOK, expectedNodesData),
+						),
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/api/1.1/nodes/55e79ea54e66816f6152fff9/workflows/active"),
+							ghttp.RespondWith(http.StatusOK, nil),
+						),
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/api/common/nodes/55e79ea54e66816f6152fff9"),
+							ghttp.RespondWith(http.StatusOK, expectedNodeData),
+						),
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/api/common/nodes/55e79ea54e66816f6152fff9/catalogs/ohai"),
+							ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
+						),
+						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
+					)
 
-				diskCID, err := cpi.CreateDisk(cpiConfig, extInput)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(diskCID).ToNot(Equal(""))
+					diskCID, err := cpi.CreateDisk(cpiConfig, extInput)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(diskCID).ToNot(Equal(""))
+				})
+			})
+
+			Context("If VM CID is not empty", func() {
+				It("creates the disk and returns the disk cid", func() {
+					jsonInput := []byte(`[
+								25000,
+								{
+									"some": "options"
+								},
+								"vm-1234"
+							]`)
+					var extInput bosh.MethodArguments
+					err := json.Unmarshal(jsonInput, &extInput)
+					Expect(err).NotTo(HaveOccurred())
+
+					expectedNodes := helpers.LoadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
+					expectedNodesData, err := json.Marshal(expectedNodes)
+					Expect(err).ToNot(HaveOccurred())
+					expectedNodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
+					expectedNodeCatalogData, err := json.Marshal(expectedNodeCatalog)
+					Expect(err).ToNot(HaveOccurred())
+
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/api/common/nodes"),
+							ghttp.RespondWith(http.StatusOK, expectedNodesData),
+						),
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/api/common/nodes/55e79eb14e66816f6152fffb/catalogs/ohai"),
+							ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
+						),
+						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79eb14e66816f6152fffb"),
+					)
+
+					diskCID, err := cpi.CreateDisk(cpiConfig, extInput)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(diskCID).ToNot(Equal(""))
+				})
 			})
 		})
 	})

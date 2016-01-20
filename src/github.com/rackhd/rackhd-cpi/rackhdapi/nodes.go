@@ -124,6 +124,21 @@ func GetNodeByVMCID(c config.Cpi, cid string) (Node, error) {
 	return Node{}, fmt.Errorf("vm with cid: %s was not found", cid)
 }
 
+func GetNodeByDiskCID(c config.Cpi, diskCid string) (Node, error) {
+	nodes, err := GetNodes(c)
+	if err != nil {
+		return Node{}, err
+	}
+
+	for _, node := range nodes {
+		if node.PersistentDisk.DiskCID == diskCid {
+			return node, nil
+		}
+	}
+
+	return Node{}, fmt.Errorf("vm with cid: %s was not found", diskCid)
+}
+
 func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {
 	nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
 	resp, err := http.Get(nodeURL)

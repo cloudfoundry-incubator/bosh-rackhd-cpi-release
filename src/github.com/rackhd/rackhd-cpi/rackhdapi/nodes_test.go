@@ -102,7 +102,7 @@ var _ = Describe("Nodes", func() {
 	})
 
 	Describe("Getting a single node by CID", func() {
-		It("return expected node's fields", func() {
+		It("returns expected node's fields", func() {
 			expectedNodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
@@ -114,6 +114,25 @@ var _ = Describe("Nodes", func() {
 			)
 
 			node, err := rackhdapi.GetNodeByVMCID(cpiConfig, "vm-5678")
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(node).To(Equal(expectedNodes[0]))
+		})
+	})
+
+	Describe("Getting a single node by disk CID", func() {
+		It("returns node with the disk specified", func() {
+			expectedNodes := loadNodes("../spec_assets/dummy_create_vm_with_disk_response.json")
+			expectedNodesData, err := json.Marshal(expectedNodes)
+			Expect(err).ToNot(HaveOccurred())
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.RespondWith(http.StatusOK, expectedNodesData),
+				),
+			)
+
+			node, err := rackhdapi.GetNodeByDiskCID(cpiConfig, "disk-1234")
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(node).To(Equal(expectedNodes[0]))

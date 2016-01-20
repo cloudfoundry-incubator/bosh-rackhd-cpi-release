@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -18,12 +16,12 @@ import (
 )
 
 func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
-	agentID, stemcellCID, publicKey, boshNetworks, err := parseCreateVMInput(extInput)
+	agentID, stemcellCID, publicKey, boshNetworks, diskCID, err := parseCreateVMInput(extInput)
 	if err != nil {
 		return "", err
 	}
 
-	nodeID, err := tryReservation(c, agentID, func(config.Cpi) error { return nil }, selectNodeFromRackHD, reserveNodeFromRackHD)
+	nodeID, err := tryReservation(c, agentID, diskCID, func(config.Cpi) error { return nil }, SelectNodeFromRackHD, reserveNodeFromRackHD)
 	if err != nil {
 		return "", err
 	}
@@ -131,10 +129,10 @@ func attachMAC(nodeNetworks map[string]rackhdapi.Network, oldSpec bosh.Network) 
 }
 
 type filterFunc func(config.Cpi) error
-type selectionFunc func(config.Cpi) (string, error)
+type selectionFunc func(config.Cpi, string) (string, error)
 type reservationFunc func(config.Cpi, string, string) error
 
-func tryReservation(c config.Cpi, agentID string, filter filterFunc, choose selectionFunc, reserve reservationFunc) (string, error) {
+func tryReservation(c config.Cpi, agentID string, diskCID string, filter filterFunc, choose selectionFunc, reserve reservationFunc) (string, error) {
 	var nodeID string
 	var err error
 	for i := 0; i < c.MaxCreateVMAttempt; i++ {
@@ -144,7 +142,7 @@ func tryReservation(c config.Cpi, agentID string, filter filterFunc, choose sele
 			continue
 		}
 
-		nodeID, err = choose(c)
+		nodeID, err = choose(c, diskCID)
 
 		if err != nil {
 			log.Error(fmt.Sprintf("retry %d: error choosing node %s", i, err))
@@ -201,59 +199,4 @@ func reserveNodeFromRackHD(c config.Cpi, agentID string, nodeID string) error {
 
 	log.Info(fmt.Sprintf("reserved node %s", nodeID))
 	return nil
-}
-
-func selectNodeFromRackHD(c config.Cpi) (string, error) {
-	nodes, err := rackhdapi.GetNodes(c)
-	if err != nil {
-		return "", err
-	}
-
-	nodeID, err := randomSelectAvailableNode(c, nodes)
-	if err != nil || nodeID == "" {
-		return "", err
-	}
-
-	log.Info(fmt.Sprintf("selected node %s", nodeID))
-	return nodeID, nil
-}
-
-func randomSelectAvailableNode(c config.Cpi, nodes []rackhdapi.Node) (string, error) {
-	availableNodes := getAllAvailableNodes(c, nodes)
-	if len(availableNodes) == 0 {
-		return "", errors.New("all nodes have been reserved")
-	}
-
-	t := time.Now()
-	rand.Seed(t.Unix())
-
-	i := rand.Intn(len(availableNodes))
-	return availableNodes[i].ID, nil
-}
-
-func getAllAvailableNodes(c config.Cpi, nodes []rackhdapi.Node) []rackhdapi.Node {
-	var n []rackhdapi.Node
-
-	for i := range nodes {
-		if nodeIsAvailable(c, nodes[i]) {
-			n = append(n, nodes[i])
-			log.Debug(fmt.Sprintf("node: %s is avaliable", nodes[i].ID))
-		}
-	}
-
-	return n
-}
-
-func nodeIsAvailable(c config.Cpi, n rackhdapi.Node) bool {
-	workflows, _ := rackhdapi.GetActiveWorkflows(c, n.ID)
-	obmSettings, _ := rackhdapi.GetOBMSettings(c, n.ID)
-	return (n.Status == "" || n.Status == rackhdapi.Available) &&
-		(n.CID == "") &&
-		(len(workflows) == 0) &&
-		(len(obmSettings) > 0) &&
-		!hasPersistentDisk(n)
-}
-
-func hasPersistentDisk(n rackhdapi.Node) bool {
-	return n.PersistentDisk.DiskCID != ""
 }
