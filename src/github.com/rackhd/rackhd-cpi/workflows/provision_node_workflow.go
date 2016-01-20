@@ -3,6 +3,7 @@ package workflows
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -23,7 +24,7 @@ var provisionNodeWorkflowTemplate = []byte(`{
       "registrySettingsFile": null,
       "registrySettingsPath": null,
       "stemcellFile": null,
-			"wipeDisk": true
+			"wipeDisk": "true"
     }
   },
   "tasks": [
@@ -65,7 +66,7 @@ type ProvisionNodeWorkflowOptions struct {
 	RegistrySettingsFile *string `json:"registrySettingsFile"`
 	RegistrySettingsPath *string `json:"registrySettingsPath"`
 	StemcellFile         *string `json:"stemcellFile"`
-	WipeDisk             bool    `json:"wipeDisk"`
+	WipeDisk             string  `json:"wipeDisk"`
 }
 
 type provisionNodeWorkflowOptionsContainer struct {
@@ -185,7 +186,7 @@ func buildProvisionWorkflowOptions(c config.Cpi, nodeID string, workflowName str
 		AgentSettingsPath: &envPath,
 		CID:               &vmCID,
 		StemcellFile:      &stemcellCID,
-		WipeDisk:          wipeDisk,
+		WipeDisk:          strconv.FormatBool(wipeDisk),
 	}
 
 	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)

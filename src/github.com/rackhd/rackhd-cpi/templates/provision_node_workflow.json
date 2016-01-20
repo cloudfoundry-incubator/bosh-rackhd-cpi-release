@@ -11,7 +11,7 @@
       "registrySettingsFile": null,
       "registrySettingsPath": null,
       "stemcellFile": null,
-      "wipeDisk": true
+      "wipeDisk": "true"
     }
   },
   "tasks": [

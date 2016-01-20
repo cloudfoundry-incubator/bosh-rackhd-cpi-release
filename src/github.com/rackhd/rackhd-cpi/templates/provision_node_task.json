@@ -30,7 +30,7 @@
     "stemcellFile": null,
     "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
     "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest",
-    "wipeDisk": true
+    "wipeDisk": "true"
   },
   "properties": {}
 }

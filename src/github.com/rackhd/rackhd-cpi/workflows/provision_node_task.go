@@ -34,7 +34,7 @@ var provisionNodeTemplate = []byte(`{
     "stemcellFile": null,
     "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
     "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest",
-    "wipeDisk": true
+    "wipeDisk": "true"
   },
   "properties": {}
 }`)
@@ -51,7 +51,7 @@ type provisionNodeOptions struct {
 	StemcellFileMd5Uri  string   `json:"stemcellFileMd5Uri"`
 	StemcellFile        *string  `json:"stemcellFile"`
 	StemcellURI         string   `json:"stemcellUri"`
-	WipeDisk            bool     `json:"wipeDisk"`
+	WipeDisk            string   `json:"wipeDisk"`
 }
 
 type provisionNodeTask struct {
