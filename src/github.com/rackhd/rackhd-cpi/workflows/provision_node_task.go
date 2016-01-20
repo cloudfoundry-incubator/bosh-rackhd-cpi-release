@@ -12,7 +12,7 @@ var provisionNodeTemplate = []byte(`{
     "agentSettingsPath": null,
     "agentSettingsUri": "{{ api.files }}/{{ options.agentSettingsFile }}/latest",
     "commands": [
-      "sudo dd if=/dev/zero of={{ options.persistent }} bs=1M count=100",
+      "if {{ options.wipeDisk }}; then sudo dd if=/dev/zero of={{ options.persistent }} bs=1M count=100; fi",
       "curl --retry 3 {{ options.stemcellUri }} -o {{ options.downloadDir }}/{{ options.stemcellFile }}",
       "curl --retry 3 {{ options.agentSettingsUri }} -o {{ options.downloadDir }}/{{ options.agentSettingsFile }}",
       "curl {{ options.stemcellFileMd5Uri }} | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
@@ -33,7 +33,8 @@ var provisionNodeTemplate = []byte(`{
     "persistent": "/dev/sdb",
     "stemcellFile": null,
     "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
-    "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest"
+    "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest",
+    "wipeDisk": true
   },
   "properties": {}
 }`)
@@ -50,6 +51,7 @@ type provisionNodeOptions struct {
 	StemcellFileMd5Uri  string   `json:"stemcellFileMd5Uri"`
 	StemcellFile        *string  `json:"stemcellFile"`
 	StemcellURI         string   `json:"stemcellUri"`
+	WipeDisk            bool     `json:"wipeDisk"`
 }
 
 type provisionNodeTask struct {

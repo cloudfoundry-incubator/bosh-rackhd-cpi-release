@@ -83,7 +83,9 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", fmt.Errorf("error publishing provision workflow: %s", err)
 	}
 
-	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, vmCID, stemcellCID)
+	wipeDisk := (diskCID == "")
+
+	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, vmCID, stemcellCID, wipeDisk)
 	if err != nil {
 		return "", fmt.Errorf("error running provision workflow: %s", err)
 	}

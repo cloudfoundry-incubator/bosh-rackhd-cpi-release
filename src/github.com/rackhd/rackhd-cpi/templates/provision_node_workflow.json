@@ -10,7 +10,8 @@
       "obmServiceName": null,
       "registrySettingsFile": null,
       "registrySettingsPath": null,
-      "stemcellFile": null
+      "stemcellFile": null,
+      "wipeDisk": true
     }
   },
   "tasks": [

@@ -22,7 +22,8 @@ var provisionNodeWorkflowTemplate = []byte(`{
 			"obmServiceName": null,
       "registrySettingsFile": null,
       "registrySettingsPath": null,
-      "stemcellFile": null
+      "stemcellFile": null,
+			"wipeDisk": true
     }
   },
   "tasks": [
@@ -64,6 +65,7 @@ type ProvisionNodeWorkflowOptions struct {
 	RegistrySettingsFile *string `json:"registrySettingsFile"`
 	RegistrySettingsPath *string `json:"registrySettingsPath"`
 	StemcellFile         *string `json:"stemcellFile"`
+	WipeDisk             bool    `json:"wipeDisk"`
 }
 
 type provisionNodeWorkflowOptionsContainer struct {
@@ -80,8 +82,8 @@ type provisionNodeWorkflow struct {
 	Tasks []rackhdapi.WorkflowTask `json:"tasks"`
 }
 
-func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, vmCID string, stemcellCID string) error {
-	options, err := buildProvisionWorkflowOptions(c, nodeID, workflowName, vmCID, stemcellCID)
+func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, vmCID string, stemcellCID string, wipeDisk bool) error {
+	options, err := buildProvisionWorkflowOptions(c, nodeID, workflowName, vmCID, stemcellCID, wipeDisk)
 	if err != nil {
 		return err
 	}
@@ -176,13 +178,14 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	return [][]byte{pBytes, sBytes}, wBytes, nil
 }
 
-func buildProvisionWorkflowOptions(c config.Cpi, nodeID string, workflowName string, vmCID string, stemcellCID string) (ProvisionNodeWorkflowOptions, error) {
+func buildProvisionWorkflowOptions(c config.Cpi, nodeID string, workflowName string, vmCID string, stemcellCID string, wipeDisk bool) (ProvisionNodeWorkflowOptions, error) {
 	envPath := rackhdapi.RackHDEnvPath
 	options := ProvisionNodeWorkflowOptions{
 		AgentSettingsFile: &nodeID,
 		AgentSettingsPath: &envPath,
 		CID:               &vmCID,
 		StemcellFile:      &stemcellCID,
+		WipeDisk:          wipeDisk,
 	}
 
 	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
