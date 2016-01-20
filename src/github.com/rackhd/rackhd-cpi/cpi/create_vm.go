@@ -33,15 +33,24 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		netSpec = v
 	}
 
-	if netSpec.NetworkType == bosh.ManualNetworkType {
-		nodeCatalog, err := rackhdapi.GetNodeCatalog(c, nodeID)
-		if err != nil {
-			return "", err
-		}
+	nodeCatalog, err := rackhdapi.GetNodeCatalog(c, nodeID)
+	if err != nil {
+		return "", err
+	}
 
+	if netSpec.NetworkType == bosh.ManualNetworkType {
 		netSpec, err = attachMAC(nodeCatalog.Data.NetworkData.Networks, netSpec)
 		if err != nil {
 			return "", fmt.Errorf("error attaching mac address %s", err)
+		}
+	}
+
+	persistentMetadata := map[string]interface{}{}
+	if _, sdbFound := nodeCatalog.Data.BlockDevices["sdb"]; sdbFound {
+		persistentMetadata = map[string]interface{}{
+			nodeID: map[string]string{
+				"path": "/dev/sdb",
+			},
 		}
 	}
 
@@ -49,12 +58,8 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		AgentID:   agentID,
 		Blobstore: c.Agent.Blobstore,
 		Disks: map[string]interface{}{
-			"system": "/dev/sda",
-			"persistent": map[string]interface{}{
-				nodeID: map[string]string{
-					"path": "/dev/sdb",
-				},
-			},
+			"system":     "/dev/sda",
+			"persistent": persistent_metadata,
 		},
 		Mbus:     c.Agent.Mbus,
 		Networks: map[string]bosh.Network{netName: netSpec},
