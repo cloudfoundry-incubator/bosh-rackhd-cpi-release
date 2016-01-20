@@ -27,6 +27,7 @@ do_create_vm() {
   local config_path=$1
   local stemcell_id=$2
   local AGENT_PUBLIC_KEY=$3
+  local disk_cid=$4
 
   # Prepare create vm request
   printf "%s\n" "Prepare create vm request"
@@ -40,7 +41,8 @@ do_create_vm() {
     {
       "public_key": "${AGENT_PUBLIC_KEY}"
     },
-    $(cat bosh_networks)
+    $(cat bosh_networks),
+    [${disk_cid}]
   ]
 }
 EOF
