@@ -31,31 +31,37 @@ func AttachDisk(c config.Cpi, extInput bosh.MethodArguments) error {
 		return fmt.Errorf("VM: %s not found\n", vmCID)
 	}
 
-	if node.PersistentDisk.IsAttached {
-		return fmt.Errorf("Disk: %s is already attached\n", diskCID)
+	if node.PersistentDisk.DiskCID == "" {
+		return fmt.Errorf("Disk: %s not found on VM: %s", diskCID, vmCID)
 	}
 
 	if node.PersistentDisk.DiskCID != diskCID {
-		return fmt.Errorf("Disk: %s not found on VM: %s", diskCID, vmCID)
+		if node.PersistentDisk.IsAttached {
+			return fmt.Errorf("Node %s has persistent disk %s attached. Cannot attach additional disk %s.", vmCID, node.PersistentDisk.DiskCID, diskCID)
+		} else {
+			return fmt.Errorf("Node %s has persistent disk %s, but detached. Cannot attach disk %s.", vmCID, node.PersistentDisk.DiskCID, diskCID)
+		}
 	}
 
 	if node.CID != vmCID {
 		return fmt.Errorf("Disk: %s does not belong to VM: %s\n", diskCID, vmCID)
 	}
 
-	container := rackhdapi.PersistentDiskSettingsContainer{
-		PersistentDisk: node.PersistentDisk,
-	}
-	container.PersistentDisk.IsAttached = true
+	if !node.PersistentDisk.IsAttached {
+		container := rackhdapi.PersistentDiskSettingsContainer{
+			PersistentDisk: node.PersistentDisk,
+		}
+		container.PersistentDisk.IsAttached = true
 
-	bodyBytes, err := json.Marshal(container)
-	if err != nil {
-		return err
-	}
+		bodyBytes, err := json.Marshal(container)
+		if err != nil {
+			return err
+		}
 
-	err = rackhdapi.PatchNode(c, node.ID, bodyBytes)
-	if err != nil {
-		return err
+		err = rackhdapi.PatchNode(c, node.ID, bodyBytes)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

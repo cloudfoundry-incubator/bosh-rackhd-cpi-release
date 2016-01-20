@@ -39,28 +39,84 @@ var _ = Describe("AttachDisk", func() {
 
 	Context("given a disk CID that exists", func() {
 		Context("given a disk CID for an already attached disk", func() {
-			It("returns an error", func() {
-				jsonInput := []byte(`[
-						"valid_vm_cid_2",
-						"valid_disk_cid_2"
-					]`)
-				var extInput bosh.MethodArguments
-				err := json.Unmarshal(jsonInput, &extInput)
-				Expect(err).ToNot(HaveOccurred())
+			Context("given a disk CID that is same as attached disk", func() {
+				It("returns an error", func() {
+					jsonInput := []byte(`[
+							"valid_vm_cid_2",
+							"valid_disk_cid_2"
+						]`)
+					var extInput bosh.MethodArguments
+					err := json.Unmarshal(jsonInput, &extInput)
+					Expect(err).ToNot(HaveOccurred())
 
-				expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
-				expectedNodesData, err := json.Marshal(expectedNodes)
-				Expect(err).ToNot(HaveOccurred())
-				server.AppendHandlers(
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/api/common/nodes"),
-						ghttp.RespondWith(http.StatusOK, expectedNodesData),
-					),
-				)
+					expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
+					expectedNodesData, err := json.Marshal(expectedNodes)
+					Expect(err).ToNot(HaveOccurred())
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/api/common/nodes"),
+							ghttp.RespondWith(http.StatusOK, expectedNodesData),
+						),
+					)
 
-				err = AttachDisk(cpiConfig, extInput)
-				Expect(err).To(MatchError("Disk: valid_disk_cid_2 is already attached\n"))
-				Expect(len(server.ReceivedRequests())).To(Equal(1))
+					err = AttachDisk(cpiConfig, extInput)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(len(server.ReceivedRequests())).To(Equal(1))
+				})
+			})
+
+			Context("given a disk CID that is not same as attached disk", func() {
+				Context("if existing disk is attached", func() {
+					It("returns an error", func() {
+						jsonInput := []byte(`[
+								"valid_vm_cid_2",
+								"new_disk_cid"
+							]`)
+						var extInput bosh.MethodArguments
+						err := json.Unmarshal(jsonInput, &extInput)
+						Expect(err).ToNot(HaveOccurred())
+
+						expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
+						expectedNodesData, err := json.Marshal(expectedNodes)
+						Expect(err).ToNot(HaveOccurred())
+						server.AppendHandlers(
+							ghttp.CombineHandlers(
+								ghttp.VerifyRequest("GET", "/api/common/nodes"),
+								ghttp.RespondWith(http.StatusOK, expectedNodesData),
+							),
+						)
+
+						err = AttachDisk(cpiConfig, extInput)
+						Expect(err).To(MatchError("Node valid_vm_cid_2 has persistent disk valid_disk_cid_2 attached. Cannot attach additional disk new_disk_cid."))
+						Expect(len(server.ReceivedRequests())).To(Equal(1))
+					})
+				})
+
+				Context("if existing disk is NOT attached", func() {
+					It("returns an error", func() {
+						jsonInput := []byte(`[
+								"valid_vm_cid_5",
+								"new_disk_cid"
+							]`)
+						var extInput bosh.MethodArguments
+						err := json.Unmarshal(jsonInput, &extInput)
+						Expect(err).ToNot(HaveOccurred())
+
+						expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
+						expectedNodesData, err := json.Marshal(expectedNodes)
+						Expect(err).ToNot(HaveOccurred())
+						server.AppendHandlers(
+							ghttp.CombineHandlers(
+								ghttp.VerifyRequest("GET", "/api/common/nodes"),
+								ghttp.RespondWith(http.StatusOK, expectedNodesData),
+							),
+						)
+
+						err = AttachDisk(cpiConfig, extInput)
+						Expect(err).To(MatchError("Node valid_vm_cid_5 has persistent disk valid_disk_cid_5, but detached. Cannot attach disk new_disk_cid."))
+						Expect(len(server.ReceivedRequests())).To(Equal(1))
+					})
+				})
 			})
 		})
 
@@ -110,7 +166,7 @@ var _ = Describe("AttachDisk", func() {
 	Context("given a nonexistent disk CID", func() {
 		It("returns an error", func() {
 			jsonInput := []byte(`[
-					"valid_vm_cid_1",
+					"valid_vm_cid_3",
 					"invalid_disk_cid"
 				]`)
 			var extInput bosh.MethodArguments
@@ -128,7 +184,7 @@ var _ = Describe("AttachDisk", func() {
 			)
 
 			err = AttachDisk(cpiConfig, extInput)
-			Expect(err).To(MatchError("Disk: invalid_disk_cid not found on VM: valid_vm_cid_1"))
+			Expect(err).To(MatchError("Disk: invalid_disk_cid not found on VM: valid_vm_cid_3"))
 			Expect(len(server.ReceivedRequests())).To(Equal(1))
 		})
 	})
