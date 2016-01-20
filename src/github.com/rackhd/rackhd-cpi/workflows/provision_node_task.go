@@ -12,7 +12,7 @@ var provisionNodeTemplate = []byte(`{
     "agentSettingsPath": null,
     "agentSettingsUri": "{{ api.files }}/{{ options.agentSettingsFile }}/latest",
     "commands": [
-      "if mount | grep /dev/sdb > /dev/null; then sudo dd if=/dev/zero of={{ options.persistent }} bs=1M count=100; fi",
+      "sudo dd if=/dev/zero of={{ options.persistent }} bs=1M count=100",
       "curl --retry 3 {{ options.stemcellUri }} -o {{ options.downloadDir }}/{{ options.stemcellFile }}",
       "curl --retry 3 {{ options.agentSettingsUri }} -o {{ options.downloadDir }}/{{ options.agentSettingsFile }}",
       "curl {{ options.stemcellFileMd5Uri }} | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
