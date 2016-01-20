@@ -59,7 +59,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		Blobstore: c.Agent.Blobstore,
 		Disks: map[string]interface{}{
 			"system":     "/dev/sda",
-			"persistent": persistent_metadata,
+			"persistent": persistentMetadata,
 		},
 		Mbus:     c.Agent.Mbus,
 		Networks: map[string]bosh.Network{netName: netSpec},
