@@ -27,44 +27,9 @@ import (
 	"github.com/onsi/gomega/ghttp"
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
-
-func loadJSON(nodePath string) []byte {
-	dummyResponseFile, err := os.Open(nodePath)
-	Expect(err).ToNot(HaveOccurred())
-	defer dummyResponseFile.Close()
-
-	dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
-	Expect(err).ToNot(HaveOccurred())
-
-	return dummyResponseBytes
-}
-
-func loadNodes(nodePath string) []rackhdapi.Node {
-	dummyResponseBytes := loadJSON(nodePath)
-
-	nodes := []rackhdapi.Node{}
-	err := json.Unmarshal(dummyResponseBytes, &nodes)
-	Expect(err).ToNot(HaveOccurred())
-
-	return nodes
-}
-
-func loadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
-	dummyCatalogfile, err := os.Open(nodeCatalogPath)
-	Expect(err).ToNot(HaveOccurred())
-	defer dummyCatalogfile.Close()
-
-	b, err := ioutil.ReadAll(dummyCatalogfile)
-	Expect(err).ToNot(HaveOccurred())
-
-	nodeCatalog := rackhdapi.NodeCatalog{}
-
-	err = json.Unmarshal(b, &nodeCatalog)
-	Expect(err).ToNot(HaveOccurred())
-	return nodeCatalog
-}
 
 var _ = Describe("The VM Creation Workflow", func() {
 	var server *ghttp.Server
@@ -385,13 +350,13 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 
 		It("blocks the node", func() {
-			expectedNodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
-			firstExpectedNodeCatalog := loadNodeCatalog("../spec_assets/dummy_no_ephemeral_disk_catalog_response.json")
+			firstExpectedNodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_no_ephemeral_disk_catalog_response.json")
 			firstExpectedNodeCatalogData, err := json.Marshal(firstExpectedNodeCatalog)
 			Expect(err).ToNot(HaveOccurred())
-			secondExpectedNodeCatalog := loadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
+			secondExpectedNodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
 			secondExpectedNodeCatalogData, err := json.Marshal(secondExpectedNodeCatalog)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -521,7 +486,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			})
 
 			It("attaches MAC address information from the RackHD API", func() {
-				nodeCatalog := loadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
+				nodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
 
 				prevSpec := bosh.Network{}
 
@@ -562,7 +527,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("selecting an available node", func() {
 		It("returns an error if there are no free nodes available", func() {
-			nodes := loadNodes("../spec_assets/dummy_all_reserved_nodes_response.json")
+			nodes := helpers.LoadNodes("../spec_assets/dummy_all_reserved_nodes_response.json")
 
 			node0HttpResponse, err := json.Marshal(nodes[0])
 			Expect(err).ToNot(HaveOccurred())
@@ -594,7 +559,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 		Context("with a disk CID", func() {
 			It("selects the node with the disk CID", func() {
-				nodes := loadNodes("../spec_assets/dummy_create_vm_with_disk_response.json")
+				nodes := helpers.LoadNodes("../spec_assets/dummy_create_vm_with_disk_response.json")
 
 				nodesResponse, err := json.Marshal(nodes)
 				Expect(err).ToNot(HaveOccurred())
@@ -614,7 +579,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 
 		It("selects a free node for provisioning", func() {
-			nodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			nodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
 
 			node0HttpResponse, err := json.Marshal(nodes[0])
 			Expect(err).ToNot(HaveOccurred())
@@ -647,7 +612,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 
 		It("return an error if all nodes are created vms with cids", func() {
-			nodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
+			nodes := helpers.LoadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
 
 			node0HttpResponse, err := json.Marshal(nodes[0])
 			Expect(err).ToNot(HaveOccurred())
@@ -809,13 +774,13 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("when a node has an active workflow", func() {
 		It("skips the node", func() {
-			rawWorkflow := loadJSON("../spec_assets/dummy_workflow_response.json")
+			rawWorkflow := helpers.LoadJSON("../spec_assets/dummy_workflow_response.json")
 			httpWorkflowsResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
 			var expectedResponse []rackhdapi.WorkflowResponse
 			err := json.Unmarshal(httpWorkflowsResponse, &expectedResponse)
 			Expect(err).ToNot(HaveOccurred())
 
-			httpNodeResponse := loadJSON("../spec_assets/dummy_one_node_response.json")
+			httpNodeResponse := helpers.LoadJSON("../spec_assets/dummy_one_node_response.json")
 
 			nodeID := "5665a65a0561790005b77b85"
 			server.AppendHandlers(
@@ -829,7 +794,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				),
 			)
 
-			nodes := loadNodes("../spec_assets/dummy_one_node_running_workflow.json")
+			nodes := helpers.LoadNodes("../spec_assets/dummy_one_node_running_workflow.json")
 			_, err = randomSelectAvailableNode(cpiConfig, nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
@@ -837,13 +802,13 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("when a node does not have obmsettings", func() {
 		It("skips the node", func() {
-			rawWorkflow := loadJSON("../spec_assets/dummy_workflow_response.json")
+			rawWorkflow := helpers.LoadJSON("../spec_assets/dummy_workflow_response.json")
 			httpWorkflowsResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
 			var expectedResponse []rackhdapi.WorkflowResponse
 			err := json.Unmarshal(httpWorkflowsResponse, &expectedResponse)
 			Expect(err).ToNot(HaveOccurred())
 
-			httpNodeResponse := loadJSON("../spec_assets/dummy_one_node_without_obmsettings_response.json")
+			httpNodeResponse := helpers.LoadJSON("../spec_assets/dummy_one_node_without_obmsettings_response.json")
 
 			nodeID := "5665a65a0561790005b77b85"
 			server.AppendHandlers(
