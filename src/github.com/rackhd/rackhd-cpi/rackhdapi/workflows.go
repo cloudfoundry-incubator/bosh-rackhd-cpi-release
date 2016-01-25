@@ -195,6 +195,7 @@ func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (Wo
 		return WorkflowResponse{}, fmt.Errorf("error building http request to run workflow, %s", err)
 	}
 	request.Header.Set("Content-Type", "application/json")
+	log.Debug("Posting workflow...")
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("error running workflow at url %s", url)
@@ -207,7 +208,6 @@ func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (Wo
 	}
 
 	wfRespBytes, err := ioutil.ReadAll(resp.Body)
-	log.Debug(fmt.Sprintf("body response is %s", string(wfRespBytes)))
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("error reading workflow response body %s", err)
 	}
@@ -218,8 +218,7 @@ func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (Wo
 		return WorkflowResponse{}, fmt.Errorf("error unmarshalling /common/node/workflows response %s", err)
 	}
 
-	log.Debug(fmt.Sprintf("workflow response %v", workflowResp))
-
+	log.Debug("Workflow post successful")
 	return workflowResp, nil
 }
 
@@ -301,30 +300,30 @@ func KillActiveWorkflow(c config.Cpi, nodeID string) error {
 	return nil
 }
 
-func GetActiveWorkflows(c config.Cpi, nodeID string) ([]WorkflowResponse, error) {
-	var workflows []WorkflowResponse
+func GetActiveWorkflows(c config.Cpi, nodeID string) (WorkflowResponse, error) {
+	var workflows WorkflowResponse
 
 	url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
+		return WorkflowResponse{}, fmt.Errorf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 204 {
-		return nil, nil
+		return WorkflowResponse{}, nil
 	}
 
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+		return WorkflowResponse{}, fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &workflows)
 	if err != nil {
-		return nil, fmt.Errorf("Error unmarshalling active workflows: %s", err)
+		return WorkflowResponse{}, fmt.Errorf("Error unmarshalling active workflows: %s %s", err, string(body))
 	}
 
 	return workflows, nil
