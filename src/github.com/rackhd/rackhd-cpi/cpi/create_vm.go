@@ -172,26 +172,6 @@ func tryReservation(c config.Cpi, agentID string, diskCID string, filter filterF
 	return nodeID, nil
 }
 
-func blockNodesWithoutEphemeralDisk(c config.Cpi) error {
-	nodes, err := rackhdapi.GetNodes(c)
-	if err != nil {
-		return err
-	}
-
-	for i := range nodes {
-		if nodeIsAvailable(c, nodes[i]) {
-			nodeCatalog, err := rackhdapi.GetNodeCatalog(c, nodes[i].ID)
-			if err != nil {
-				return err
-			}
-			if _, ok := nodeCatalog.Data.BlockDevices["sdb"]; !ok {
-				rackhdapi.BlockNode(c, nodes[i].ID)
-			}
-		}
-	}
-	return nil
-}
-
 func reserveNodeFromRackHD(c config.Cpi, agentID string, nodeID string) error {
 	workflowName, err := workflows.PublishReserveNodeWorkflow(c, agentID)
 	if err != nil {
