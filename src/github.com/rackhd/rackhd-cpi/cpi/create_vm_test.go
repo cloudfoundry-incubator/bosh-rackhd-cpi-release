@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -534,19 +535,28 @@ var _ = Describe("The VM Creation Workflow", func() {
 			node1HttpResponse, err := json.Marshal(nodes[1])
 			Expect(err).ToNot(HaveOccurred())
 
-			server.AppendHandlers(
+			server.RouteToHandler("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
+			)
+
+			server.RouteToHandler("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID)),
 					ghttp.RespondWith(http.StatusOK, node0HttpResponse),
 				),
+			)
+
+			server.RouteToHandler("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
+			)
+
+			server.RouteToHandler("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[1].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[1].ID)),
 					ghttp.RespondWith(http.StatusOK, node1HttpResponse),
@@ -586,19 +596,28 @@ var _ = Describe("The VM Creation Workflow", func() {
 			node1HttpResponse, err := json.Marshal(nodes[1])
 			Expect(err).ToNot(HaveOccurred())
 
-			server.AppendHandlers(
+			server.RouteToHandler("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
+			)
+
+			server.RouteToHandler("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID)),
 					ghttp.RespondWith(http.StatusOK, node0HttpResponse),
 				),
+			)
+
+			server.RouteToHandler("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
+			)
+
+			server.RouteToHandler("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[1].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[1].ID)),
 					ghttp.RespondWith(http.StatusOK, node1HttpResponse),
@@ -619,19 +638,28 @@ var _ = Describe("The VM Creation Workflow", func() {
 			node1HttpResponse, err := json.Marshal(nodes[1])
 			Expect(err).ToNot(HaveOccurred())
 
-			server.AppendHandlers(
+			server.RouteToHandler("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[0].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
+			)
+
+			server.RouteToHandler("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID)),
 					ghttp.RespondWith(http.StatusOK, node0HttpResponse),
 				),
+			)
+
+			server.RouteToHandler("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodes[1].ID)),
 					ghttp.RespondWith(http.StatusNoContent, []byte{}),
 				),
+			)
+
+			server.RouteToHandler("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[1].ID),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodes[1].ID)),
 					ghttp.RespondWith(http.StatusOK, node1HttpResponse),
@@ -775,8 +803,8 @@ var _ = Describe("The VM Creation Workflow", func() {
 	Describe("when a node has an active workflow", func() {
 		It("skips the node", func() {
 			rawWorkflow := helpers.LoadJSON("../spec_assets/dummy_workflow_response.json")
-			httpWorkflowsResponse := []byte(fmt.Sprintf("[%s]", string(rawWorkflow)))
-			var expectedResponse []rackhdapi.WorkflowResponse
+			httpWorkflowsResponse := []byte(fmt.Sprintf("%s", string(rawWorkflow)))
+			var expectedResponse rackhdapi.WorkflowResponse
 			err := json.Unmarshal(httpWorkflowsResponse, &expectedResponse)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -822,9 +850,44 @@ var _ = Describe("The VM Creation Workflow", func() {
 				),
 			)
 
-			nodes := loadNodes("../spec_assets/dummy_one_node_running_workflow.json")
+			nodes := helpers.LoadNodes("../spec_assets/dummy_one_node_running_workflow.json")
 			_, err = randomSelectAvailableNode(cpiConfig, nodes)
 			Expect(err).To(MatchError("all nodes have been reserved"))
+		})
+	})
+
+	Describe("reserving multiple nodes simultaneously", func() {
+		XIt("works", func() {
+			var wg sync.WaitGroup
+
+			CallTryReservation := func(c config.Cpi, nodes []rackhdapi.Node) {
+				defer GinkgoRecover()
+				_, err := tryReservation(
+					c,
+					"agentID",
+					"",
+					func(config.Cpi) error { return nil },
+					SelectNodeFromRackHD,
+					reserveNodeFromRackHD,
+				)
+				Expect(err).ToNot(HaveOccurred())
+				defer wg.Done()
+			}
+
+			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+			Expect(apiServerIP).ToNot(BeEmpty())
+			c := config.Cpi{ApiServer: apiServerIP, MaxCreateVMAttempt: 5, RunWorkflowTimeoutSeconds: 4 * 60}
+
+			nodes, err := rackhdapi.GetNodes(c)
+			Expect(err).ToNot(HaveOccurred())
+
+			times := 3
+			for i := 0; i < times; i++ {
+				wg.Add(1)
+				go CallTryReservation(c, nodes)
+			}
+
+			wg.Wait()
 		})
 	})
 })

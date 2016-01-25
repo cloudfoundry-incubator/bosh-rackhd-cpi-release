@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -39,37 +40,39 @@ func SelectNodeFromRackHD(c config.Cpi, diskCID string) (string, error) {
 }
 
 func randomSelectAvailableNode(c config.Cpi, nodes []rackhdapi.Node) (string, error) {
-	availableNodes := getAllAvailableNodes(c, nodes)
-	if len(availableNodes) == 0 {
-		return "", errors.New("all nodes have been reserved")
-	}
 
-	t := time.Now()
-	rand.Seed(t.Unix())
-
-	i := rand.Intn(len(availableNodes))
-	return availableNodes[i].ID, nil
-}
-
-func getAllAvailableNodes(c config.Cpi, nodes []rackhdapi.Node) []rackhdapi.Node {
-	var n []rackhdapi.Node
-
-	for i := range nodes {
-		if nodeIsAvailable(c, nodes[i]) {
-			n = append(n, nodes[i])
-			log.Debug(fmt.Sprintf("node: %s is avaliable", nodes[i].ID))
+	t := time.Now().UnixNano()
+	log.Debug(fmt.Sprintf("Using random number seed (i.e., UnixNano time): %v", t))
+	rand.Seed(t)
+	shuffle := rand.Perm(len(nodes))
+	log.Debug(fmt.Sprintf("Shuffled array: %v", shuffle))
+	for i := range shuffle {
+		log.Debug(fmt.Sprintf("Trying node: %v", shuffle[i]))
+		node := nodes[shuffle[i]]
+		if nodeIsAvailable(c, node) {
+			log.Debug(fmt.Sprintf("node: %s is available", node.ID))
+			return node.ID, nil
 		}
 	}
 
-	return n
+	return "", errors.New("all nodes have been reserved")
 }
 
 func nodeIsAvailable(c config.Cpi, n rackhdapi.Node) bool {
-	workflows, _ := rackhdapi.GetActiveWorkflows(c, n.ID)
-	obmSettings, _ := rackhdapi.GetOBMSettings(c, n.ID)
+	log.Debug(fmt.Sprintf("Getting active workflow"))
+	workflow, err := rackhdapi.GetActiveWorkflows(c, n.ID)
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting active workflow on node %s: %v\n", n.ID, err))
+	}
+	log.Debug(fmt.Sprintf("Getting OBM settings"))
+	obmSettings, err := rackhdapi.GetOBMSettings(c, n.ID)
+	if err != nil {
+		log.Error(fmt.Sprintf("Error getting OBM settings on node %s: %v\n", n.ID, err))
+	}
+
 	return (n.Status == "" || n.Status == rackhdapi.Available) &&
 		(n.CID == "") &&
-		(len(workflows) == 0) &&
+		reflect.DeepEqual(workflow, rackhdapi.WorkflowResponse{}) &&
 		(len(obmSettings) > 0) &&
 		!hasPersistentDisk(n)
 }
