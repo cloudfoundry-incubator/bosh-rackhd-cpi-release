@@ -246,8 +246,8 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 				return fmt.Errorf("Unable to fetch workflow status: %s", err)
 			}
 
-			for key, value := range wr.Tasks {
-				log.Debug(fmt.Sprintf("task is %s => %v", key, value))
+			for _, value := range wr.Tasks {
+				log.Debug(fmt.Sprintf("task: %v", value))
 			}
 
 			log.Debug(fmt.Sprintf("workflow: %s with status: %s and pending tasks: %d", wr.Name, wr.Status, len(wr.PendingTasks)))

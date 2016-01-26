@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -158,7 +160,12 @@ func tryReservation(c config.Cpi, agentID string, diskCID string, filter filterF
 		err = reserve(c, agentID, nodeID)
 		if err != nil {
 			log.Error(fmt.Sprintf("retry %d: error reserving node %s", i, err))
-			defer rackhdapi.ReleaseNode(c, nodeID)
+			if strings.HasPrefix(err.Error(), "Timed out running workflow") {
+				rackhdapi.ReleaseNode(c, nodeID)
+			}
+			sleepTime := rand.Intn(5000)
+			log.Debug(fmt.Sprintf("Sleeping for %d ms\n", sleepTime))
+			time.Sleep(time.Millisecond * time.Duration(sleepTime))
 			continue
 		}
 

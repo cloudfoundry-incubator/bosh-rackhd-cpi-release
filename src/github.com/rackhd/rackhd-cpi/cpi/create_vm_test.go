@@ -650,7 +650,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(nodeID).To(Equal("node-1234"))
 		})
 
-		It("cleans up reservation flag after failing to reserve", func() {
+		It("cleans up reservation flag after receive timeout error on reserve function", func() {
 			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":1}`, apiServerIP))
@@ -689,7 +689,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(node.Status).To(Equal(rackhdapi.Reserved))
 
-				return errors.New("fake error doing reservation")
+				return errors.New("Timed out running workflow: AWorkflow on node: 12345")
 			}
 
 			_, err = SelectNodeFromRackHD(c, "")
