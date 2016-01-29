@@ -43,7 +43,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	if netSpec.NetworkType == bosh.ManualNetworkType {
 		netSpec, err = attachMAC(nodeCatalog.Data.NetworkData.Networks, netSpec)
 		if err != nil {
-			return "", fmt.Errorf("error attaching mac address %s", err)
+			return "", err
 		}
 	}
 
@@ -109,11 +109,11 @@ func attachMAC(nodeNetworks map[string]rackhdapi.Network, oldSpec bosh.Network) 
 	}
 
 	if len(upNetworks) == 0 {
-		return bosh.Network{}, errors.New("node has no active network")
+		return bosh.Network{}, errors.New("error attaching MAC address: node has no active network")
 	}
 
 	if len(upNetworks) > 1 {
-		return bosh.Network{}, fmt.Errorf("node has %d active networks", len(upNetworks))
+		return bosh.Network{}, fmt.Errorf("error attaching MAC address: node has %d active networks", len(upNetworks))
 	}
 
 	var nodeMac string

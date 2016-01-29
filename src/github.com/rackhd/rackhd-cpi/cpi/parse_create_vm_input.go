@@ -56,7 +56,7 @@ func parseCreateVMInput(extInput bosh.MethodArguments) (string, string, string, 
 
 	publicKeyBytes, err := base64.StdEncoding.DecodeString(encodedPublicKey)
 	if err != nil {
-		return "", "", "", networkSpecs, "", fmt.Errorf("unable to decode public key (base64) to string %s", err)
+		return "", "", "", networkSpecs, "", fmt.Errorf("unable to decode public key (%s) to string using base64: %s", encodedPublicKey, err)
 	}
 	publicKey := string(publicKeyBytes)
 

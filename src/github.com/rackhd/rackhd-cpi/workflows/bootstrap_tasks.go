@@ -14,13 +14,14 @@ var bootstrapUbuntuTaskTemplate = []byte(`
 	  "injectableName": "Task.Linux.Bootstrap.Ubuntu",
 	  "implementsTask": "Task.Base.Linux.Bootstrap",
 	  "options": {
-	    "kernelversion": "vmlinuz-3.13.0-32-generic",
-	    "kernel": "common/vmlinuz-3.13.0-32-generic",
-	    "initrd": "common/initrd.img-3.13.0-32-generic",
-	    "basefs": "common/base.trusty.3.13.0-32.squashfs.img",
-	    "overlayfs": "common/overlayfs_all_files.cpio.gz",
-	    "profile": "linux.ipxe",
-	    "comport": "ttyS0"
+			"kernelFile": "vmlinuz-3.13.0-32-generic",
+			"initrdFile": "initrd.img-3.13.0-32-generic",
+			"kernelUri": "{{ api.server }}/common/{{ options.kernelFile }}",
+			"initrdUri": "{{ api.server }}/common/{{ options.initrdFile }}",
+			"basefs": "common/base.trusty.3.13.0-32-generic.squashfs.img",
+			"overlayfs": "common/discovery.overlay.cpio.gz",
+			"profile": "linux.ipxe",
+			"comport": "ttyS0"
 	  },
 	  "properties": {
 	    "os": {

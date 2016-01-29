@@ -349,7 +349,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			prevSpec := bosh.Network{}
 
 			_, err = attachMAC(nodeCatalog.Data.NetworkData.Networks, prevSpec)
-			Expect(err).To(MatchError("node has no active network"))
+			Expect(err).To(MatchError("error attaching MAC address: node has no active network"))
 		})
 
 		It("returns an error if multiple active networks are found", func() {
@@ -368,7 +368,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			prevSpec := bosh.Network{}
 
 			_, err = attachMAC(nodeCatalog.Data.NetworkData.Networks, prevSpec)
-			Expect(err).To(MatchError("node has 2 active networks"))
+			Expect(err).To(MatchError("error attaching MAC address: node has 2 active networks"))
 		})
 
 		Context("when using manual networking", func() {

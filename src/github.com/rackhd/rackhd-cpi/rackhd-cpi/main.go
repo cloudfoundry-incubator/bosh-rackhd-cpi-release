@@ -20,6 +20,7 @@ import (
 var responseLogBuffer *bytes.Buffer
 
 func exitWithDefaultError(err error) {
+	log.Error(err)
 	fmt.Println(bosh.BuildDefaultErrorResponse(err, false, responseLogBuffer.String()))
 	responseLogBuffer.Reset()
 	os.Exit(1)
