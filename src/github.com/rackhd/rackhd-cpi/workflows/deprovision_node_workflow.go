@@ -89,7 +89,11 @@ func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string
 		Options: map[string]interface{}{"defaults": options},
 	}
 
-	return rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, c, nodeID, req)
+	err = rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, c, nodeID, req)
+	if err != nil {
+		return fmt.Errorf("Failed to complete delete VM workflow--its resource may not have been deprovisioned! Details: %s", err)
+	}
+	return nil
 }
 
 func PublishDeprovisionNodeWorkflow(c config.Cpi, uuid string) (string, error) {
