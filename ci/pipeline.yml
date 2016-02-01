@@ -7,7 +7,6 @@ groups:
       - bats-centos
       - bats-ubuntu
       - setup-director
-      - teardown-director
       - promote-candidate
 
 jobs:
@@ -132,23 +131,6 @@ jobs:
       put: emccmd-env-ci
       params: {release: emccmd-env-ci}
 
-- name: teardown-director
-  serial: true
-  plan:
-  - aggregate:
-    - {trigger: true, passed: [bats-centos, bats-ubuntu], get: bosh-cpi-release,   resource: bosh-rackhd-cpi-release}
-  - get: emccmd-env-ci
-  - task: teardown-director
-    file: bosh-cpi-release/ci/tasks/teardown-director.yml
-    config:
-      params:
-        BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
-        CPI_RELEASE_NAME:                   {{cpi_release_name}}
-        DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}
-    ensure:
-      put: emccmd-env-ci
-      params: {release: emccmd-env-ci}
-
 - name: promote-candidate
   serial: true
   plan:
@@ -174,7 +156,7 @@ resources:
     name: bosh-rackhd-cpi-release
     type: git
     source:
-      uri: git@github.com:EMC-CMD/bosh-rackhd-cpi-release.git
+      uri: git@github.com:cloudfoundry-incubator/bosh-rackhd-cpi-release.git
       branch: master
       private_key: {{github_key__bosh-rackhd-cpi-release}}
       ignore_paths:
