@@ -18,15 +18,25 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 
 	cid = extInput[0].(string)
 	node, err := rackhdapi.GetNodeByVMCID(c, cid)
-	nodeID := node.ID
 	if err != nil {
 		return err
 	}
+	nodeID := node.ID
 
 	workflowName, err := workflows.PublishDeprovisionNodeWorkflow(c, cid)
 	if err != nil {
 		return err
 	}
 
-	return workflows.RunDeprovisionNodeWorkflow(c, nodeID, workflowName)
+	err = workflows.RunDeprovisionNodeWorkflow(c, nodeID, workflowName)
+	if err != nil {
+		return err
+	}
+
+	err = rackhdapi.ReleaseNode(c, nodeID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

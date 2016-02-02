@@ -21,7 +21,7 @@ const (
 
 const (
 	workflowValidStatus      = "valid"
-	worfklowSuccessfulStatus = "succeeded"
+	workflowSuccessfulStatus = "succeeded"
 	workflowFailedStatus     = "failed"
 	workflowCancelledStatus  = "cancelled"
 )
@@ -260,7 +260,7 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 				}
 				log.Debug(fmt.Sprintf("workflow: %s is still running against node: %s", req.Name, nodeID))
 				continue
-			case worfklowSuccessfulStatus:
+			case workflowSuccessfulStatus:
 				log.Info(fmt.Sprintf("workflow: %s completed successfully against node: %s", req.Name, nodeID))
 				return nil
 			case workflowFailedStatus:
