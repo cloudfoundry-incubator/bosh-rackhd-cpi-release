@@ -18,17 +18,18 @@ import (
 )
 
 var _ = Describe("AttachDisk", func() {
-
 	var server *ghttp.Server
 	var jsonReader *strings.Reader
 	var cpiConfig config.Cpi
+	var request bosh.CpiRequest
 
 	BeforeEach(func() {
 		server = ghttp.NewServer()
 		serverURL, err := url.Parse(server.URL())
 		Expect(err).ToNot(HaveOccurred())
 		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
-		cpiConfig, err = config.New(jsonReader)
+		request = bosh.CpiRequest{Method: bosh.ATTACH_DISK}
+		cpiConfig, err = config.New(jsonReader, request)
 		Expect(err).ToNot(HaveOccurred())
 	})
 

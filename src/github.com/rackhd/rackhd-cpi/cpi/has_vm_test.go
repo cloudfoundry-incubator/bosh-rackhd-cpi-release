@@ -10,6 +10,7 @@ import (
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/cpi"
+	"github.com/rackhd/rackhd-cpi/helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,13 +22,15 @@ var _ = Describe("Cpi/HasVm", func() {
 		var server *ghttp.Server
 		var jsonReader *strings.Reader
 		var cpiConfig config.Cpi
+		var request bosh.CpiRequest
 
 		BeforeEach(func() {
 			server = ghttp.NewServer()
 			serverURL, err := url.Parse(server.URL())
 			Expect(err).ToNot(HaveOccurred())
 			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
-			cpiConfig, err = config.New(jsonReader)
+			request = bosh.CpiRequest{Method: bosh.HAS_VM}
+			cpiConfig, err = config.New(jsonReader, request)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -40,7 +43,7 @@ var _ = Describe("Cpi/HasVm", func() {
 
 			var metadataInput bosh.MethodArguments
 			metadataInput = append(metadataInput, cid)
-			expectedNodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -62,7 +65,7 @@ var _ = Describe("Cpi/HasVm", func() {
 
 			var metadataInput bosh.MethodArguments
 			metadataInput = append(metadataInput, cid)
-			expectedNodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
 

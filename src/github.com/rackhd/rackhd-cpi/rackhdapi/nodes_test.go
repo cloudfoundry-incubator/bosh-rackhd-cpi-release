@@ -3,65 +3,19 @@ package rackhdapi_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
+	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 )
-
-func loadJSON(nodePath string) []byte {
-	dummyResponseFile, err := os.Open(nodePath)
-	Expect(err).ToNot(HaveOccurred())
-	defer dummyResponseFile.Close()
-
-	dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
-	Expect(err).ToNot(HaveOccurred())
-
-	return dummyResponseBytes
-}
-
-func loadNode(nodePath string) rackhdapi.Node {
-	dummyResponseBytes := loadJSON(nodePath)
-
-	node := rackhdapi.Node{}
-	err := json.Unmarshal(dummyResponseBytes, &node)
-	Expect(err).ToNot(HaveOccurred())
-
-	return node
-}
-
-func loadNodes(nodePath string) []rackhdapi.Node {
-	dummyResponseBytes := loadJSON(nodePath)
-
-	nodes := []rackhdapi.Node{}
-	err := json.Unmarshal(dummyResponseBytes, &nodes)
-	Expect(err).ToNot(HaveOccurred())
-
-	return nodes
-}
-
-func loadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
-	dummyCatalogfile, err := os.Open(nodeCatalogPath)
-	Expect(err).ToNot(HaveOccurred())
-	defer dummyCatalogfile.Close()
-
-	b, err := ioutil.ReadAll(dummyCatalogfile)
-	Expect(err).ToNot(HaveOccurred())
-
-	nodeCatalog := rackhdapi.NodeCatalog{}
-
-	err = json.Unmarshal(b, &nodeCatalog)
-	Expect(err).ToNot(HaveOccurred())
-	return nodeCatalog
-}
 
 var _ = Describe("Nodes", func() {
 	var server *ghttp.Server
@@ -72,8 +26,8 @@ var _ = Describe("Nodes", func() {
 		server = ghttp.NewServer()
 		serverURL, err := url.Parse(server.URL())
 		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks": {"system":"/dev/sda"}}, "max_create_vm_attempts":1}`, serverURL.Host))
-		cpiConfig, err = config.New(jsonReader)
+		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+		cpiConfig, err = config.New(jsonReader, bosh.CpiRequest{})
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -83,7 +37,7 @@ var _ = Describe("Nodes", func() {
 
 	Describe("Getting nodes", func() {
 		It("return expected nodes' fields", func() {
-			expectedNodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
@@ -103,7 +57,7 @@ var _ = Describe("Nodes", func() {
 
 	Describe("Getting a single node by CID", func() {
 		It("returns expected node's fields", func() {
-			expectedNodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
+			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
@@ -122,7 +76,7 @@ var _ = Describe("Nodes", func() {
 
 	Describe("Getting a single node by disk CID", func() {
 		It("returns node with the disk specified", func() {
-			expectedNodes := loadNodes("../spec_assets/dummy_create_vm_with_disk_response.json")
+			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_create_vm_with_disk_response.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
@@ -142,8 +96,8 @@ var _ = Describe("Nodes", func() {
 	Describe("GetOBMSettings", func() {
 		It("returns a node's OBM settings", func() {
 			dummy_response_path := "../spec_assets/dummy_one_node_response.json"
-			httpResponse := loadJSON(dummy_response_path)
-			expectedResponse := loadNode(dummy_response_path)
+			httpResponse := helpers.LoadJSON(dummy_response_path)
+			expectedResponse := helpers.LoadNode(dummy_response_path)
 
 			nodeID := "nodeID"
 			server.AppendHandlers(
@@ -163,7 +117,7 @@ var _ = Describe("Nodes", func() {
 	Describe("IsAMTService", func() {
 		It("returns true if the node's obm settings is amt", func() {
 			dummy_response_path := "../spec_assets/dummy_one_node_response.json"
-			httpResponse := loadJSON(dummy_response_path)
+			httpResponse := helpers.LoadJSON(dummy_response_path)
 
 			nodeID := "nodeID"
 			server.AppendHandlers(
@@ -182,7 +136,7 @@ var _ = Describe("Nodes", func() {
 
 	Describe("Getting catalog", func() {
 		It("returns a catalog", func() {
-			expectedNodeCatalog := loadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
+			expectedNodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
 			expectedNodeCatalogData, err := json.Marshal(expectedNodeCatalog)
 			testNodeID := "55e79eb14e66816f6152fffb"
 			Expect(err).ToNot(HaveOccurred())
@@ -203,7 +157,7 @@ var _ = Describe("Nodes", func() {
 
 	Describe("blocking nodes", func() {
 		It("sends a request to block a node", func() {
-			nodes := loadNodes("../spec_assets/dummy_two_node_response.json")
+			nodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(

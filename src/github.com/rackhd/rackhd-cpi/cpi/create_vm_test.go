@@ -36,13 +36,15 @@ var _ = Describe("The VM Creation Workflow", func() {
 	var server *ghttp.Server
 	var jsonReader *strings.Reader
 	var cpiConfig config.Cpi
+	var request bosh.CpiRequest
 
 	BeforeEach(func() {
 		server = ghttp.NewServer()
 		serverURL, err := url.Parse(server.URL())
 		Expect(err).ToNot(HaveOccurred())
 		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system":"/dev/sda"}}, "max_create_vm_attempts":1}`, serverURL.Host))
-		cpiConfig, err = config.New(jsonReader)
+		request = bosh.CpiRequest{Method: bosh.CREATE_VM}
+		cpiConfig, err = config.New(jsonReader, request)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -594,7 +596,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 	Describe("retrying node reservation", func() {
 		It("return a node if selection is successful", func() {
 			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":3}`)
-			c, err := config.New(jsonReader)
+			c, err := config.New(jsonReader, request)
 			Expect(err).ToNot(HaveOccurred())
 			nodeID, err := tryReservation(
 				c,
@@ -610,7 +612,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 		It("returns an error if selection continually fails", func() {
 			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":3}`)
-			c, err := config.New(jsonReader)
+			c, err := config.New(jsonReader, request)
 			Expect(err).ToNot(HaveOccurred())
 
 			nodeID, err := tryReservation(
@@ -627,7 +629,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 		It("retries and eventually returns a node when selection is successful", func() {
 			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":3}`)
-			c, err := config.New(jsonReader)
+			c, err := config.New(jsonReader, request)
 			Expect(err).ToNot(HaveOccurred())
 
 			tries := 0
@@ -654,7 +656,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":1}`, apiServerIP))
-			c, err := config.New(jsonReader)
+			c, err := config.New(jsonReader, request)
 			Expect(err).ToNot(HaveOccurred())
 
 			var testNodeID string

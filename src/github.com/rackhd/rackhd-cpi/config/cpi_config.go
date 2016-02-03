@@ -9,6 +9,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/rackhd/rackhd-cpi/bosh"
 )
 
 const (
@@ -31,7 +32,7 @@ type AgentConfig struct {
 
 func DefaultMaxCreateVMAttempts() int { return defaultMaxCreateVMAttempts }
 
-func New(config io.Reader) (Cpi, error) {
+func New(config io.Reader, request bosh.CpiRequest) (Cpi, error) {
 	b, err := ioutil.ReadAll(config)
 	if err != nil {
 		return Cpi{}, fmt.Errorf("Error reading config file %s", err)
@@ -40,7 +41,7 @@ func New(config io.Reader) (Cpi, error) {
 	var cpi Cpi
 	err = json.Unmarshal(b, &cpi)
 	if err != nil {
-		return Cpi{}, fmt.Errorf("Error unmarshalling cpi config %s", err)
+		return Cpi{}, fmt.Errorf("Error unmarshalling c config %s", err)
 	}
 
 	if cpi.ApiServer == "" {
@@ -51,7 +52,7 @@ func New(config io.Reader) (Cpi, error) {
 		return Cpi{}, errors.New("Invalid config. MaxCreateVMAttempt cannot be negative")
 	}
 
-	if cpi.MaxCreateVMAttempt == 0 {
+	if cpi.MaxCreateVMAttempt == 0 && request.Method == bosh.CREATE_VM {
 		log.Info(fmt.Sprintf("No MaxCreateVMAttempt was set, set to default value %d", defaultMaxCreateVMAttempts))
 		cpi.MaxCreateVMAttempt = defaultMaxCreateVMAttempts
 	}

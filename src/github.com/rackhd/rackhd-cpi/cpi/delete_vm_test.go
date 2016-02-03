@@ -14,19 +14,22 @@ import (
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/cpi"
+	"github.com/rackhd/rackhd-cpi/helpers"
 )
 
 var _ = Describe("DeleteVM", func() {
 	var server *ghttp.Server
 	var jsonReader *strings.Reader
 	var cpiConfig config.Cpi
+	var request bosh.CpiRequest
 
 	BeforeEach(func() {
 		server = ghttp.NewServer()
 		serverURL, err := url.Parse(server.URL())
 		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system":"/dev/sda"}}, "max_create_vm_attempts":1}`, serverURL.Host))
-		cpiConfig, err = config.New(jsonReader)
+		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+		request = bosh.CpiRequest{Method: bosh.DELETE_VM}
+		cpiConfig, err = config.New(jsonReader, request)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -46,7 +49,7 @@ var _ = Describe("DeleteVM", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedNodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
+			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
 

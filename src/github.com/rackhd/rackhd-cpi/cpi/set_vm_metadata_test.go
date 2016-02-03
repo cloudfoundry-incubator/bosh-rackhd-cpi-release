@@ -3,10 +3,8 @@ package cpi_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -15,36 +13,23 @@ import (
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/cpi"
-	"github.com/rackhd/rackhd-cpi/rackhdapi"
+	"github.com/rackhd/rackhd-cpi/helpers"
 )
-
-func loadNodes(nodePath string) []rackhdapi.Node {
-	dummyResponseFile, err := os.Open(nodePath)
-	Expect(err).ToNot(HaveOccurred())
-	defer dummyResponseFile.Close()
-
-	dummyResponseBytes, err := ioutil.ReadAll(dummyResponseFile)
-	Expect(err).ToNot(HaveOccurred())
-
-	nodes := []rackhdapi.Node{}
-	err = json.Unmarshal(dummyResponseBytes, &nodes)
-	Expect(err).ToNot(HaveOccurred())
-
-	return nodes
-}
 
 var _ = Describe("Setting VM Metadata", func() {
 	Context("When called with metadata", func() {
 		var server *ghttp.Server
 		var jsonReader *strings.Reader
 		var cpiConfig config.Cpi
+		var request bosh.CpiRequest
 
 		BeforeEach(func() {
 			server = ghttp.NewServer()
 			serverURL, err := url.Parse(server.URL())
 			Expect(err).ToNot(HaveOccurred())
-			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":1}`, serverURL.Host))
-			cpiConfig, err = config.New(jsonReader)
+			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+			request = bosh.CpiRequest{Method: bosh.SET_VM_METADATA}
+			cpiConfig, err = config.New(jsonReader, request)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -66,7 +51,7 @@ var _ = Describe("Setting VM Metadata", func() {
 			metadataInput = append(metadataInput, cid)
 			metadataInput = append(metadataInput, metadata)
 
-			expectedNodes := loadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
+			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
 			Expect(err).ToNot(HaveOccurred())
 

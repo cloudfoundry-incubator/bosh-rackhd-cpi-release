@@ -68,11 +68,6 @@ func main() {
 		exitWithDefaultError(err)
 	}
 
-	cpiConfig, err := config.New(file)
-	if err != nil {
-		exitWithDefaultError(err)
-	}
-
 	reqBytes, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		exitWithDefaultError(err)
@@ -80,6 +75,11 @@ func main() {
 
 	req := bosh.CpiRequest{}
 	err = json.Unmarshal(reqBytes, &req)
+	if err != nil {
+		exitWithDefaultError(err)
+	}
+
+	cpiConfig, err := config.New(file, req)
 	if err != nil {
 		exitWithDefaultError(err)
 	}
@@ -94,73 +94,73 @@ func main() {
 	}
 
 	switch req.Method {
-	case cpi.CREATE_STEMCELL:
+	case bosh.CREATE_STEMCELL:
 		cid, err := cpi.CreateStemcell(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running CreateStemcell: %s", err))
 		}
 		exitWithResult(cid)
-	case cpi.CREATE_VM:
+	case bosh.CREATE_VM:
 		vmcid, err := cpi.CreateVM(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running CreateVM: %s", err))
 		}
 		exitWithResult(vmcid)
-	case cpi.DELETE_STEMCELL:
+	case bosh.DELETE_STEMCELL:
 		err = cpi.DeleteStemcell(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running DeleteStemcell: %s", err))
 		}
 		exitWithResult("")
-	case cpi.DELETE_VM:
+	case bosh.DELETE_VM:
 		err = cpi.DeleteVM(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running DeleteVM: %s", err))
 		}
 		exitWithResult("")
-	case cpi.SET_VM_METADATA:
+	case bosh.SET_VM_METADATA:
 		err := cpi.SetVMMetadata(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running SetVMMetadata: %s", err))
 		}
 		exitWithResult("")
-	case cpi.HAS_VM:
+	case bosh.HAS_VM:
 		hasVM, err := cpi.HasVM(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running HasVM: %s", err))
 		}
 		exitWithResult(hasVM)
-	case cpi.CREATE_DISK:
+	case bosh.CREATE_DISK:
 		diskCID, err := cpi.CreateDisk(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running CreateDisk: %s", err))
 		}
 		exitWithResult(diskCID)
-	case cpi.DELETE_DISK:
+	case bosh.DELETE_DISK:
 		err := cpi.DeleteDisk(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running DeleteDisk: %s", err))
 		}
 		exitWithResult("")
-	case cpi.ATTACH_DISK:
+	case bosh.ATTACH_DISK:
 		err := cpi.AttachDisk(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running AttachDisk: %s", err))
 		}
 		exitWithResult("")
-	case cpi.DETACH_DISK:
+	case bosh.DETACH_DISK:
 		err := cpi.DetachDisk(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running DetachDisk: %s", err))
 		}
 		exitWithResult("")
-	case cpi.HAS_DISK:
+	case bosh.HAS_DISK:
 		diskExists, err := cpi.HasDisk(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running HasDisk: %s", err))
 		}
 		exitWithResult(diskExists)
-	case cpi.GET_DISKS:
+	case bosh.GET_DISKS:
 		diskCIDs, err := cpi.GetDisks(cpiConfig, req.Arguments)
 		if err != nil {
 			exitWithDefaultError(fmt.Errorf("Error running GetDisks: %s", err))
