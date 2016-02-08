@@ -16,7 +16,7 @@ import (
 var _ = Describe("Tasks", func() {
 	Describe("Publishing tasks", func() {
 		It("adds task to library, retrieves updated list of tasks from task library", func() {
-			apiServer := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+			apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 			Expect(apiServer).ToNot(BeEmpty())
 
 			uuidObj, err := uuid.NewV4()

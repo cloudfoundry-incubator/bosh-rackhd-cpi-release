@@ -100,9 +100,9 @@ var _ = Describe("ProvisionNodeWorkflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			uID := u.String()
 
-			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
-			Expect(apiServerIP).ToNot(BeEmpty())
-			c := config.Cpi{ApiServer: apiServerIP, RequestID: uID}
+			apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
+			Expect(apiServer).ToNot(BeEmpty())
+			c := config.Cpi{ApiServer: apiServer, RequestID: uID}
 
 			workflowName, err := PublishProvisionNodeWorkflow(c)
 			Expect(err).ToNot(HaveOccurred())

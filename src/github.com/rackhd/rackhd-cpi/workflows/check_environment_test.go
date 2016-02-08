@@ -13,10 +13,10 @@ import (
 
 var _ = Describe("CheckEnvironment", func() {
 	It("Returns no error when run against a properly configured environment", func() {
-		apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
-		Expect(apiServerIP).ToNot(BeEmpty())
+		apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
+		Expect(apiServer).ToNot(BeEmpty())
 
-		c := config.Cpi{ApiServer: apiServerIP}
+		c := config.Cpi{ApiServer: apiServer}
 		err := workflows.BootstrappingTasksExist(c)
 		Expect(err).ToNot(HaveOccurred())
 	})

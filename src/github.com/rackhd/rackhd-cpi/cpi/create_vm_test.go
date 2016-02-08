@@ -313,7 +313,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("unreserving a node", func() {
 		It("return a node with reserved flag unset", func() {
-			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP}
 
@@ -643,7 +643,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 
 		It("cleans up reservation flag after receive timeout error on reserve function", func() {
-			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_reserve_node_attempts":1}`, apiServerIP))
 			c, err := config.New(jsonReader, request)
@@ -782,7 +782,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				defer wg.Done()
 			}
 
-			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 			c := config.Cpi{ApiServer: apiServerIP, MaxReserveNodeAttempts: 5, RunWorkflowTimeoutSeconds: 4 * 60}
 

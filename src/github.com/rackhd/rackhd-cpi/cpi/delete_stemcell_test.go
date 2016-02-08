@@ -16,7 +16,7 @@ import (
 var _ = Describe("DeleteStemcell", func() {
 	Context("with valid CPI v1 input", func() {
 		It("deletes a previously uploaded stemcell from the rackhd server", func() {
-			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 
 			config := config.Cpi{ApiServer: apiServerIP}
@@ -43,7 +43,7 @@ var _ = Describe("DeleteStemcell", func() {
 
 	Context("with invalid CPI v1 input", func() {
 		It("returns an error", func() {
-			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 			Expect(apiServerIP).ToNot(BeEmpty())
 
 			config := config.Cpi{ApiServer: apiServerIP}

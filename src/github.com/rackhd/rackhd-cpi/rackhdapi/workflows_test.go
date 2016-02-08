@@ -110,7 +110,7 @@ var _ = Describe("Workflows", func() {
 
 	Describe("PublishWorkflow", func() {
 		It("add workflow to library, retrieves updated list of tasks from task library", func() {
-			apiServer := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+			apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 			Expect(apiServer).ToNot(BeEmpty())
 
 			uuidObj, err := uuid.NewV4()
@@ -185,7 +185,7 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+					apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 					Expect(apiServer).ToNot(BeEmpty())
 
 					uuidObj, err := uuid.NewV4()
@@ -247,7 +247,7 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+					apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 					Expect(apiServer).ToNot(BeEmpty())
 
 					uuidObj, err := uuid.NewV4()
@@ -354,7 +354,7 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
+					apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
 					Expect(apiServer).ToNot(BeEmpty())
 
 					uuidObj, err := uuid.NewV4()
