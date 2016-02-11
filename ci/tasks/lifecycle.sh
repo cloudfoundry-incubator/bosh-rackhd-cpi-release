@@ -151,8 +151,6 @@ do_attach_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid}
 
 do_attach_disk ${config_path} ${node3_vm_cid} ${node3_disk_cid}
 
-do_detach_disk ${config_path} ${node3_vm_cid} ${node3_disk_cid}
-
 do_detach_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid}
 
 # Delete all created VMs and Disks

@@ -246,3 +246,22 @@ func PatchNode(c config.Cpi, nodeID string, body []byte) error {
 
 	return nil
 }
+func MakeDiskRequest(c config.Cpi, node Node, newDiskState bool) error {
+
+	container := PersistentDiskSettingsContainer{
+		PersistentDisk: node.PersistentDisk,
+	}
+	container.PersistentDisk.IsAttached = newDiskState
+
+	bodyBytes, err := json.Marshal(container)
+	if err != nil {
+		return err
+	}
+
+	err = PatchNode(c, node.ID, bodyBytes)
+	if err != nil {
+		return fmt.Errorf("Error requesting new disk state: %v", err)
+	}
+
+	return nil
+}

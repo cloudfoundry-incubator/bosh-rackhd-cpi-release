@@ -1,7 +1,6 @@
 package cpi
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -48,17 +47,7 @@ func AttachDisk(c config.Cpi, extInput bosh.MethodArguments) error {
 	}
 
 	if !node.PersistentDisk.IsAttached {
-		container := rackhdapi.PersistentDiskSettingsContainer{
-			PersistentDisk: node.PersistentDisk,
-		}
-		container.PersistentDisk.IsAttached = true
-
-		bodyBytes, err := json.Marshal(container)
-		if err != nil {
-			return err
-		}
-
-		err = rackhdapi.PatchNode(c, node.ID, bodyBytes)
+		err = rackhdapi.MakeDiskRequest(c, node, true)
 		if err != nil {
 			return err
 		}

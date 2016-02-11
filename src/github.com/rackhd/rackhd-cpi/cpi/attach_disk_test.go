@@ -139,7 +139,7 @@ var _ = Describe("AttachDisk", func() {
 					body := rackhdapi.PersistentDiskSettingsContainer{
 						PersistentDisk: rackhdapi.PersistentDiskSettings{
 							DiskCID:    "valid_disk_cid_1",
-							Location:   "/dev/sdb",
+							Location:   fmt.Sprintf("/dev/%s", rackhdapi.PersistentDiskLocation),
 							IsAttached: true,
 						},
 					}

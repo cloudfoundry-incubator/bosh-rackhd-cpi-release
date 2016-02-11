@@ -1,7 +1,6 @@
 package cpi
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -41,18 +40,7 @@ func DetachDisk(c config.Cpi, extInput bosh.MethodArguments) error {
 				return fmt.Errorf("Disk %s does not belong to VM %s\n", diskCID, vmCID)
 			}
 
-			container := rackhdapi.PersistentDiskSettingsContainer{
-				PersistentDisk: node.PersistentDisk,
-			}
-			container.PersistentDisk.IsAttached = false
-
-			bodyBytes, err := json.Marshal(container)
-			if err != nil {
-				return err
-			}
-
-			rackhdapi.PatchNode(c, node.ID, bodyBytes)
-			return nil
+			return rackhdapi.MakeDiskRequest(c, node, false)
 		}
 	}
 

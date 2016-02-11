@@ -100,5 +100,40 @@ var _ = Describe("DeleteVM", func() {
 				Expect(len(server.ReceivedRequests())).To(Equal(9))
 			})
 		})
+
+		Context("when there are attached disks to a VM", func() {
+			It("detaches a disk from the VM and deletes the VM", func() {
+				jsonInput := []byte(`["valid_vm_cid_2"]`)
+				err := json.Unmarshal(jsonInput, &extInput)
+				Expect(err).NotTo(HaveOccurred())
+				nodeID := "5665a65a0561790005b77b85"
+				container := rackhdapi.PersistentDiskSettingsContainer{
+					PersistentDisk: rackhdapi.PersistentDiskSettings{
+						DiskCID:    nodeID,
+						Location:   fmt.Sprintf("/dev/%s", rackhdapi.PersistentDiskLocation),
+						IsAttached: false,
+					},
+				}
+				expectedPersistentDiskSettings, err := json.Marshal(container)
+				Expect(err).ToNot(HaveOccurred())
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+						ghttp.VerifyJSON(string(expectedPersistentDiskSettings)),
+					),
+				)
+				server.AppendHandlers(
+					helpers.MakeWorkflowHandlers(
+						"Deprovision",
+						"my_request_id",
+						nodeID,
+					)...,
+				)
+				err = cpi.DeleteVM(cpiConfig, extInput)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(server.ReceivedRequests())).To(Equal(9))
+			})
+		})
 	})
 })

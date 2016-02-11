@@ -22,6 +22,13 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 		return err
 	}
 
+	if node.PersistentDisk.IsAttached {
+		err = rackhdapi.MakeDiskRequest(c, node, false)
+		if err != nil {
+			return err
+		}
+	}
+
 	workflowName, err := workflows.PublishDeprovisionNodeWorkflow(c)
 	if err != nil {
 		return err
