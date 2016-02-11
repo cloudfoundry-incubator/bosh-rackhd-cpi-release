@@ -170,7 +170,7 @@ func bootstrapUbuntuIsExpected(t bootstrapUbuntuTask) bool {
 	}
 
 	if !reflect.DeepEqual(t, expectedTask) {
-		log.Error(fmt.Sprintf("actual %v, expected %v", t, expectedTask))
+		log.Error(fmt.Sprintf("actual %+v, expected %+v", t, expectedTask))
 		return false
 	}
 

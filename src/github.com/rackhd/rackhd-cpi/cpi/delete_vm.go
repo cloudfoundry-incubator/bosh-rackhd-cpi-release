@@ -21,21 +21,22 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 	if err != nil {
 		return err
 	}
-	nodeID := node.ID
 
-	workflowName, err := workflows.PublishDeprovisionNodeWorkflow(c, cid)
+	workflowName, err := workflows.PublishDeprovisionNodeWorkflow(c)
 	if err != nil {
 		return err
 	}
 
-	err = workflows.RunDeprovisionNodeWorkflow(c, nodeID, workflowName)
+	err = workflows.RunDeprovisionNodeWorkflow(c, node.ID, workflowName)
 	if err != nil {
 		return err
 	}
 
-	err = rackhdapi.ReleaseNode(c, nodeID)
-	if err != nil {
-		return err
+	if node.PersistentDisk.DiskCID == "" {
+		err = rackhdapi.ReleaseNode(c, node.ID)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

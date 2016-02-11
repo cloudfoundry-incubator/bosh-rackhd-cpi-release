@@ -32,7 +32,7 @@ var _ = Describe("Workflows", func() {
 		server = ghttp.NewServer()
 		serverURL, err := url.Parse(server.URL())
 		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1}`, serverURL.Host))
 		cpiConfig, err = config.New(jsonReader, bosh.CpiRequest{})
 		Expect(err).ToNot(HaveOccurred())
 	})

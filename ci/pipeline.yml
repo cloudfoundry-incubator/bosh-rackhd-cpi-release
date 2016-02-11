@@ -39,7 +39,9 @@ jobs:
       params:
         RACKHD_API_URI:               {{rackhd_server_ip}}
         AGENT_PUBLIC_KEY:             {{agent_public_key}}
-        STATIC_IP:                    {{lifecycle_static_ip}}
+        AGENT_STATIC_IP1:             {{agent_static_ip1}}
+        AGENT_STATIC_IP2:             {{agent_static_ip2}}
+        AGENT_STATIC_IP3:             {{agent_static_ip3}}
         GATEWAY:                      {{gateway}}
     on_failure:
       put: emccmd-env-ci

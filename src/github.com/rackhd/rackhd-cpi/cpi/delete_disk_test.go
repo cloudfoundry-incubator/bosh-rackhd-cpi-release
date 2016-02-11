@@ -10,6 +10,7 @@ import (
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	. "github.com/rackhd/rackhd-cpi/cpi"
+	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -27,7 +28,7 @@ var _ = Describe("DeleteDisk", func() {
 		server = ghttp.NewServer()
 		serverURL, err := url.Parse(server.URL())
 		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1}`, serverURL.Host))
 		request = bosh.CpiRequest{Method: bosh.DELETE_DISK}
 		cpiConfig, err = config.New(jsonReader, request)
 		Expect(err).ToNot(HaveOccurred())
@@ -37,17 +38,19 @@ var _ = Describe("DeleteDisk", func() {
 		server.Close()
 	})
 
-	Context("when given a disk cid for an existing disk", func() {
-		It("deletes the disk", func() {
-			jsonInput := []byte(`[
-					"valid_disk_cid_1"
-				]`)
-			var extInput bosh.MethodArguments
-			err := json.Unmarshal(jsonInput, &extInput)
-			Expect(err).NotTo(HaveOccurred())
+	Context("when given a disk cid for an existing, unattached disk", func() {
+		var extInput bosh.MethodArguments
+		var expectedDeleteDiskBodyBytes []byte
 
+		BeforeEach(func() {
 			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_disks_response.json")
 			expectedNodesData, err := json.Marshal(expectedNodes)
+			Expect(err).ToNot(HaveOccurred())
+
+			container := rackhdapi.PersistentDiskSettingsContainer{
+				PersistentDisk: rackhdapi.PersistentDiskSettings{},
+			}
+			expectedDeleteDiskBodyBytes, err = json.Marshal(container)
 			Expect(err).ToNot(HaveOccurred())
 
 			server.AppendHandlers(
@@ -55,12 +58,53 @@ var _ = Describe("DeleteDisk", func() {
 					ghttp.VerifyRequest("GET", "/api/common/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
-				ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
 			)
+		})
 
-			err = DeleteDisk(cpiConfig, extInput)
-			Expect(len(server.ReceivedRequests())).To(Equal(2))
-			Expect(err).NotTo(HaveOccurred())
+		Context("when there is a VM left on the node", func() {
+			It("deletes the disk", func() {
+				jsonInput := []byte(`[
+						"valid_disk_cid_3"
+					]`)
+				err := json.Unmarshal(jsonInput, &extInput)
+				Expect(err).NotTo(HaveOccurred())
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79e9f4e66816f6152fff5"),
+						ghttp.VerifyJSON(string(expectedDeleteDiskBodyBytes)),
+					),
+				)
+
+				err = DeleteDisk(cpiConfig, extInput)
+				Expect(len(server.ReceivedRequests())).To(Equal(2))
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("when there is no VM left on the node", func() {
+			It("deletes the disk and sets the status to available", func() {
+				jsonInput := []byte(`[
+						"valid_disk_cid_1"
+					]`)
+				err := json.Unmarshal(jsonInput, &extInput)
+				Expect(err).NotTo(HaveOccurred())
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
+						ghttp.VerifyJSON(string(expectedDeleteDiskBodyBytes)),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
+						ghttp.VerifyJSON("{\"status\": \"available\"}"),
+					),
+				)
+
+				err = DeleteDisk(cpiConfig, extInput)
+				Expect(len(server.ReceivedRequests())).To(Equal(3))
+				Expect(err).NotTo(HaveOccurred())
+			})
 		})
 	})
 

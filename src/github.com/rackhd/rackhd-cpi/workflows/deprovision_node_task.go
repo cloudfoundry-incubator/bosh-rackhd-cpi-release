@@ -5,7 +5,7 @@ import "github.com/rackhd/rackhd-cpi/rackhdapi"
 var deprovisionNodeTaskTemplate = []byte(`{
   "friendlyName": "Deprovision Node",
   "implementsTask": "Task.Base.Linux.Commands",
-  "injectableName": "Task.BOSH.DeprovisionNode",
+  "injectableName": "Task.BOSH.Deprovision.Node",
   "options": {
     "type": "quick",
     "commands": [

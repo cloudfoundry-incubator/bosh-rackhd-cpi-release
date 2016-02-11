@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strconv"
 
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
@@ -17,6 +16,10 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
+	filter := Filter{
+		data:   diskSizeInMB,
+		method: FilterBasedOnSizeMethod,
+	}
 	var node rackhdapi.Node
 	if vmCID != "" {
 		node, err = rackhdapi.GetNodeByVMCID(c, vmCID)
@@ -27,26 +30,18 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		if node.PersistentDisk.DiskCID != "" {
 			return "", fmt.Errorf("error creating disk: VM %s already has a persistent disk", vmCID)
 		}
+
+		valid, err := filter.Run(c, node)
+		if !valid || err != nil {
+			return "", fmt.Errorf("error creating disk: %v", err)
+		}
+
 	} else {
-		nodeID, err := SelectNodeFromRackHD(c, "")
+		nodeID, err := TryReservationWithFilter(c, "", filter, SelectNodeFromRackHD, ReserveNodeFromRackHD)
 		if err != nil {
 			return "", err
 		}
 		node.ID = nodeID
-	}
-
-	catalog, err := rackhdapi.GetNodeCatalog(c, node.ID)
-	if err != nil {
-		return "", fmt.Errorf("error getting catalog of VM: %s", vmCID)
-	}
-
-	availableSpaceInKB, err := strconv.Atoi(catalog.Data.BlockDevices[rackhdapi.PersistentDiskLocation].Size)
-	if err != nil {
-		return "", fmt.Errorf("error creating disk for VM %s: disk not found", vmCID)
-	}
-
-	if availableSpaceInKB < diskSizeInMB*1024 {
-		return "", fmt.Errorf("error creating disk with size %vMB for VM %s: insufficient available disk space", diskSizeInMB, vmCID)
 	}
 
 	container := rackhdapi.PersistentDiskSettingsContainer{

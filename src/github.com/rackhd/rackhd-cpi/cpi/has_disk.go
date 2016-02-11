@@ -18,6 +18,10 @@ func HasDisk(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 
 	diskCID = extInput[0].(string)
 
+	if diskCID == "" {
+		return false, nil
+	}
+
 	nodes, err := rackhdapi.GetNodes(c)
 	if err != nil {
 		return false, err

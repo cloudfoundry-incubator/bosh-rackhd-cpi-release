@@ -97,14 +97,14 @@ func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, 
 	return rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, c, nodeID, req)
 }
 
-func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, error) {
-	tasks, workflow, err := generateProvisionNodeWorkflow(uuid)
+func PublishProvisionNodeWorkflow(c config.Cpi) (string, error) {
+	tasks, workflow, err := generateProvisionNodeWorkflow(c.RequestID)
 	if err != nil {
 		return "", err
 	}
 
 	for i := range tasks {
-		err = rackhdapi.PublishTask(cpiConfig, tasks[i])
+		err = rackhdapi.PublishTask(c, tasks[i])
 		if err != nil {
 			return "", err
 		}
@@ -117,7 +117,7 @@ func PublishProvisionNodeWorkflow(cpiConfig config.Cpi, uuid string) (string, er
 		return "", err
 	}
 
-	err = rackhdapi.PublishWorkflow(cpiConfig, workflow)
+	err = rackhdapi.PublishWorkflow(c, workflow)
 	if err != nil {
 		return "", err
 	}

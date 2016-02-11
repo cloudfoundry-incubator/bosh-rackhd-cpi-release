@@ -24,8 +24,8 @@ properties:
   rackhd-cpi.agent.blobstore.options:
     description: "Options for the blobstore used by deployed BOSH agents"
     default: {}
-  rackhd-cpi.max_create_vm_attempts:
-    description: "maximum number of attempts to create a vm"
+  rackhd-cpi.max_reserve_node_attempts:
+    description: "maximum number of attempts to create a vm or persistent disk"
     default: 5
   rackhd-cpi.run_workflow_timeout:
     description: "timeout for running a workflow in seconds"

@@ -38,8 +38,15 @@ func DeleteDisk(c config.Cpi, extInput bosh.MethodArguments) error {
 			if err != nil {
 				return err
 			}
-
 			rackhdapi.PatchNode(c, node.ID, bodyBytes)
+
+			if node.CID == "" {
+				err = rackhdapi.ReleaseNode(c, node.ID)
+				if err != nil {
+					fmt.Errorf("error releasing node after delete disk %s: %v", diskCID, err)
+				}
+			}
+
 			return nil
 		}
 	}

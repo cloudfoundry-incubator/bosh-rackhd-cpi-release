@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/rackhd/rackhd-cpi/config"
 )
@@ -185,29 +184,8 @@ func IsAMTService(c config.Cpi, nodeID string) (bool, error) {
 }
 
 func ReleaseNode(c config.Cpi, nodeID string) error {
-	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
-	reserveFlag := fmt.Sprintf(`{"status": "%s"}`, Available)
-	body := ioutil.NopCloser(strings.NewReader(reserveFlag))
-	defer body.Close()
-
-	request, err := http.NewRequest("PATCH", url, body)
-	if err != nil {
-		return fmt.Errorf("Error building request to api server: %s", err)
-	}
-
-	request.Header.Set("Content-Type", "application/json")
-	request.ContentLength = int64(len(reserveFlag))
-
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return fmt.Errorf("Error making request to api server: %s", err)
-	}
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Failed patching with status: %s", resp.Status)
-	}
-
-	return nil
+	blockFlag := []byte(fmt.Sprintf("{\"status\": \"%s\"}", Available))
+	return PatchNode(c, nodeID, blockFlag)
 }
 
 func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
@@ -263,7 +241,7 @@ func PatchNode(c config.Cpi, nodeID string, body []byte) error {
 	}
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Failed patching with status: %s", resp.Status)
+		return fmt.Errorf("Failed patching URL: %s with status: %s", url, resp.Status)
 	}
 
 	return nil

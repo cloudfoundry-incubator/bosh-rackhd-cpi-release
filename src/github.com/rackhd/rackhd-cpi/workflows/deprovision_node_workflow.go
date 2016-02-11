@@ -38,7 +38,7 @@ var deprovisionNodeWorkflowTemplate = []byte(`{
     },
     {
       "label": "wipe-machine",
-      "taskName": "Task.BOSH.DeprovisionNode",
+      "taskName": "Task.BOSH.Deprovision.Node",
       "waitOn": {
         "bootstrap-ubuntu": "succeeded"
       }
@@ -96,8 +96,8 @@ func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string
 	return nil
 }
 
-func PublishDeprovisionNodeWorkflow(c config.Cpi, uuid string) (string, error) {
-	tasks, workflow, err := generateDeprovisionNodeWorkflow(uuid)
+func PublishDeprovisionNodeWorkflow(c config.Cpi) (string, error) {
+	tasks, workflow, err := generateDeprovisionNodeWorkflow(c.RequestID)
 	if err != nil {
 		return "", err
 	}

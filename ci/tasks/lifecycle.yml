@@ -9,6 +9,8 @@ run:
 params:
   RACKHD_API_URI:               replace-me
   AGENT_PUBLIC_KEY:             replace-me
-  STATIC_IP:                    replace-me
+  AGENT_STATIC_IP1:             replace-me
+  AGENT_STATIC_IP2:             replace-me
+  AGENT_STATIC_IP3:             replace-me
   GATEWAY:                      replace-me
   RACKHD_CPI_LOG_LEVEL:         DEBUG

@@ -37,15 +37,20 @@ var _ = Describe("The VM Creation Workflow", func() {
 	var jsonReader *strings.Reader
 	var cpiConfig config.Cpi
 	var request bosh.CpiRequest
+	var allowFilter Filter
 
 	BeforeEach(func() {
 		server = ghttp.NewServer()
 		serverURL, err := url.Parse(server.URL())
 		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system":"/dev/sda"}}, "max_create_vm_attempts":1}`, serverURL.Host))
+		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system":"/dev/sda"}}, "max_reserve_node_attempts":1}`, serverURL.Host))
 		request = bosh.CpiRequest{Method: bosh.CREATE_VM}
 		cpiConfig, err = config.New(jsonReader, request)
 		Expect(err).ToNot(HaveOccurred())
+		allowFilter = Filter{
+			data:   nil,
+			method: AllowAnyNodeMethod,
+		}
 	})
 
 	AfterEach(func() {
@@ -485,7 +490,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				),
 			)
 
-			_, err = randomSelectAvailableNode(cpiConfig, nodes)
+			_, err = randomSelectAvailableNode(cpiConfig, nodes, allowFilter)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 
@@ -503,10 +508,10 @@ var _ = Describe("The VM Creation Workflow", func() {
 					),
 				)
 
-				rackHDID, err := SelectNodeFromRackHD(cpiConfig, "disk-1234")
+				node, err := SelectNodeFromRackHD(cpiConfig, "disk-1234", allowFilter)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(rackHDID).To(Equal("5665a65a0561790005b77b85"))
+				Expect(node.ID).To(Equal("5665a65a0561790005b77b85"))
 			})
 		})
 
@@ -546,10 +551,9 @@ var _ = Describe("The VM Creation Workflow", func() {
 				),
 			)
 
-			rackHDID, err := randomSelectAvailableNode(cpiConfig, nodes)
-
+			node, err := randomSelectAvailableNode(cpiConfig, nodes, allowFilter)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(rackHDID).To(Equal("55e79ea54e66816f6152fff9"))
+			Expect(node.ID).To(Equal("55e79ea54e66816f6152fff9"))
 		})
 
 		It("return an error if all nodes are created vms with cids", func() {
@@ -588,65 +592,51 @@ var _ = Describe("The VM Creation Workflow", func() {
 				),
 			)
 
-			_, err = randomSelectAvailableNode(cpiConfig, nodes)
+			_, err = randomSelectAvailableNode(cpiConfig, nodes, allowFilter)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 	})
 
 	Describe("retrying node reservation", func() {
 		It("return a node if selection is successful", func() {
-			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":3}`)
-			c, err := config.New(jsonReader, request)
-			Expect(err).ToNot(HaveOccurred())
-			nodeID, err := tryReservation(
-				c,
-				"agentID",
+			cpiConfig.MaxReserveNodeAttempts = 3
+			nodeID, err := TryReservation(
+				cpiConfig,
 				"",
-				func(config.Cpi) error { return nil },
-				func(config.Cpi, string) (string, error) { return "node-1234", nil },
-				func(config.Cpi, string, string) error { return nil },
+				func(config.Cpi, string, Filter) (rackhdapi.Node, error) { return rackhdapi.Node{ID: "node-1234"}, nil },
+				func(config.Cpi, rackhdapi.Node) error { return nil },
 			)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(nodeID).To(Equal("node-1234"))
 		})
 
 		It("returns an error if selection continually fails", func() {
-			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":3}`)
-			c, err := config.New(jsonReader, request)
-			Expect(err).ToNot(HaveOccurred())
-
-			nodeID, err := tryReservation(
-				c,
-				"agentID",
+			cpiConfig.MaxReserveNodeAttempts = 3
+			nodeID, err := TryReservation(
+				cpiConfig,
 				"",
-				func(config.Cpi) error { return nil },
-				func(config.Cpi, string) (string, error) { return "node-1234", nil },
-				func(config.Cpi, string, string) error { return errors.New("error") },
+				func(config.Cpi, string, Filter) (rackhdapi.Node, error) { return rackhdapi.Node{ID: "node-1234"}, nil },
+				func(config.Cpi, rackhdapi.Node) error { return errors.New("error") },
 			)
-			Expect(err).To(MatchError("unable to reserve node"))
+			Expect(err).To(MatchError("unable to reserve node: error"))
 			Expect(nodeID).To(Equal(""))
 		})
 
 		It("retries and eventually returns a node when selection is successful", func() {
-			jsonReader := strings.NewReader(`{"apiserver":"localhost", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":3}`)
-			c, err := config.New(jsonReader, request)
-			Expect(err).ToNot(HaveOccurred())
-
+			cpiConfig.MaxReserveNodeAttempts = 3
 			tries := 0
-			flakeySelectionFunc := func(config.Cpi, string) (string, error) {
+			flakeySelectionFunc := func(config.Cpi, string, Filter) (rackhdapi.Node, error) {
 				if tries < 2 {
 					tries++
-					return "", errors.New("")
+					return rackhdapi.Node{}, errors.New("")
 				}
-				return "node-1234", nil
+				return rackhdapi.Node{ID: "node-1234"}, nil
 			}
-			nodeID, err := tryReservation(
-				c,
-				"agentID",
+			nodeID, err := TryReservation(
+				cpiConfig,
 				"",
-				func(config.Cpi) error { return nil },
 				flakeySelectionFunc,
-				func(config.Cpi, string, string) error { return nil },
+				func(config.Cpi, rackhdapi.Node) error { return nil },
 			)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(nodeID).To(Equal("node-1234"))
@@ -655,14 +645,14 @@ var _ = Describe("The VM Creation Workflow", func() {
 		It("cleans up reservation flag after receive timeout error on reserve function", func() {
 			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
-			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_create_vm_attempts":1}`, apiServerIP))
+			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_reserve_node_attempts":1}`, apiServerIP))
 			c, err := config.New(jsonReader, request)
 			Expect(err).ToNot(HaveOccurred())
 
 			var testNodeID string
-			flakeyReservationFunc := func(c config.Cpi, agentID string, nodeID string) error {
-				testNodeID = nodeID
-				url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
+			flakeyReservationFunc := func(c config.Cpi, node rackhdapi.Node) error {
+				testNodeID = node.ID
+				url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, node.ID)
 
 				reserveFlag := `{"status" : "reserved"}`
 				body := ioutil.NopCloser(strings.NewReader(reserveFlag))
@@ -686,27 +676,25 @@ var _ = Describe("The VM Creation Workflow", func() {
 				Expect(err).ToNot(HaveOccurred())
 				defer nodeResp.Body.Close()
 
-				var node rackhdapi.Node
-				err = json.Unmarshal(nodeBytes, &node)
+				var expectedNode rackhdapi.Node
+				err = json.Unmarshal(nodeBytes, &expectedNode)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(node.Status).To(Equal(rackhdapi.Reserved))
+				Expect(expectedNode.Status).To(Equal(rackhdapi.Reserved))
 
 				return errors.New("Timed out running workflow: AWorkflow on node: 12345")
 			}
 
-			_, err = SelectNodeFromRackHD(c, "")
+			_, err = SelectNodeFromRackHD(c, "", allowFilter)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = tryReservation(
+			_, err = TryReservation(
 				c,
-				"agentID",
 				"",
-				func(config.Cpi) error { return nil },
 				SelectNodeFromRackHD,
 				flakeyReservationFunc,
 			)
 
-			Expect(err).To(MatchError("unable to reserve node"))
+			Expect(err).To(MatchError("unable to reserve node: Timed out running workflow: AWorkflow on node: 12345"))
 			nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, testNodeID)
 			resp, err := http.Get(nodeURL)
 			Expect(err).ToNot(HaveOccurred())
@@ -745,7 +733,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			)
 
 			nodes := helpers.LoadNodes("../spec_assets/dummy_one_node_running_workflow.json")
-			_, err = randomSelectAvailableNode(cpiConfig, nodes)
+			_, err = randomSelectAvailableNode(cpiConfig, nodes, allowFilter)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 	})
@@ -773,7 +761,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			)
 
 			nodes := helpers.LoadNodes("../spec_assets/dummy_one_node_running_workflow.json")
-			_, err = randomSelectAvailableNode(cpiConfig, nodes)
+			_, err = randomSelectAvailableNode(cpiConfig, nodes, allowFilter)
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 	})
@@ -784,13 +772,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 			CallTryReservation := func(c config.Cpi, nodes []rackhdapi.Node) {
 				defer GinkgoRecover()
-				_, err := tryReservation(
+				_, err := TryReservation(
 					c,
-					"agentID",
 					"",
-					func(config.Cpi) error { return nil },
 					SelectNodeFromRackHD,
-					reserveNodeFromRackHD,
+					ReserveNodeFromRackHD,
 				)
 				Expect(err).ToNot(HaveOccurred())
 				defer wg.Done()
@@ -798,7 +784,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
-			c := config.Cpi{ApiServer: apiServerIP, MaxCreateVMAttempt: 5, RunWorkflowTimeoutSeconds: 4 * 60}
+			c := config.Cpi{ApiServer: apiServerIP, MaxReserveNodeAttempts: 5, RunWorkflowTimeoutSeconds: 4 * 60}
 
 			nodes, err := rackhdapi.GetNodes(c)
 			Expect(err).ToNot(HaveOccurred())

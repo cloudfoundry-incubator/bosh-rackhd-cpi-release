@@ -9,19 +9,21 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/bosh"
 )
 
 const (
-	defaultMaxCreateVMAttempts       = 5
+	defaultMaxReserveNodeAttempts    = 5
 	defaultRunWorkflowTimeoutSeconds = 20 * 60
 )
 
 type Cpi struct {
 	ApiServer                 string        `json:"apiserver"`
 	Agent                     AgentConfig   `json:"agent"`
-	MaxCreateVMAttempt        int           `json:"max_create_vm_attempts"`
+	MaxReserveNodeAttempts    int           `json:"max_reserve_node_attempts"`
 	RunWorkflowTimeoutSeconds time.Duration `json:"run_workflow_timeout"`
+	RequestID                 string        `json:"request_id"`
 }
 
 type AgentConfig struct {
@@ -30,7 +32,9 @@ type AgentConfig struct {
 	Ntp       []string `json:"ntp"`
 }
 
-func DefaultMaxCreateVMAttempts() int { return defaultMaxCreateVMAttempts }
+func DefaultMaxReserveNodeAttempts() int { return defaultMaxReserveNodeAttempts }
+
+func GetNewRandomSeed() int64 { return time.Now().UnixNano() }
 
 func New(config io.Reader, request bosh.CpiRequest) (Cpi, error) {
 	b, err := ioutil.ReadAll(config)
@@ -48,18 +52,29 @@ func New(config io.Reader, request bosh.CpiRequest) (Cpi, error) {
 		return Cpi{}, errors.New("ApiServer IP is not set")
 	}
 
-	if cpi.MaxCreateVMAttempt < 0 {
-		return Cpi{}, errors.New("Invalid config. MaxCreateVMAttempt cannot be negative")
+	if cpi.MaxReserveNodeAttempts < 0 {
+		return Cpi{}, errors.New("Invalid config. MaxReserveNodeAttempts cannot be negative")
 	}
 
-	if cpi.MaxCreateVMAttempt == 0 && request.Method == bosh.CREATE_VM {
-		log.Info(fmt.Sprintf("No MaxCreateVMAttempt was set, set to default value %d", defaultMaxCreateVMAttempts))
-		cpi.MaxCreateVMAttempt = defaultMaxCreateVMAttempts
+	if cpi.MaxReserveNodeAttempts == 0 && (request.Method == bosh.CREATE_VM || request.Method == bosh.CREATE_DISK) {
+		log.Info(fmt.Sprintf("No MaxReserveNodeAttempts was set, set to default value %d", defaultMaxReserveNodeAttempts))
+		cpi.MaxReserveNodeAttempts = defaultMaxReserveNodeAttempts
 	}
 
 	if cpi.RunWorkflowTimeoutSeconds == 0 {
 		log.Info(fmt.Sprintf("No RunWorkflowTimeoutSecounds was set, set to default value %d", defaultRunWorkflowTimeoutSeconds))
 		cpi.RunWorkflowTimeoutSeconds = defaultRunWorkflowTimeoutSeconds
+	}
+
+	if cpi.RequestID == "" {
+		uuid, err := uuid.NewV4()
+		if err != nil {
+			return Cpi{}, fmt.Errorf("Error generating uuid")
+		}
+		cpi.RequestID = uuid.String()
+		log.Info(fmt.Sprintf("Using uuid for request: %s", cpi.RequestID))
+	} else {
+		log.Info(fmt.Sprintf("Using specified id for request: %s", cpi.RequestID))
 	}
 
 	if !isAgentConfigValid(cpi.Agent) {

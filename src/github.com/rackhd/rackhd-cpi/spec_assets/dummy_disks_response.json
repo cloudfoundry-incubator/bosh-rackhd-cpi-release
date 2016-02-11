@@ -59,5 +59,36 @@
     "type": "compute",
     "updatedAt": "2015-09-14T15:47:55.323Z",
     "id": "55e79eb14e66816f6152fffb"
+  },
+  {
+    "workflows": [],
+    "catalogs": [],
+    "persistent_disk": {
+      "disk_cid": "valid_disk_cid_3",
+      "location": "/dev/sdb",
+      "attached": false
+    },
+    "autoDiscover": false,
+    "createdAt": "2015-09-03T01:13:03.976Z",
+    "identifiers": [
+      "00:1e:67:c2:41:b2",
+      "00:1e:67:c2:41:b3"
+    ],
+    "name": "00:1e:67:c2:41:b2,00:1e:67:c2:41:b3",
+    "obmSettings": [
+      {
+        "config": {
+          "host": "00:1e:67:69:ef:28",
+          "password": "password1",
+          "user": "root"
+        },
+        "service": "ipmi-obm-service"
+      }
+    ],
+    "cid": "vm_cid_1",
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "updatedAt": "2015-09-03T15:33:25.186Z",
+    "id": "55e79e9f4e66816f6152fff5"
   }
 ]

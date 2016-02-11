@@ -85,8 +85,8 @@ func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string) er
 	return rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, c, nodeID, req)
 }
 
-func PublishReserveNodeWorkflow(c config.Cpi, uuid string) (string, error) {
-	tasks, workflow, err := generateReserveNodeWorkflow(uuid)
+func PublishReserveNodeWorkflow(c config.Cpi) (string, error) {
+	tasks, workflow, err := generateReserveNodeWorkflow(c.RequestID)
 	if err != nil {
 		return "", err
 	}

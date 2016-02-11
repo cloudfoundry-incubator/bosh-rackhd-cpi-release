@@ -70,9 +70,9 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 
 			apiServerIP := fmt.Sprintf("%s:8080", os.Getenv("RACKHD_API_URI"))
 			Expect(apiServerIP).ToNot(BeEmpty())
-			c := config.Cpi{ApiServer: apiServerIP}
+			c := config.Cpi{ApiServer: apiServerIP, RequestID: uID}
 
-			workflowName, err := PublishDeprovisionNodeWorkflow(c, uID)
+			workflowName, err := PublishDeprovisionNodeWorkflow(c)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(workflowName).To(ContainSubstring(uID))
 		})

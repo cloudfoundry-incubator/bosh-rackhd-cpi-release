@@ -26,7 +26,7 @@ var _ = Describe("CreateDisk", func() {
 		server = ghttp.NewServer()
 		serverURL, err := url.Parse(server.URL())
 		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_create_vm_attempts":1}`, serverURL.Host))
+		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1, "request_id": "my_id"}`, serverURL.Host))
 		request = bosh.CpiRequest{Method: bosh.CREATE_DISK}
 		cpiConfig, err = config.New(jsonReader, request)
 		Expect(err).ToNot(HaveOccurred())
@@ -148,33 +148,27 @@ var _ = Describe("CreateDisk", func() {
 					err := json.Unmarshal(jsonInput, &extInput)
 					Expect(err).NotTo(HaveOccurred())
 
-					expectedNodes := helpers.LoadNodes("../spec_assets/dummy_create_disk_nodes_response.json")
-					expectedNodesData, err := json.Marshal(expectedNodes)
-					Expect(err).ToNot(HaveOccurred())
-					expectedNodeData, err := json.Marshal(expectedNodes[0])
-					Expect(err).ToNot(HaveOccurred())
-					expectedNodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_create_disk_catalog_response.json")
-					expectedNodeCatalogData, err := json.Marshal(expectedNodeCatalog)
-					Expect(err).ToNot(HaveOccurred())
+					expectedPersistentDiskSettings := `{
+						"persistent_disk": {
+							"disk_cid": "55e79ea54e66816f6152fff9",
+							"location": "/dev/sdb",
+							"attached": false
+						}
+					}`
 
 					server.AppendHandlers(
+						helpers.MakeTryReservationHandlers(
+							"my_id",
+							"55e79ea54e66816f6152fff9",
+							"../spec_assets/dummy_create_disk_nodes_response.json",
+							"../spec_assets/dummy_create_disk_catalog_response.json",
+						)...,
+					)
+					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/common/nodes"),
-							ghttp.RespondWith(http.StatusOK, expectedNodesData),
+							ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
+							ghttp.VerifyJSON(expectedPersistentDiskSettings),
 						),
-						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/1.1/nodes/55e79ea54e66816f6152fff9/workflows/active"),
-							ghttp.RespondWith(http.StatusOK, nil),
-						),
-						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/common/nodes/55e79ea54e66816f6152fff9"),
-							ghttp.RespondWith(http.StatusOK, expectedNodeData),
-						),
-						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/common/nodes/55e79ea54e66816f6152fff9/catalogs/ohai"),
-							ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
-						),
-						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
 					)
 
 					diskCID, err := cpi.CreateDisk(cpiConfig, extInput)

@@ -28,7 +28,7 @@
     },
     {
       "label": "wipe-machine",
-      "taskName": "Task.BOSH.DeprovisionNode",
+      "taskName": "Task.BOSH.Deprovision.Node",
       "waitOn": {
         "bootstrap-ubuntu": "succeeded"
       }

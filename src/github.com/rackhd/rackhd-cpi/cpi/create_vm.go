@@ -5,11 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
-	"time"
-
-	log "github.com/Sirupsen/logrus"
 
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
@@ -23,7 +19,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
-	nodeID, err := tryReservation(c, agentID, diskCID, func(config.Cpi) error { return nil }, SelectNodeFromRackHD, reserveNodeFromRackHD)
+	nodeID, err := TryReservation(c, diskCID, SelectNodeFromRackHD, ReserveNodeFromRackHD)
 	if err != nil {
 		return "", err
 	}
@@ -84,7 +80,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 	}
 	defer rackhdapi.DeleteFile(c, nodeID)
 
-	workflowName, err := workflows.PublishProvisionNodeWorkflow(c, vmCID)
+	workflowName, err := workflows.PublishProvisionNodeWorkflow(c)
 	if err != nil {
 		return "", fmt.Errorf("error publishing provision workflow: %s", err)
 	}
@@ -134,62 +130,4 @@ func attachMAC(nodeNetworks map[string]rackhdapi.Network, oldSpec bosh.Network) 
 	}
 
 	return net, nil
-}
-
-type filterFunc func(config.Cpi) error
-type selectionFunc func(config.Cpi, string) (string, error)
-type reservationFunc func(config.Cpi, string, string) error
-
-func tryReservation(c config.Cpi, agentID string, diskCID string, filter filterFunc, choose selectionFunc, reserve reservationFunc) (string, error) {
-	var nodeID string
-	var err error
-	for i := 0; i < c.MaxCreateVMAttempt; i++ {
-		err = filter(c)
-		if err != nil {
-			log.Error(fmt.Sprintf("retry %d: error filtering nodes: %s", i, err))
-			continue
-		}
-
-		nodeID, err = choose(c, diskCID)
-
-		if err != nil {
-			log.Error(fmt.Sprintf("retry %d: error choosing node %s", i, err))
-			continue
-		}
-
-		err = reserve(c, agentID, nodeID)
-		if err != nil {
-			log.Error(fmt.Sprintf("retry %d: error reserving node %s", i, err))
-			if strings.HasPrefix(err.Error(), "Timed out running workflow") {
-				rackhdapi.ReleaseNode(c, nodeID)
-			}
-			sleepTime := rand.Intn(5000)
-			log.Debug(fmt.Sprintf("Sleeping for %d ms\n", sleepTime))
-			time.Sleep(time.Millisecond * time.Duration(sleepTime))
-			continue
-		}
-
-		break
-	}
-
-	if err != nil {
-		return "", errors.New("unable to reserve node")
-	}
-
-	return nodeID, nil
-}
-
-func reserveNodeFromRackHD(c config.Cpi, agentID string, nodeID string) error {
-	workflowName, err := workflows.PublishReserveNodeWorkflow(c, agentID)
-	if err != nil {
-		return fmt.Errorf("error publishing reserve workflow: %s", err)
-	}
-
-	err = workflows.RunReserveNodeWorkflow(c, nodeID, workflowName)
-	if err != nil {
-		return fmt.Errorf("error running reserve workflow: %s", err)
-	}
-
-	log.Info(fmt.Sprintf("reserved node %s", nodeID))
-	return nil
 }

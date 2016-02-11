@@ -28,11 +28,35 @@ do_create_vm() {
   local stemcell_id=$2
   local AGENT_PUBLIC_KEY=$3
   local disk_cid=$4
+  local vm_cid_file_path=$5
+  local agent_static_ip=$6
+
+  # Prepare bosh network configuration
+  printf "%s\n" "Prepare bosh network configuration. Bosh network is"
+  local bosh_network_file="bosh_network_file_$(uuidgen)"
+  cat > ${bosh_network_file} <<EOF
+{
+  "default": {
+    "cloud_properties": {},
+    "default": [
+      "dns",
+      "gateway"
+    ],
+    "dns": null,
+    "gateway": "${GATEWAY}",
+    "ip": "${agent_static_ip}",
+    "netmask": "255.255.252.0",
+    "type": "manual"
+  }
+}
+EOF
+  cat ${bosh_network_file}
 
   # Prepare create vm request
   printf "%s\n" "Prepare create vm request"
   local agent_id=$(uuidgen)
-  cat > create_vm_request <<EOF
+  local request_file="create_vm_request_$(uuidgen)"
+  cat > ${request_file} <<EOF
 {
   "method": "create_vm",
   "arguments": [
@@ -41,19 +65,23 @@ do_create_vm() {
     {
       "public_key": "${AGENT_PUBLIC_KEY}"
     },
-    $(cat bosh_networks),
+    $(cat ${bosh_network_file}),
     [${disk_cid}]
   ]
 }
 EOF
-  cat create_vm_request
+  cat ${request_file}
 
   # Run create vm method
   printf "%s\n" "Run create vm method"
-  vm_cid=$(cat create_vm_request | ./rackhd-cpi -configPath=${config_path} | jq .result)
+  vm_cid=$(cat ${request_file} | ./rackhd-cpi -configPath=${config_path} | jq .result)
   if [ -z "${vm_cid}" ] || [ ${vm_cid} == null ]; then
     echo "can not retrieve vm cid"
     exit 1
+  fi
+
+  if [ ! -z ${vm_cid_file_path} ]; then
+    echo ${vm_cid} > ${vm_cid_file_path}
   fi
 }
 
@@ -63,6 +91,8 @@ do_has_vm() {
 
   # Prepare has_vm method
   printf "%s\n" "Run has_vm method"
+  local request_file="has_vm_request_$(uuidgen)"
+
   cat > has_vm <<EOF
 {"method": "has_vm", "arguments": [${vm_cid}]}
 EOF
@@ -103,27 +133,29 @@ EOF
 do_create_disk() {
   local config_path=$1
   local vm_cid=$2
+  local disk_cid_file_path=$3
 
   # Prepare create_disk
   printf "%s\n" "Prepare create disk"
-  cat > create_disk <<EOF
-[
-  100,
-  {},
-  ${vm_cid}
-]
+  local request_file="create_disk_$(uuidgen)"
+  cat > ${request_file} <<EOF
+{
+  "method": "create_disk",
+  "arguments": [
+    100,
+    {},
+    ${vm_cid}
+  ]
+}
 EOF
-  cat create_disk
-
-  # Prepare create disk request
-  printf "%s\n" "Prepare create disk request"
-  cat > create_disk_request <<EOF
-{"method": "create_disk", "arguments": $(cat create_disk)}
-EOF
-  cat create_disk_request
+  cat ${request_file}
 
   # Run create_disk
-  disk_cid=$(cat create_disk_request | ./rackhd-cpi --configPath=${config_path} | jq .result)
+  disk_cid=$(cat ${request_file} | ./rackhd-cpi --configPath=${config_path} | jq .result)
+
+  if [ ! -z ${disk_cid_file_path} ]; then
+    echo ${disk_cid} > ${disk_cid_file_path}
+  fi
 }
 
 do_has_disk() {
@@ -131,30 +163,41 @@ do_has_disk() {
   local disk_cid=$2
 
   # Prepare has_disk method
-  printf "%s\n" "Run has_disk method"
-  cat > has_disk <<EOF
-{"method": "has_disk", "arguments": [${disk_cid}]}
+  printf "%s\n" "Prepare has_disk method"
+  local request_file="has_disk_$(uuidgen)"
+  cat > ${request_file} <<EOF
+{
+  "method": "has_disk",
+  "arguments": [
+    ${disk_cid}
+  ]
+}
 EOF
-  cat has_disk
+  cat ${request_file}
 
   # Run has_disk method
-  has_disk_result=$(cat has_disk | ./rackhd-cpi --configPath=${config_path} | jq .result)
+  has_disk_result=$(cat ${request_file} | ./rackhd-cpi --configPath=${config_path} | jq .result)
 }
 
 do_get_disks() {
   local config_path=$1
   local vm_cid=$2
-  local disk_cid=$3
 
   # Prepare get disks request
   printf "%s\n" "Prepare get_disks request"
-  cat > get_disks_request <<EOF
-{"method": "get_disks", "arguments": [${vm_cid}]}
+  local request_file="get_disks_$(uuidgen)"
+  cat > ${request_file} <<EOF
+{
+  "method": "get_disks",
+  "arguments": [
+    ${vm_cid}
+  ]
+}
 EOF
-  cat get_disks_request
+  cat ${request_file}
 
   # Run get disks
-  get_disks_result=$(cat get_disks_request | ./rackhd-cpi --configPath=${config_path} | jq .result)
+  get_disks_result=$(cat ${request_file} | ./rackhd-cpi --configPath=${config_path} | jq .result)
   echo $get_disks_result
 }
 
@@ -165,14 +208,21 @@ do_attach_disk() {
 
   # Prepare attach disk request
   printf "%s\n" "Prepare attach disk request"
-  cat > attach_disk_request <<EOF
-{"method": "attach_disk", "arguments": [${vm_cid}, ${disk_cid}]}
+  local request_file="attach_disk_$(uuidgen)"
+  cat > ${request_file} <<EOF
+{
+  "method": "attach_disk",
+  "arguments": [
+    ${vm_cid},
+    ${disk_cid}
+  ]
+}
 EOF
-  cat attach_disk_request
+  cat ${request_file}
 
   # Run attach_disk
   printf "%s\n" "Run attach disk method"
-  cat attach_disk_request | ./rackhd-cpi --configPath=${config_path} 2>&1
+  cat ${request_file} | ./rackhd-cpi --configPath=${config_path} 2>&1
 }
 
 do_detach_disk() {
@@ -182,14 +232,21 @@ do_detach_disk() {
 
   # Prepare detach disk request
   printf "%s\n" "Prepare detach disk request"
-  cat > detach_disk_request <<EOF
-{"method": "detach_disk", "arguments": [${vm_cid}, ${disk_cid}]}
+  local request_file="attach_disk_$(uuidgen)"
+  cat > ${request_file} <<EOF
+{
+  "method": "detach_disk",
+  "arguments": [
+    ${vm_cid},
+    ${disk_cid}
+  ]
+}
 EOF
-  cat detach_disk_request
+  cat ${request_file}
 
   # Run detach_disk
   printf "%s\n" "Run detach disk method"
-  cat detach_disk_request | ./rackhd-cpi --configPath=${config_path} 2>&1
+  cat ${request_file} | ./rackhd-cpi --configPath=${config_path} 2>&1
 }
 
 do_delete_disk() {
@@ -198,14 +255,20 @@ do_delete_disk() {
 
   # Prepare delete disk request
   printf "%s\n" "Prepare delete disk request"
-  cat > delete_disk_request <<EOF
-{"method": "delete_disk", "arguments": [${disk_cid}]}
+  local request_file="delete_disk_$(uuidgen)"
+  cat > ${request_file} <<EOF
+{
+  "method": "delete_disk",
+  "arguments": [
+    ${disk_cid}
+  ]
+}
 EOF
-  cat delete_disk_request
+  cat ${request_file}
 
   # Run delete_disk
   printf "%s\n" "Run delete disk method"
-  cat delete_disk_request | ./rackhd-cpi --configPath=${config_path} 2>&1
+  cat ${request_file} | ./rackhd-cpi --configPath=${config_path} 2>&1
 }
 
 do_delete_vm() {
@@ -214,14 +277,20 @@ do_delete_vm() {
 
   # Prepare delete vm request
   printf "%s\n" "Prepare delete vm request"
-  cat > delete_vm_request <<EOF
-{"method": "delete_vm", "arguments": [${vm_cid}]}
+  local request_file="delete_vm_$(uuidgen)"
+  cat > ${request_file} <<EOF
+{
+  "method": "delete_vm",
+  "arguments": [
+    ${vm_cid}
+  ]
+}
 EOF
-  cat delete_vm_request
+  cat ${request_file}
 
   # Run delete vm method
   printf "%s\n" "Run delete vm method"
-  cat delete_vm_request | ./rackhd-cpi -configPath=${config_path} 2>&1
+  cat ${request_file} | ./rackhd-cpi -configPath=${config_path} 2>&1
 }
 
 do_delete_stemcell() {
@@ -230,12 +299,18 @@ do_delete_stemcell() {
 
   # Prepare delete stemcell request
   printf "%s\n" "Prepare delete stemcell request"
-  cat > delete_stemcell_request <<EOF
-{"method": "delete_stemcell", "arguments": [${stemcell_id}]}
+  local request_file="delete_stemcell_$(uuidgen)"
+  cat > ${request_file} <<EOF
+{
+  "method": "delete_stemcell",
+  "arguments": [
+    ${stemcell_id}
+  ]
+}
 EOF
-  cat delete_stemcell_request
+  cat ${request_file}
 
   # Run delete stemcell method
   printf "%s\n" "Run delete stemcell method"
-  cat delete_stemcell_request | ./rackhd-cpi -configPath=${config_path} 2>&1
+  cat ${request_file} | ./rackhd-cpi -configPath=${config_path} 2>&1
 }
