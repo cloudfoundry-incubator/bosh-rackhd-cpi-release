@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
-	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
@@ -23,12 +21,7 @@ var _ = Describe("Nodes", func() {
 	var cpiConfig config.Cpi
 
 	BeforeEach(func() {
-		server = ghttp.NewServer()
-		serverURL, err := url.Parse(server.URL())
-		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1}`, serverURL.Host))
-		cpiConfig, err = config.New(jsonReader, bosh.CpiRequest{})
-		Expect(err).ToNot(HaveOccurred())
+		server, jsonReader, cpiConfig, _ = helpers.SetUp("")
 	})
 
 	AfterEach(func() {

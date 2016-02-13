@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -24,13 +23,7 @@ var _ = Describe("Setting VM Metadata", func() {
 		var request bosh.CpiRequest
 
 		BeforeEach(func() {
-			server = ghttp.NewServer()
-			serverURL, err := url.Parse(server.URL())
-			Expect(err).ToNot(HaveOccurred())
-			jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1}`, serverURL.Host))
-			request = bosh.CpiRequest{Method: bosh.SET_VM_METADATA}
-			cpiConfig, err = config.New(jsonReader, request)
-			Expect(err).ToNot(HaveOccurred())
+			server, jsonReader, cpiConfig, request = helpers.SetUp(bosh.SET_VM_METADATA)
 		})
 
 		AfterEach(func() {

@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -40,13 +39,8 @@ var _ = Describe("The VM Creation Workflow", func() {
 	var allowFilter Filter
 
 	BeforeEach(func() {
-		server = ghttp.NewServer()
-		serverURL, err := url.Parse(server.URL())
-		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system":"/dev/sda"}}, "max_reserve_node_attempts":1}`, serverURL.Host))
-		request = bosh.CpiRequest{Method: bosh.CREATE_VM}
-		cpiConfig, err = config.New(jsonReader, request)
-		Expect(err).ToNot(HaveOccurred())
+		server, jsonReader, cpiConfig, request = helpers.SetUp(bosh.CREATE_VM)
+
 		allowFilter = Filter{
 			data:   nil,
 			method: AllowAnyNodeMethod,
@@ -313,9 +307,10 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 	Describe("unreserving a node", func() {
 		It("return a node with reserved flag unset", func() {
-			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-			Expect(apiServerIP).ToNot(BeEmpty())
-			c := config.Cpi{ApiServer: apiServerIP}
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
+
+			c := config.Cpi{ApiServer: apiServer}
 
 			nodes, err := rackhdapi.GetNodes(c)
 			Expect(err).ToNot(HaveOccurred())
@@ -323,7 +318,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			log.Info(fmt.Sprintf("targetNodeId: %s", targetNodeID))
 			err = rackhdapi.ReleaseNode(c, targetNodeID)
 			Expect(err).ToNot(HaveOccurred())
-			nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, targetNodeID)
+			nodeURL := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, targetNodeID)
 
 			resp, err := http.Get(nodeURL)
 			Expect(err).ToNot(HaveOccurred())
@@ -643,16 +638,17 @@ var _ = Describe("The VM Creation Workflow", func() {
 		})
 
 		It("cleans up reservation flag after receive timeout error on reserve function", func() {
-			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-			Expect(apiServerIP).ToNot(BeEmpty())
-			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_reserve_node_attempts":1}`, apiServerIP))
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_reserve_node_attempts":1}`, apiServer))
 			c, err := config.New(jsonReader, request)
 			Expect(err).ToNot(HaveOccurred())
 
 			var testNodeID string
 			flakeyReservationFunc := func(c config.Cpi, node rackhdapi.Node) error {
 				testNodeID = node.ID
-				url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, node.ID)
+				url := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, node.ID)
 
 				reserveFlag := `{"status" : "reserved"}`
 				body := ioutil.NopCloser(strings.NewReader(reserveFlag))
@@ -668,7 +664,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(resp.StatusCode).To(Equal(200))
 
-				nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, testNodeID)
+				nodeURL := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, testNodeID)
 				nodeResp, err := http.Get(nodeURL)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -695,7 +691,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			)
 
 			Expect(err).To(MatchError("unable to reserve node: Timed out running workflow: AWorkflow on node: 12345"))
-			nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, testNodeID)
+			nodeURL := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, testNodeID)
 			resp, err := http.Get(nodeURL)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -782,9 +778,10 @@ var _ = Describe("The VM Creation Workflow", func() {
 				defer wg.Done()
 			}
 
-			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-			Expect(apiServerIP).ToNot(BeEmpty())
-			c := config.Cpi{ApiServer: apiServerIP, MaxReserveNodeAttempts: 5, RunWorkflowTimeoutSeconds: 4 * 60}
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
+
+			c := config.Cpi{ApiServer: apiServer, MaxReserveNodeAttempts: 5, RunWorkflowTimeoutSeconds: 4 * 60}
 
 			nodes, err := rackhdapi.GetNodes(c)
 			Expect(err).ToNot(HaveOccurred())

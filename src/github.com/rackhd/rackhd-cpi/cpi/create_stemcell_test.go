@@ -4,6 +4,7 @@ import (
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/cpi"
+	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	"encoding/json"
@@ -14,16 +15,15 @@ import (
 
 	"fmt"
 	"io/ioutil"
-	"os"
 )
 
 var _ = Describe("CreateStemcell", func() {
 	Context("With valid CPI v1 input", func() {
 		It("Uploads the image from an OpenStack stemcell", func() {
-			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-			Expect(apiServerIP).ToNot(BeEmpty())
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
 
-			config := config.Cpi{ApiServer: apiServerIP}
+			config := config.Cpi{ApiServer: apiServer}
 
 			var input bosh.MethodArguments
 			input = append(input, "../spec_assets/image")
@@ -32,7 +32,7 @@ var _ = Describe("CreateStemcell", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(uuid).ToNot(BeEmpty())
-			url := fmt.Sprintf("http://%s/api/common/files/metadata/%s", config.ApiServer, uuid)
+			url := fmt.Sprintf("%s/api/common/files/metadata/%s", config.ApiServer, uuid)
 			resp, err := http.Get(url)
 			Expect(err).ToNot(HaveOccurred())
 

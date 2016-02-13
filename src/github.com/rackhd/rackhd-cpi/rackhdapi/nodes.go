@@ -83,7 +83,7 @@ type Node struct {
 }
 
 func GetNodes(c config.Cpi) ([]Node, error) {
-	nodesURL := fmt.Sprintf("http://%s/api/common/nodes", c.ApiServer)
+	nodesURL := fmt.Sprintf("%s/api/common/nodes", c.ApiServer)
 	resp, err := http.Get(nodesURL)
 	if err != nil {
 		return []Node{}, fmt.Errorf("error fetching nodes %s", err)
@@ -139,7 +139,7 @@ func GetNodeByDiskCID(c config.Cpi, diskCid string) (Node, error) {
 }
 
 func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {
-	nodeURL := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
+	nodeURL := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, nodeID)
 	resp, err := http.Get(nodeURL)
 	if err != nil {
 		return nil, fmt.Errorf("error getting node %s", err)
@@ -189,7 +189,7 @@ func ReleaseNode(c config.Cpi, nodeID string) error {
 }
 
 func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
-	catalogURL := fmt.Sprintf("http://%s/api/common/nodes/%s/catalogs/ohai", c.ApiServer, nodeID)
+	catalogURL := fmt.Sprintf("%s/api/common/nodes/%s/catalogs/ohai", c.ApiServer, nodeID)
 	resp, err := http.Get(catalogURL)
 	if err != nil {
 		return NodeCatalog{}, fmt.Errorf("error getting catalog %s", err)
@@ -225,7 +225,7 @@ func SetNodeMetadata(c config.Cpi, nodeID string, metadata string) error {
 }
 
 func PatchNode(c config.Cpi, nodeID string, body []byte) error {
-	url := fmt.Sprintf("http://%s/api/common/nodes/%s", c.ApiServer, nodeID)
+	url := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, nodeID)
 
 	request, err := http.NewRequest("PATCH", url, bytes.NewReader(body))
 	if err != nil {

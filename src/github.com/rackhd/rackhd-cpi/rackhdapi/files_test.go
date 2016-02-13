@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
@@ -19,9 +19,10 @@ import (
 var _ = Describe("Files", func() {
 	Describe("uploading to then deleting from the RackHD API", func() {
 		It("allows files to be uploaded and deleted", func() {
-			apiServerIP := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-			Expect(apiServerIP).ToNot(BeEmpty())
-			c := config.Cpi{ApiServer: apiServerIP}
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
+
+			c := config.Cpi{ApiServer: apiServer}
 			dummyStr := "Some ice cold file"
 			dummyFile := strings.NewReader(dummyStr)
 
@@ -29,7 +30,7 @@ var _ = Describe("Files", func() {
 			Expect(err).ToNot(HaveOccurred())
 			baseName := uuid.String()
 
-			url := fmt.Sprintf("http://%s/api/common/files/metadata/%s", c.ApiServer, baseName)
+			url := fmt.Sprintf("%s/api/common/files/metadata/%s", c.ApiServer, baseName)
 			resp, err := http.Get(url)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(404))

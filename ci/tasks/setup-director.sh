@@ -8,7 +8,7 @@ check_param BOSH_VSPHERE_DIRECTOR
 check_param BOSH_DIRECTOR_PUBLIC_IP
 check_param BOSH_DIRECTOR_PRIVATE_IP
 check_param BOSH_DIRECTOR_PUBLIC_KEY
-check_param RACKHD_API_URI
+check_param RACKHD_API_URL
 check_param RACKHD_NETWORK
 check_param CPI_RELEASE_NAME
 
@@ -178,7 +178,7 @@ jobs:
       resurrector_enabled: true
 
     rackhd-cpi:
-      apiserver: "${RACKHD_API_URI}"
+      apiserver: "${RACKHD_API_URL}"
       agent:
         mbus: "nats://nats:nats-password@${BOSH_DIRECTOR_PRIVATE_IP}:4222"
         blobstore:
@@ -198,7 +198,7 @@ cloud_provider:
 
   properties:
     rackhd-cpi:
-      apiserver: "${RACKHD_API_URI}"
+      apiserver: "${RACKHD_API_URL}"
       agent:
         mbus: "https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868"
         blobstore:

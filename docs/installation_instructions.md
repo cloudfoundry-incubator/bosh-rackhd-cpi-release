@@ -12,7 +12,7 @@ You must first enable MonorailAccess. Browse to `https://yourrackhd.ip/rest/v1/a
 
 If you then `GET /__Internal__/MonorailAccess/` it should return "enable."
 
-You should then be able to query the server for its catalog of nodes with `curl "http://$RACKHD_API_URI:8080/api/common/nodes" | jq .` (or whatever browser/JSON viewer you choose to use.)
+You should then be able to query the server for its catalog of nodes with `curl "RACKHD_API_URL/api/common/nodes" | jq .` (or whatever browser/JSON viewer you choose to use.)
 
 ### Download Packages
 

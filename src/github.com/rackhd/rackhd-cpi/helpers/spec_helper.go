@@ -6,12 +6,39 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
+	"github.com/rackhd/rackhd-cpi/bosh"
+	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 )
+
+const (
+	env_rackhd_api_url = "RACKHD_API_URL"
+)
+
+func SetUp(cpiRequestType string) (*ghttp.Server, *strings.Reader, config.Cpi, bosh.CpiRequest) {
+
+	var err error
+	server := ghttp.NewServer()
+	jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1}`, server.URL()))
+	request := bosh.CpiRequest{Method: cpiRequestType}
+	cpiConfig, err := config.New(jsonReader, request)
+	Expect(err).ToNot(HaveOccurred())
+
+	return server, jsonReader, cpiConfig, request
+}
+
+func GetRackHDHost() (string, error) {
+	raw_url := os.Getenv(env_rackhd_api_url)
+	if raw_url == "" {
+		return "", fmt.Errorf("Environment variable %s not set", env_rackhd_api_url)
+	}
+	return raw_url, nil
+}
 
 func LoadJSON(nodePath string) []byte {
 	dummyResponseFile, err := os.Open(nodePath)

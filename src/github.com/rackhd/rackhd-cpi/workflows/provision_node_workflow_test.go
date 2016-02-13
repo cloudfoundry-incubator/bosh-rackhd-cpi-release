@@ -12,7 +12,6 @@ package workflows
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -20,6 +19,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/helpers"
 )
 
 var _ = Describe("ProvisionNodeWorkflow", func() {
@@ -100,8 +100,9 @@ var _ = Describe("ProvisionNodeWorkflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			uID := u.String()
 
-			apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-			Expect(apiServer).ToNot(BeEmpty())
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
+
 			c := config.Cpi{ApiServer: apiServer, RequestID: uID}
 
 			workflowName, err := PublishProvisionNodeWorkflow(c)

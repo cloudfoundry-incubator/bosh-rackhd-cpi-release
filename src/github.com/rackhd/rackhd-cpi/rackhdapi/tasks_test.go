@@ -3,10 +3,10 @@ package rackhdapi_test
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
@@ -16,8 +16,8 @@ import (
 var _ = Describe("Tasks", func() {
 	Describe("Publishing tasks", func() {
 		It("adds task to library, retrieves updated list of tasks from task library", func() {
-			apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-			Expect(apiServer).ToNot(BeEmpty())
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
 
 			uuidObj, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())

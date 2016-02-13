@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/rackhd/rackhd-cpi/bosh"
@@ -25,13 +24,7 @@ var _ = Describe("AttachDisk", func() {
 	var request bosh.CpiRequest
 
 	BeforeEach(func() {
-		server = ghttp.NewServer()
-		serverURL, err := url.Parse(server.URL())
-		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1}`, serverURL.Host))
-		request = bosh.CpiRequest{Method: bosh.ATTACH_DISK}
-		cpiConfig, err = config.New(jsonReader, request)
-		Expect(err).ToNot(HaveOccurred())
+		server, jsonReader, cpiConfig, request = helpers.SetUp(bosh.ATTACH_DISK)
 	})
 
 	AfterEach(func() {

@@ -1,10 +1,8 @@
 package workflows_test
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/workflows"
 
 	. "github.com/onsi/ginkgo"
@@ -13,11 +11,11 @@ import (
 
 var _ = Describe("CheckEnvironment", func() {
 	It("Returns no error when run against a properly configured environment", func() {
-		apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-		Expect(apiServer).ToNot(BeEmpty())
+		apiServer, err := helpers.GetRackHDHost()
+		Expect(err).ToNot(HaveOccurred())
 
 		c := config.Cpi{ApiServer: apiServer}
-		err := workflows.BootstrappingTasksExist(c)
+		err = workflows.BootstrappingTasksExist(c)
 		Expect(err).ToNot(HaveOccurred())
 	})
 })

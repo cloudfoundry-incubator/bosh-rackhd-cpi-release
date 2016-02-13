@@ -2,9 +2,7 @@ package cpi_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -23,13 +21,8 @@ var _ = Describe("CreateDisk", func() {
 	var request bosh.CpiRequest
 
 	BeforeEach(func() {
-		server = ghttp.NewServer()
-		serverURL, err := url.Parse(server.URL())
-		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1, "request_id": "my_id"}`, serverURL.Host))
-		request = bosh.CpiRequest{Method: bosh.CREATE_DISK}
-		cpiConfig, err = config.New(jsonReader, request)
-		Expect(err).ToNot(HaveOccurred())
+		server, jsonReader, cpiConfig, request = helpers.SetUp(bosh.CREATE_DISK)
+		cpiConfig.RequestID = "my_id"
 	})
 
 	AfterEach(func() {

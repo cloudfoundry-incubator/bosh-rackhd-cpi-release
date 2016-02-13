@@ -79,7 +79,7 @@ type workflowFetcherFunc func(config.Cpi, string) (WorkflowResponse, error)
 type workflowPosterFunc func(config.Cpi, string, RunWorkflowRequestBody) (WorkflowResponse, error)
 
 func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
-	url := fmt.Sprintf("http://%s/api/1.1/workflows", c.ApiServer)
+	url := fmt.Sprintf("%s/api/1.1/workflows", c.ApiServer)
 
 	request, err := http.NewRequest("PUT", url, bytes.NewReader(workflowBytes))
 	request.Close = true
@@ -136,7 +136,7 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 }
 
 func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
-	url := fmt.Sprintf("http://%s/api/1.1/workflows/library", c.ApiServer)
+	url := fmt.Sprintf("%s/api/1.1/workflows/library", c.ApiServer)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %s", err)
@@ -162,7 +162,7 @@ func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
 }
 
 func WorkflowFetcher(c config.Cpi, workflowID string) (WorkflowResponse, error) {
-	url := fmt.Sprintf("http://%s/api/common/workflows/%s", c.ApiServer, workflowID)
+	url := fmt.Sprintf("%s/api/common/workflows/%s", c.ApiServer, workflowID)
 	resp, err := http.Get(url)
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("Error requesting workflow on node at url: %s, msg: %s", url, err)
@@ -185,7 +185,7 @@ func WorkflowFetcher(c config.Cpi, workflowID string) (WorkflowResponse, error) 
 }
 
 func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (WorkflowResponse, error) {
-	url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows/", c.ApiServer, nodeID)
+	url := fmt.Sprintf("%s/api/1.1/nodes/%s/workflows/", c.ApiServer, nodeID)
 	body, err := json.Marshal(req)
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("error marshalling workflow request body, %s", err)
@@ -276,7 +276,7 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 }
 
 func KillActiveWorkflow(c config.Cpi, nodeID string) error {
-	url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
+	url := fmt.Sprintf("%s/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
 	request, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return fmt.Errorf("error: %s building http request to delete active workflows against node: %s", err, nodeID)
@@ -303,7 +303,7 @@ func KillActiveWorkflow(c config.Cpi, nodeID string) error {
 func GetActiveWorkflows(c config.Cpi, nodeID string) (WorkflowResponse, error) {
 	var workflows WorkflowResponse
 
-	url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
+	url := fmt.Sprintf("%s/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
 	resp, err := http.Get(url)
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("Error requesting active workflows on node at url: %s, msg: %s", url, err)

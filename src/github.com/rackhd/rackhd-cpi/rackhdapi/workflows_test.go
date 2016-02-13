@@ -6,13 +6,11 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/nu7hatch/gouuid"
-	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
@@ -29,12 +27,7 @@ var _ = Describe("Workflows", func() {
 	var cpiConfig config.Cpi
 
 	BeforeEach(func() {
-		server = ghttp.NewServer()
-		serverURL, err := url.Parse(server.URL())
-		Expect(err).ToNot(HaveOccurred())
-		jsonReader = strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1}`, serverURL.Host))
-		cpiConfig, err = config.New(jsonReader, bosh.CpiRequest{})
-		Expect(err).ToNot(HaveOccurred())
+		server, jsonReader, cpiConfig, _ = helpers.SetUp("")
 	})
 
 	AfterEach(func() {
@@ -110,8 +103,8 @@ var _ = Describe("Workflows", func() {
 
 	Describe("PublishWorkflow", func() {
 		It("add workflow to library, retrieves updated list of tasks from task library", func() {
-			apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-			Expect(apiServer).ToNot(BeEmpty())
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
 
 			uuidObj, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())
@@ -185,8 +178,8 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-					Expect(apiServer).ToNot(BeEmpty())
+					apiServer, err := helpers.GetRackHDHost()
+					Expect(err).ToNot(HaveOccurred())
 
 					uuidObj, err := uuid.NewV4()
 					Expect(err).ToNot(HaveOccurred())
@@ -247,8 +240,8 @@ var _ = Describe("Workflows", func() {
 						return n
 					}
 
-					apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-					Expect(apiServer).ToNot(BeEmpty())
+					apiServer, err := helpers.GetRackHDHost()
+					Expect(err).ToNot(HaveOccurred())
 
 					uuidObj, err := uuid.NewV4()
 					Expect(err).ToNot(HaveOccurred())
@@ -353,9 +346,8 @@ var _ = Describe("Workflows", func() {
 						}
 						return n
 					}
-
-					apiServer := fmt.Sprintf("%s:%s", os.Getenv("RACKHD_API_HOST"), os.Getenv("RACKHD_API_PORT"))
-					Expect(apiServer).ToNot(BeEmpty())
+					apiServer, err := helpers.GetRackHDHost()
+					Expect(err).ToNot(HaveOccurred())
 
 					uuidObj, err := uuid.NewV4()
 					Expect(err).ToNot(HaveOccurred())
@@ -446,7 +438,7 @@ var _ = Describe("Workflows", func() {
 					Expect(err).To(HaveOccurred())
 
 					Eventually(func() int {
-						url := fmt.Sprintf("http://%s/api/1.1/nodes/%s/workflows/active", cpiConfig.ApiServer, nodeID)
+						url := fmt.Sprintf("%s/api/1.1/nodes/%s/workflows/active", cpiConfig.ApiServer, nodeID)
 						resp, err := http.Get(url)
 						Expect(err).ToNot(HaveOccurred())
 						defer resp.Body.Close()
