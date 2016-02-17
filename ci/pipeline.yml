@@ -182,7 +182,7 @@ resources:
     type: git
     source:
       uri: git@github.com:EMC-CMD/bosh-acceptance-tests.git
-      branch: pr-coretag
+      branch: PR-BOSHSSH
       private_key: {{github_key__bosh-acceptance-tests}}
 
   - name: emccmd-env-ci
