@@ -28,7 +28,7 @@ go build github.com/rackhd/rackhd-cpi/rackhd-cpi
 printf "%s\n" "Prepare config file"
 cat > config_file <<EOF
 {
-  "apiserver": "${RACKHD_API_URL}:8080",
+  "apiserver": "${RACKHD_API_URL}",
   "agent": {
     "blobstore":{
       "provider": "local",
