@@ -124,7 +124,7 @@ func GetNodeByVMCID(c config.Cpi, cid string) (Node, error) {
 }
 
 func GetNode(c config.Cpi, nodeID string) (Node, error) {
-	nodeURL := fmt.Sprintf("%s/api/common/node/%s", c.ApiServer, nodeID)
+	nodeURL := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, nodeID)
 	resp, err := http.Get(nodeURL)
 	if err != nil {
 		return Node{}, fmt.Errorf("error fetching node %s: %s", nodeID, err)
@@ -132,7 +132,7 @@ func GetNode(c config.Cpi, nodeID string) (Node, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return Node{}, fmt.Errorf("Failed getting node %s with status: %s, err: %s", nodeID, resp.Status, err)
+		return Node{}, fmt.Errorf("Failed getting node %s with status: %s", nodeID, resp.Status)
 	}
 
 	nodeBytes, err := ioutil.ReadAll(resp.Body)

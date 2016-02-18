@@ -78,7 +78,7 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 	}
 
 	if uploadedTaskStub == nil {
-		return errors.New("task was not successfully uploaded to server")
+		return fmt.Errorf("Task was not successfully uploaded to server!\n Request: %+v\n Response: %+v\n", request, resp)
 	}
 
 	return nil

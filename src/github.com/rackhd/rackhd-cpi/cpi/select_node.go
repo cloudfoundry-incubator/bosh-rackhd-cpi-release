@@ -38,7 +38,6 @@ func TryReservationWithFilter(c config.Cpi, nodeID string, filter Filter, choose
 	var err error
 	for i := 0; i < c.MaxReserveNodeAttempts; i++ {
 		node, err = choose(c, nodeID, filter)
-		nodeID = node.ID
 		if err != nil {
 			log.Error(fmt.Sprintf("retry %d: error choosing node %s", i, err))
 			continue
