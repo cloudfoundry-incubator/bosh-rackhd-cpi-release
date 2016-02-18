@@ -46,7 +46,7 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 
 	container := rackhdapi.PersistentDiskSettingsContainer{
 		PersistentDisk: rackhdapi.PersistentDiskSettings{
-			DiskCID:    node.ID,
+			DiskCID:    fmt.Sprintf("%s-%s", node.ID, c.RequestID),
 			Location:   fmt.Sprintf("/dev/%s", rackhdapi.PersistentDiskLocation),
 			IsAttached: false,
 		},
@@ -62,7 +62,7 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
-	return node.ID, nil
+	return container.PersistentDisk.DiskCID, nil
 }
 
 func parseCreateDiskInput(extInput bosh.MethodArguments) (int, string, error) {

@@ -14,12 +14,12 @@ import (
 )
 
 func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
-	agentID, stemcellCID, publicKey, boshNetworks, diskCID, err := parseCreateVMInput(extInput)
+	agentID, stemcellCID, publicKey, boshNetworks, nodeID, err := parseCreateVMInput(extInput)
 	if err != nil {
 		return "", err
 	}
 
-	nodeID, err := TryReservation(c, diskCID, SelectNodeFromRackHD, ReserveNodeFromRackHD)
+	nodeID, err = TryReservation(c, nodeID, SelectNodeFromRackHD, ReserveNodeFromRackHD)
 	if err != nil {
 		return "", err
 	}
@@ -85,7 +85,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", fmt.Errorf("error publishing provision workflow: %s", err)
 	}
 
-	wipeDisk := (diskCID == "")
+	wipeDisk := (nodeID == "")
 
 	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, vmCID, stemcellCID, wipeDisk)
 	if err != nil {

@@ -143,7 +143,7 @@ var _ = Describe("CreateDisk", func() {
 
 					expectedPersistentDiskSettings := `{
 						"persistent_disk": {
-							"disk_cid": "55e79ea54e66816f6152fff9",
+							"disk_cid": "55e79ea54e66816f6152fff9-my_id",
 							"location": "/dev/sdb",
 							"attached": false
 						}

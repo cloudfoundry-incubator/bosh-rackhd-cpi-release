@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -135,9 +136,20 @@ func parseCreateVMInput(extInput bosh.MethodArguments) (string, string, string, 
 	}
 
 	if len(diskCIDs) > 0 {
-		return agentID, stemcellID, publicKey, networkSpecs, diskCIDs[0], nil
+		return agentID, stemcellID, publicKey, networkSpecs, parseDiskCID(diskCIDs[0]), nil
 	}
+
 	return agentID, stemcellID, publicKey, networkSpecs, "", nil
+}
+
+func parseDiskCID(diskCID string) string {
+	key := regexp.MustCompile(`^([0-9a-z]+)-.+`)
+	array := key.FindStringSubmatch(diskCID)
+	if len(array) < 2 {
+		return ""
+	}
+
+	return array[1]
 }
 
 func defaultNetworkType(bn *bosh.Network) {

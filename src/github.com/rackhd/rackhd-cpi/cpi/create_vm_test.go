@@ -62,17 +62,17 @@ var _ = Describe("The VM Creation Workflow", func() {
 								"type": "dynamic"
 						}
 				},
-				["diskCID"],
+				["nodeid-uuid"],
 				{}]`)
 			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 
 			Expect(err).ToNot(HaveOccurred())
-			agentID, vmCID, publicKey, networks, diskCIDs, err := parseCreateVMInput(extInput)
+			agentID, vmCID, publicKey, networks, nodeID, err := parseCreateVMInput(extInput)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(agentID).To(Equal("4149ba0f-38d9-4485-476f-1581be36f290"))
 			Expect(vmCID).To(Equal("vm-478585"))
-			Expect(diskCIDs).To(Equal("diskCID"))
+			Expect(nodeID).To(Equal("nodeid"))
 			Expect(publicKey).To(Equal("1234"))
 			Expect(networks).ToNot(BeEmpty())
 		})
