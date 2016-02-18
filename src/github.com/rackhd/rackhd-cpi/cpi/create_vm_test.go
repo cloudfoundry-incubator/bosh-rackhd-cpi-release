@@ -498,7 +498,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/node/5665a65a0561790005b77b85")),
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/5665a65a0561790005b77b85")),
 						ghttp.RespondWith(http.StatusOK, nodeResponse),
 					),
 				)

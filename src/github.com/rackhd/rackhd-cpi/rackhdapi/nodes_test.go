@@ -74,7 +74,7 @@ var _ = Describe("Nodes", func() {
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/node/5665a65a0561790005b77b85"),
+					ghttp.VerifyRequest("GET", "/api/common/nodes/5665a65a0561790005b77b85"),
 					ghttp.RespondWith(http.StatusOK, expectedNodeData),
 				),
 			)
