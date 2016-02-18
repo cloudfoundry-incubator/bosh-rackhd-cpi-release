@@ -123,19 +123,30 @@ func GetNodeByVMCID(c config.Cpi, cid string) (Node, error) {
 	return Node{}, fmt.Errorf("vm with cid: %s was not found", cid)
 }
 
-func GetNodeByDiskCID(c config.Cpi, diskCid string) (Node, error) {
-	nodes, err := GetNodes(c)
+func GetNode(c config.Cpi, nodeID string) (Node, error) {
+	nodeURL := fmt.Sprintf("%s/api/common/node/%s", c.ApiServer, nodeID)
+	resp, err := http.Get(nodeURL)
 	if err != nil {
-		return Node{}, err
+		return Node{}, fmt.Errorf("error fetching node %s: %s", nodeID, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return Node{}, fmt.Errorf("Failed getting node %s with status: %s, err: %s", nodeID, resp.Status, err)
 	}
 
-	for _, node := range nodes {
-		if node.PersistentDisk.DiskCID == diskCid {
-			return node, nil
-		}
+	nodeBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return Node{}, fmt.Errorf("error reading node %s response body %s", nodeID, err)
 	}
 
-	return Node{}, fmt.Errorf("vm with cid: %s was not found", diskCid)
+	var node Node
+	err = json.Unmarshal(nodeBytes, &node)
+	if err != nil {
+		return Node{}, fmt.Errorf("error unmarshalling /common/node/%s response %s", nodeID, err)
+	}
+
+	return node, nil
 }
 
 func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {

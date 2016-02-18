@@ -29,15 +29,16 @@ type Filter struct {
 	method string
 }
 
-func TryReservation(c config.Cpi, diskCID string, choose selectionFunc, reserve reservationFunc) (string, error) {
-	return TryReservationWithFilter(c, diskCID, Filter{nil, AllowAnyNodeMethod}, choose, reserve)
+func TryReservation(c config.Cpi, nodeID string, choose selectionFunc, reserve reservationFunc) (string, error) {
+	return TryReservationWithFilter(c, nodeID, Filter{nil, AllowAnyNodeMethod}, choose, reserve)
 }
 
-func TryReservationWithFilter(c config.Cpi, diskCID string, filter Filter, choose selectionFunc, reserve reservationFunc) (string, error) {
+func TryReservationWithFilter(c config.Cpi, nodeID string, filter Filter, choose selectionFunc, reserve reservationFunc) (string, error) {
 	var node rackhdapi.Node
 	var err error
 	for i := 0; i < c.MaxReserveNodeAttempts; i++ {
-		node, err = choose(c, diskCID, filter)
+		node, err = choose(c, nodeID, filter)
+		nodeID = node.ID
 		if err != nil {
 			log.Error(fmt.Sprintf("retry %d: error choosing node %s", i, err))
 			continue
@@ -126,9 +127,9 @@ func ReserveNodeFromRackHD(c config.Cpi, node rackhdapi.Node) error {
 	return nil
 }
 
-func SelectNodeFromRackHD(c config.Cpi, diskCID string, filter Filter) (rackhdapi.Node, error) {
-	if diskCID != "" {
-		node, err := rackhdapi.GetNodeByDiskCID(c, diskCID)
+func SelectNodeFromRackHD(c config.Cpi, nodeID string, filter Filter) (rackhdapi.Node, error) {
+	if nodeID != "" {
+		node, err := rackhdapi.GetNode(c, nodeID)
 
 		if err != nil {
 			return rackhdapi.Node{}, err

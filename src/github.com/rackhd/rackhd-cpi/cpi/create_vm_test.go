@@ -489,22 +489,21 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(err).To(MatchError("all nodes have been reserved"))
 		})
 
-		Context("with a disk CID", func() {
-			It("selects the node with the disk CID", func() {
-				nodes := helpers.LoadNodes("../spec_assets/dummy_create_vm_with_disk_response.json")
+		Context("with a nodeID", func() {
+			It("selects the node with the nodeID", func() {
+				node := helpers.LoadNode("../spec_assets/dummy_create_vm_with_disk_response.json")
 
-				nodesResponse, err := json.Marshal(nodes)
+				nodeResponse, err := json.Marshal(node)
 				Expect(err).ToNot(HaveOccurred())
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes")),
-						ghttp.RespondWith(http.StatusOK, nodesResponse),
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/node/5665a65a0561790005b77b85")),
+						ghttp.RespondWith(http.StatusOK, nodeResponse),
 					),
 				)
 
-				node, err := SelectNodeFromRackHD(cpiConfig, "disk-1234", allowFilter)
-
+				node, err = SelectNodeFromRackHD(cpiConfig, "5665a65a0561790005b77b85", allowFilter)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(node.ID).To(Equal("5665a65a0561790005b77b85"))
 			})
