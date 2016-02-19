@@ -41,16 +41,15 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("error sending PUT request to %s", c.ApiServer)
 	}
-
 	defer resp.Body.Close()
 
-	msg, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("error reading response body: %s", err)
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("error publishing task; response status code: %s,\nresponse body: %+v", resp.Status, resp)
 	}
 
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Failed publishing task with status: %s, message: %s", resp.Status, string(msg))
+	_, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response body: %s", err)
 	}
 
 	taskStub := TaskStub{}
