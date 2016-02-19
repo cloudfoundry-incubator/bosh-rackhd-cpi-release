@@ -109,6 +109,7 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("error unmarshalling workflow: %s", err)
 	}
+	log.Debug("workflow to publish: %+v", workflowStub)
 
 	publishedWorkflowsBytes, err := RetrieveWorkflows(c)
 	if err != nil {

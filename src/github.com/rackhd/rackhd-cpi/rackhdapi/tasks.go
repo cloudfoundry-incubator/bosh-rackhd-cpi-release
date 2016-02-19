@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/rackhd/rackhd-cpi/config"
 )
 
@@ -57,6 +59,7 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("error unmarshalling task: %s", err)
 	}
+	log.Debug("task to publish: %+v", taskStub)
 
 	publishedTaskBytes, err := RetrieveTasks(c)
 	if err != nil {
@@ -77,7 +80,7 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 	}
 
 	if uploadedTaskStub == nil {
-		return fmt.Errorf("Task was not successfully uploaded to server!\n Request: %+v\n Response: %+v\n", request, resp)
+		return fmt.Errorf("Task was not successfully uploaded to server!\n Request: %+v\n Response: %+v", request, resp)
 	}
 
 	return nil
