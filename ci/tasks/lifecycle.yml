@@ -7,6 +7,7 @@ inputs:
 run:
   path: bosh-cpi-release/ci/tasks/lifecycle.sh
 params:
+  CUSTOMIZED_STEMCELL_NAME:     stemcell.tgz
   RACKHD_API_URL:               replace-me
   AGENT_PUBLIC_KEY:             replace-me
   AGENT_STATIC_IP1:             replace-me

@@ -5,6 +5,7 @@ set -e
 source bosh-cpi-release/ci/tasks/utils.sh
 source bosh-cpi-release/ci/tasks/lifecycle-helpers.sh
 
+check_param CUSTOMIZED_STEMCELL_NAME
 check_param RACKHD_API_URL
 check_param AGENT_PUBLIC_KEY
 check_param AGENT_STATIC_IP1
@@ -16,7 +17,7 @@ check_param RACKHD_CPI_LOG_LEVEL
 AGENT_PUBLIC_KEY=$(echo ${AGENT_PUBLIC_KEY} | tr -d '\n' | tr -d ' ')
 
 pushd ${PWD}/stemcell/
-tar -zxvf stemcell.tgz
+tar -zxvf ${CUSTOMIZED_STEMCELL_NAME}
 stemcell_path=${PWD}/image
 popd
 

@@ -4,6 +4,7 @@ set -e -x
 
 source bosh-cpi-release/ci/tasks/utils.sh
 
+check_param CUSTOMIZED_STEMCELL_NAME
 check_param BOSH_DIRECTOR_PUBLIC_IP
 check_param BOSH_DIRECTOR_PRIVATE_IP
 check_param AGENT_PUBLIC_KEY
@@ -26,7 +27,7 @@ chmod 600 ${director_private_key_path}
 
 # checked by BATs environment helper (bosh-acceptance-tests.git/lib/bat/env.rb)
 export BAT_DIRECTOR=${BOSH_DIRECTOR_PUBLIC_IP}
-export BAT_STEMCELL=${base_dir}/stemcell/stemcell.tgz
+export BAT_STEMCELL=${base_dir}/stemcell/${CUSTOMIZED_STEMCELL_NAME}
 export BAT_DEPLOYMENT_SPEC="${PWD}/bats-config.yml"
 export BAT_VCAP_PASSWORD='c1oudc0w'
 export BAT_DNS_HOST=${BOSH_DIRECTOR_PUBLIC_IP}

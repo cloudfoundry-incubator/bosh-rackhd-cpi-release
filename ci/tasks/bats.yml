@@ -8,6 +8,7 @@ inputs:
 run:
   path: bosh-cpi-release/ci/tasks/bats.sh
 params:
+  CUSTOMIZED_STEMCELL_NAME:        stemcell.tgz
   BOSH_DIRECTOR_PUBLIC_IP:         replace-me
   BOSH_DIRECTOR_PRIVATE_IP:        replace-me
   DIRECTOR_PRIVATE_KEY_DATA:       replace-me

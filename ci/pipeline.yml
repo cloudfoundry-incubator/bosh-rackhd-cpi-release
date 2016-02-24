@@ -37,6 +37,7 @@ jobs:
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
     config:
       params:
+        CUSTOMIZED_STEMCELL_NAME:     {{customized_stemcell_name}}
         RACKHD_API_URL:               {{rackhd_server_url}}
         AGENT_PUBLIC_KEY:             {{agent_public_key}}
         AGENT_STATIC_IP1:             {{agent_static_ip1}}
@@ -84,6 +85,7 @@ jobs:
     file: bosh-cpi-release/ci/tasks/bats.yml
     config:
       params:
+        CUSTOMIZED_STEMCELL_NAME:           {{customized_stemcell_name}}
         AGENT_PUBLIC_KEY:                   {{agent_public_key}}
         DIRECTOR_PRIVATE_KEY_DATA:          {{director_private_key}}
         BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
@@ -114,6 +116,7 @@ jobs:
     file: bosh-cpi-release/ci/tasks/bats.yml
     config:
       params:
+        CUSTOMIZED_STEMCELL_NAME:           {{customized_stemcell_name}}
         AGENT_PUBLIC_KEY:                   {{agent_public_key}}
         DIRECTOR_PRIVATE_KEY_DATA:          {{director_private_key}}
         BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
