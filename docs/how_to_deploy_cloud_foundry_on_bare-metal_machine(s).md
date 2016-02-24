@@ -28,9 +28,27 @@ Great! Now you should have an empty box with Ubuntu installed. Let's install the
 ```
 #!/bin/bash 
 set -­e
-sudo apt­-get ­-y updatesudo apt­-get ­-y dist­upgrade sudo apt-­get -­y autoremovesudo apt­-get -­y install nodejs nodejs­legacy npm#runtime dependenciessudo apt-­get -­y install rabbitmq­server mongodb isc­dhcp­serversudo apt-­get ­-y install snmp ipmitool ansible amtterm apt­mirror libkrb5­dev unzip#Ubuntu 15.04 or later: use upstart instead of systemd sudo apt­-get -­y install upstart­sysvsudo update-­initramfs ­-u
-# AMTTool TNGwget http://downloads.sourceforge.net/project/amttool­tng/1.7/amttool sudo chmod 755 ./amttoolsudo mv amttool /usr/bin/amttool­tng
-#compile dependenciessudo apt­-get -­y install git openssh­server pbuilder dh­make ubuntu­dev­tools devscripts
+
+sudo apt­-get ­-y update
+sudo apt­-get ­-y dist­upgrade 
+sudo apt-­get -­y autoremove
+sudo apt­-get -­y install nodejs nodejs­legacy npm
+
+#runtime dependencies
+sudo apt-­get -­y install rabbitmq­server mongodb isc­dhcp­server
+sudo apt-­get ­-y install snmp ipmitool ansible amtterm apt­mirror libkrb5­dev unzip
+
+#Ubuntu 15.04 or later: use upstart instead of systemd 
+sudo apt­-get -­y install upstart­sysv
+sudo update-­initramfs ­-u
+
+# AMTTool TNG
+wget http://downloads.sourceforge.net/project/amttool­tng/1.7/amttool 
+sudo chmod 755 ./amttool
+sudo mv amttool /usr/bin/amttool­tng
+
+#compile dependencies
+sudo apt­-get -­y install git openssh­server pbuilder dh­make ubuntu­dev­tools devscripts
 ```
 
 Now that the prerequisites are installed, we are ready to build RackHD from the latest source and use the `HWIMOBUILD` script to make debian packages for the components of RackHD. Then we install each of the debian packages by `dpkg`. 
@@ -39,20 +57,79 @@ Now that the prerequisites are installed, we are ready to build RackHD from the 
 RACKHD_INSTALL_DIR=~; cd $RACKHD_INSTALL_DIR 
 git clone https://github.com/RackHD/RackHD 
 RACKHD_PROJECT_DIR=${RACKHD_INSTALL_DIR}/RackHD
-cd $RACKHD_PROJECT_DIRgit submodule update ­­init ­­recursivegit submodule foreach git pull origin mastersudo touch /etc/default/on­httpsudo touch /etc/default/on­dhcp­proxy 
+cd $RACKHD_PROJECT_DIR
+git submodule update ­­init ­­recursive
+git submodule foreach git pull origin master
+
+sudo touch /etc/default/on­http
+sudo touch /etc/default/on­dhcp­proxy 
 sudo touch /etc/default/on­taskgraph 
 sudo touch /etc/default/on­syslog 
-sudo touch /etc/default/on­tftpcd ${RACKHD_PROJECT_DIR}/on­http 
-./HWIMO­BUILDsudo dpkg -­i ./on­http_*.deb
-cd ${RACKHD_PROJECT_DIR}/on­dhcp­proxy ./HWIMO­BUILDsudo dpkg ­i ./on­dhcp­proxy_*.deb
-cd ${RACKHD_PROJECT_DIR}/on­taskgraph 
-./HWIMO­BUILDsudo dpkg ­i ./on­taskgraph_*.deb
-cd ${RACKHD_PROJECT_DIR}/on­syslog 
-./HWIMO­BUILDsudo dpkg ­i ./on­syslog_*.deb
-cd ${RACKHD_PROJECT_DIR}/on­tftp 
-./HWIMO­BUILDsudo dpkg ­i ./on­tftp_*.debsudo reboot```
+sudo touch /etc/default/on­tftp
 
-After reboot, you should have a RackHD server running. If you run into problems during the RackHD installation process, don't panic! There is a slack channel that can help you out. The RackHD community is very responsive and help! You can get invitation to the Slack channel by coming [here](http://community.emccode.com).
+cd ${RACKHD_PROJECT_DIR}/on­http 
+./HWIMO­BUILD
+sudo dpkg -­i ./on­http_*.deb
+
+cd ${RACKHD_PROJECT_DIR}/on­dhcp­proxy 
+./HWIMO­BUILD
+sudo dpkg ­i ./on­dhcp­proxy_*.deb
+
+cd ${RACKHD_PROJECT_DIR}/on­taskgraph 
+./HWIMO­BUILD
+sudo dpkg ­i ./on­taskgraph_*.deb
+
+cd ${RACKHD_PROJECT_DIR}/on­syslog 
+./HWIMO­BUILD
+sudo dpkg ­i ./on­syslog_*.deb
+
+
+cd ${RACKHD_PROJECT_DIR}/on­tftp 
+./HWIMO­BUILD
+sudo dpkg ­i ./on­tftp_*.deb
+
+sudo reboot
+```
+
+After reboot, ssh into the machine. Modify /etc/default/isc-dhcp-server.conf to look like
+`https://github.com/RackHD/RackHD/blob/master/packer/ansible/roles/isc­dhcp­server/files/isc-dhcp-server` by adding
+```
+INTERFACES="eth1"
+```
+* `eth1` is the network interface that you use to talk to your node.
+
+Then, modify /etc/dhcp/dhcp.conf to look like
+`https://github.com/RackHD/RackHD/blob/master/packer/ansible/roles/isc-dhcp-server/files/dhcpd.conf` by adding
+```
+# RackHD added lines
+deny duplicates;
+
+ignore-client-uids true;
+
+subnet 172.31.128.0 netmask 255.255.252.0 {
+ range 172.31.128.2 172.31.131.254;
+ # Use this option to signal to the PXE client that we are doing proxy DHCP
+ option vendor-class-identifier "PXEClient";
+}
+```
+Make sure to edit subnet accordingly. This is the subnet of rackhd server and its node.
+
+Now, download `https://github.com/RackHD/RackHD/blob/master/packer/ansible/roles/monorail/files/config.json` and put it under `/opt/monorail/`. This is your rackhd-server config file, please edit its network accordingly.
+
+Last but not least, follow instructions under `https://github.com/RackHD/RackHD/blob/master/packer/ansible/roles/images/tasks/main.yml` to download files from `https://bintray.com/artifact/download/rackhd/binary/builds/` and place them under `/home/vagrant/src/on-http/static/http/common/` and `/home/vagrant/src/on-tftp/static/tftp/` folders accordingly.
+
+Finally, restart RackHD server components using
+```
+sudo service on-http restart
+sudo service on-tftp restart
+sudo service on-taskgraph restart
+sudo service on-dhcp-proxy restart
+sudo service on-syslog restart
+```
+
+To see rackhd's logs, you can go under `/var/log/upstart/`. They are `on-http.log`, `on-taskgraph.log`, `on-http.log`, `on-tftp.log`, and `on-syslog.log`.
+
+If you run into problems during the RackHD installation process, don't panic! There is a slack channel that can help you out. The RackHD community is very responsive and help! You can get invitation to the Slack channel by coming [here](http://community.emccode.com).
 
 Now that we have the RackHD server ready. We are ready to discover our nodes. At the time of writing, RackHD can only be accessed through RESTful web services and we have developed a command line for our day-to-day activities. 
 
