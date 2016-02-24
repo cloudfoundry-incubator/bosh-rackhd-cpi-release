@@ -3,6 +3,7 @@ package rackhdapi_test
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -26,6 +27,34 @@ var _ = Describe("Nodes", func() {
 
 	AfterEach(func() {
 		server.Close()
+	})
+
+	Describe("ReleaseNode", func() {
+		It("return a node with reserved flag unset", func() {
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
+
+			c := config.Cpi{ApiServer: apiServer}
+
+			nodes, err := rackhdapi.GetNodes(c)
+			Expect(err).ToNot(HaveOccurred())
+			targetNodeID := nodes[0].ID
+			err = rackhdapi.ReleaseNode(c, targetNodeID)
+			Expect(err).ToNot(HaveOccurred())
+			nodeURL := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, targetNodeID)
+
+			resp, err := http.Get(nodeURL)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(200))
+
+			nodeBytes, err := ioutil.ReadAll(resp.Body)
+			Expect(err).ToNot(HaveOccurred())
+
+			var node rackhdapi.Node
+			err = json.Unmarshal(nodeBytes, &node)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(node.Status).To(Equal(rackhdapi.Available))
+		})
 	})
 
 	Describe("Getting nodes", func() {
@@ -88,9 +117,9 @@ var _ = Describe("Nodes", func() {
 
 	Describe("GetOBMSettings", func() {
 		It("returns a node's OBM settings", func() {
-			dummy_response_path := "../spec_assets/dummy_one_node_response.json"
-			httpResponse := helpers.LoadJSON(dummy_response_path)
-			expectedResponse := helpers.LoadNode(dummy_response_path)
+			dummyResponsePath := "../spec_assets/dummy_one_node_response.json"
+			httpResponse := helpers.LoadJSON(dummyResponsePath)
+			expectedResponse := helpers.LoadNode(dummyResponsePath)
 
 			nodeID := "nodeID"
 			server.AppendHandlers(
@@ -109,8 +138,8 @@ var _ = Describe("Nodes", func() {
 
 	Describe("IsAMTService", func() {
 		It("returns true if the node's obm settings is amt", func() {
-			dummy_response_path := "../spec_assets/dummy_one_node_response.json"
-			httpResponse := helpers.LoadJSON(dummy_response_path)
+			dummyResponsePath := "../spec_assets/dummy_one_node_response.json"
+			httpResponse := helpers.LoadJSON(dummyResponsePath)
 
 			nodeID := "nodeID"
 			server.AppendHandlers(

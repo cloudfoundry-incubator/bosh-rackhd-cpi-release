@@ -37,15 +37,16 @@ func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 201 {
+		return "", fmt.Errorf("Failed uploading %s with status: %s\nresponse: %+v", baseName, resp.Status, resp)
+	}
+
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Error(fmt.Sprintf("Unable to read response body"))
 		return "", err
 	}
 
-	if resp.StatusCode != 201 {
-		return "", fmt.Errorf("Failed uploading %s with status: %s", baseName, resp.Status)
-	}
 	log.Debug(fmt.Sprintf("uploaded file: %s to server", baseName))
 
 	return string(bodyBytes), nil

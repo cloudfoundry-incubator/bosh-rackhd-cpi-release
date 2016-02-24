@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/rackhd/rackhd-cpi/config"
 )
 
@@ -41,16 +43,15 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("error sending PUT request to %s", c.ApiServer)
 	}
-
 	defer resp.Body.Close()
 
-	msg, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("error reading response body: %s", err)
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("error publishing task; response status code: %s,\nresponse body: %+v", resp.Status, resp)
 	}
 
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Failed publishing task with status: %s, message: %s", resp.Status, string(msg))
+	_, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response body: %s", err)
 	}
 
 	taskStub := TaskStub{}
@@ -58,6 +59,7 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("error unmarshalling task: %s", err)
 	}
+	log.Debug("task to publish: %+v", taskStub)
 
 	publishedTaskBytes, err := RetrieveTasks(c)
 	if err != nil {
@@ -78,7 +80,7 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 	}
 
 	if uploadedTaskStub == nil {
-		return fmt.Errorf("Task was not successfully uploaded to server!\n Request: %+v\n Response: %+v\n", request, resp)
+		return fmt.Errorf("Task was not successfully uploaded to server!\n Request: %+v\n Response: %+v", request, resp)
 	}
 
 	return nil

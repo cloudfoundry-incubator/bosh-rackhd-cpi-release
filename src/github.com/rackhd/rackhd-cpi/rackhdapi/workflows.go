@@ -95,13 +95,13 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 	}
 	defer resp.Body.Close()
 
-	msg, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("error reading response body: %s", err)
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("error publishing workflow; response status code: %s,\nresponse body: %+v", resp.Status, resp)
 	}
 
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Failed publishing workflows with status: %s, body: %s", resp.Status, string(msg))
+	_, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response body: %s", err)
 	}
 
 	workflowStub := WorkflowStub{}
@@ -109,6 +109,7 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("error unmarshalling workflow: %s", err)
 	}
+	log.Debug("workflow to publish: %+v", workflowStub)
 
 	publishedWorkflowsBytes, err := RetrieveWorkflows(c)
 	if err != nil {
