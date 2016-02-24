@@ -1,4 +1,4 @@
-###How to deploy Cloud Foundry on Bare-Metal Machine(s)
+##How to deploy Cloud Foundry on Bare-Metal Machine(s)
 Deploying Cloud Foundry on Bare-Metal Machine(s) require 3 steps:
 
 1. Set up RackHD
@@ -7,10 +7,10 @@ Deploying Cloud Foundry on Bare-Metal Machine(s) require 3 steps:
 
 In this tutorial, we will do the example with vSphere, but the same steps can be applied with other IaaS or Bare-Metal environment. Let's begin!
 
-###Setting up RackHD
+##Setting up RackHD
 The first step is to set up [RackHD](https://github.com/rackhd), an open source solution that manage your Bare-Metal environment. Please reference the [RackHD documentation](http://rackhd.readthedocs.org/) if you would like to learn more about RackHD. 
 
-In a nutshell, RackHD provides DHCP service and picks up iPXE boot signal from Bare-Metal machines. Once RackHD receives signal from machines, a new entry will be added to the RackHD database. RackHD will then be able to fully control the machines through IPMI and AMT. (See diagram 1)
+In a nutshell, RackHD provides DHCP service and picks up iPXE boot signal from Bare-Metal machines. Once RackHD receives signal from machines, a new entry will be added to the RackHD database. RackHD will then be able to fully control the machines through IPMI and AMT. (See diagram below.)
 
 ![Diagram 1](./img/cf-installation-1.jpg)
 
@@ -56,7 +56,7 @@ After reboot, you should have a RackHD server running. If you run into problems 
 
 Now that we have the RackHD server ready. We are ready to discover our nodes. At the time of writing, RackHD can only be accessed through RESTful web services and we have developed a command line for our day-to-day activities. 
 
-### Setting up RackHD CLI
+## Setting up RackHD CLI
 The RackHD CLI is open source and hosted in [https://github.com/EMC-CMD/rackhd-cli](https://github.com/EMC-CMD/rackhd-cli). 
 
 In your workspace, you can clone the source for the RackHD CLI:
@@ -79,7 +79,7 @@ ID                       | NAME                      | CID | STATUS | DISK CID |
 -------------------------|---------------------------|-----|--------|----------|----------------
 ```
 
-### Setting up Nodes on RackHD server
+## Setting up Nodes on RackHD server
 Now that we have the RackHD server and the command line tool installed, we can start to TURN ON your machines. Make sure your machines has IPMI or other similar protocols (ie. AMT) that RackHD supports and have `Network Boot` turned on. 
 
 You can run `watch rack nodes` and then turn on your machines. As the machines register themselves to RackHD, you should be able to set nodes being added, like this:
@@ -92,21 +92,378 @@ ID                       | NAME                      | CID | STATUS | DISK CID |
 56c4a861e4dc603837faa638 | c0:3f:d5:63:fe:13 (node2) | n/a | n/a    | n/a      | n/a
 ```
 
-### Setting up Bosh Director with RackHD CPI
-We can use `bosh-init` command line tool to install a bosh director in one of your nodes or in a virtual environment. In this example, we will be using `bosh-init` to deploy a bosh director in one of the Bare-Metal nodes. For more information about bosh-init, you can reference the tutorial [here](https://bosh.io/docs/using-bosh-init.html).
+## Setting up Bosh Director with RackHD CPI
+Please refer to this [manual](https://github.com/cloudfoundry-incubator/bosh-rackhd-cpi-release/wiki/Deploy%20a%20BOSH%20Director%20with%20the%20RackHD%20CPI) for creating a Bosh Director with RackHD CPI.
 
-Let's follow these steps:
+After deploying the Bosh Director, your environment should look similar to this:
+![Diagram 2](./img/cf-installation-2.jpg)
 
-1. [Install bosh-init command line tool](https://bosh.io/docs/install-bosh-init.html)
-2. [Install bosh command line tool](https://bosh.io/docs/bosh-cli.html)
-3. [Download OpenStack Stemcell](http://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
+## Setting up Cloud Foundry on Bare-Metal environment
+Download source code for CF Release: 
 
-Once you have `bosh` and `bosh-init` set up, we can start setting up the Bosh Director!
+```
+git clone https://github.com/cloudfoundry/cf-release.git
+```
 
+Then create the CF release:
 
+```
+bosh create release
+```
+
+Upload the CF release to the director
+
+```
+bosh upload release <path to cf-release file>
+```
+
+Download the OpenStack stemcell from [bosh.io](http://bosh.io) and then upload it to the director
+
+```
+bosh upload stemcell <path to stemcell>
+```
+
+Modify the example manifest. In this example, I have combined all of CF components into just 3 machines. The Router is on the CF2 machine. There could be other deployment set up as well, such as running on the all components in one single box. 
+
+On a side note, the RackHD server and Bosh Director can also run in a virtual environment. 
+
+```
+---
+name: cf
+director_uuid: <DIRECTOR UUID>
+
+releases:
+- {name: cf, version: latest}
+
+networks:
+- name: cf_private
+  type: manual
+  subnets:
+  - range: 10.0.4.0/22
+    gateway: 10.0.4.1
+    dns: [10.0.4.1]
+    static: [10.0.4.2 - 10.0.5.254]
+    cloud_properties:
+      subnet: subnet-a5138898
+
+- name: cf_public
+  type: manual
+  subnets:
+  - range: 10.0.0.0/22
+    gateway: 10.0.0.1
+    dns: [10.0.0.1]
+    reserved: [10.0.0.1 - 10.0.0.255]
+    static: [10.0.1.2 - 10.0.1.254]
+    cloud_properties:
+      subnet: subnet-126ef52f
+      security_groups:
+        - victor-sg
+
+- name: elastic
+  type: vip
+  cloud_properties: {}
+
+resource_pools:
+- name: small_z1
+  network: cf_private
+  stemcell:
+    name: bosh-aws-xen-hvm-ubuntu-trusty-go_agent
+    version: latest
+  cloud_properties:
+    availability_zone: us-east-1e
+    instance_type: c3.large
+
+compilation:
+  workers: 3
+  network: cf_private
+  reuse_compilation_vms: true
+  cloud_properties:
+    availability_zone: us-east-1e
+    instance_type: c3.large
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: false
+  canary_watch_time: 30000-600000
+  update_watch_time: 5000-600000
+
+jobs:
+- name: giant1_z1
+  instances: 1
+  resource_pool: small_z1
+  persistent_disk: 102400
+  templates:
+  - {name: nats, release: cf}
+  - {name: nats_stream_forwarder, release: cf}
+  - {name: etcd, release: cf}
+  - {name: etcd_metrics_server, release: cf}
+  - {name: hm9000, release: cf}
+  - {name: postgres, release: cf}
+
+  - {name: metron_agent, release: cf}
+  - {name: route_registrar, release: cf}
+  networks:
+  - name: cf_private
+    static_ips: [10.0.4.103]
+  properties:
+    etcd_metrics_server:
+      nats:
+        machines: [10.0.4.103]
+        password: password
+        username: nats
+    route_registrar:
+      routes:
+      - name: hm9000
+        port: 5155
+        uris:
+        - "hm9000.system.cf.local"
+
+- name: giant2_z1
+  instances: 1
+  resource_pool: small_z1
+  persistent_disk: 102400
+  templates:
+  - {name: doppler, release: cf}
+  - {name: loggregator_trafficcontroller, release: cf}
+  - {name: gorouter, release: cf}
+  - {name: cloud_controller_ng, release: cf}
+  - {name: cloud_controller_worker, release: cf}
+  - {name: cloud_controller_clock, release: cf}
+  - {name: uaa, release: cf}
+  - {name: metron_agent, release: cf}
+  - {name: route_registrar, release: cf}
+  networks:
+  - name: cf_private
+    static_ips: [10.0.4.102]
+  properties:
+    traffic_controller: {zone: z1}
+    dropsonde: {enabled: true}
+    doppler: {zone: z1}
+    doppler_endpoint:
+      shared_secret: password
+    route_registrar:
+      routes:
+      - name: api
+        port: 9022
+        uris:
+        - "api.system.cf.local"
+      - name: doppler
+        port: 8081
+        uris:
+        - "doppler.system.cf.local"
+      - name: uaa
+        port: 8080
+        uris:
+        - "uaa.system.cf.local"
+        - "*.uaa.system.cf.local"
+        - "login.system.cf.local"
+        - "*.login.system.cf.local"
+      - name: loggregator
+        port: 8080
+        uris:
+          - "loggregator.system.cf.local"
+    login:
+      catalina_opts: -Xmx768m -XX:MaxPermSize=256m
+    uaa:
+      admin:
+        client_secret: password
+      batch:
+        password: password
+        username: batch_user
+      cc:
+        client_secret: password
+      scim:
+        userids_enabled: true
+        users:
+        - admin|password|scim.write,scim.read,openid,cloud_controller.admin,doppler.firehose,routing.router_groups.read
+    uaadb:
+      address: 10.0.4.103
+      databases:
+      - {name: uaadb, tag: uaa}
+      db_scheme: postgresql
+      port: 5524
+      roles:
+      - {name: uaaadmin, password: password, tag: admin}
+
+- name: runner_z1
+  instances: 1
+  resource_pool: small_z1
+  templates:
+  - {name: dea_next, release: cf}
+  - {name: dea_logging_agent, release: cf}
+  - {name: metron_agent, release: cf}
+  networks:
+  - name: cf_private
+  properties:
+    dea_next: {zone: z1}
+
+properties:
+  networks: {apps: cf_private}
+  app_domains: [system.cf.local]
+  cc:
+    allow_app_ssh_access: false
+    bulk_api_password: password
+    db_encryption_key: password
+    default_running_security_groups: [public_networks, dns]
+    default_staging_security_groups: [public_networks, dns]
+    install_buildpacks:
+    - {name: java_buildpack, package: buildpack_java}
+    - {name: ruby_buildpack, package: buildpack_ruby}
+    - {name: nodejs_buildpack, package: buildpack_nodejs}
+    - {name: go_buildpack, package: buildpack_go}
+    - {name: python_buildpack, package: buildpack_python}
+    - {name: php_buildpack, package: buildpack_php}
+    - {name: staticfile_buildpack, package: buildpack_staticfile}
+    - {name: binary_buildpack, package: buildpack_binary}
+    internal_api_password: password
+    quota_definitions:
+      default:
+        memory_limit: 102400
+        non_basic_services_allowed: true
+        total_routes: 1000
+        total_services: -1
+    security_group_definitions:
+    - name: public_networks
+      rules:
+      - {destination: 0.0.0.0-9.255.255.255, protocol: all}
+      - {destination: 11.0.0.0-169.253.255.255, protocol: all}
+      - {destination: 169.255.0.0-172.15.255.255, protocol: all}
+      - {destination: 172.32.0.0-192.167.255.255, protocol: all}
+      - {destination: 192.169.0.0-255.255.255.255, protocol: all}
+    - name: dns
+      rules:
+      - {destination: 0.0.0.0/0, ports: '53', protocol: tcp}
+      - {destination: 0.0.0.0/0, ports: '53', protocol: udp}
+    srv_api_uri: https://api.system.cf.local
+    staging_upload_password: password
+    staging_upload_user: staging_upload_user
+  ccdb:
+    address: 10.0.4.103
+    databases:
+    - {name: ccdb, tag: cc}
+    db_scheme: postgres
+    port: 5524
+    roles:
+    - {name: ccadmin, password: password, tag: admin}
+  databases:
+    databases:
+    - {name: ccdb, tag: cc, citext: true}
+    - {name: uaadb, tag: uaa, citext: true}
+    port: 5524
+    roles:
+    - {name: ccadmin, password: password, tag: admin}
+    - {name: uaaadmin, password: password, tag: admin}
+  dea_next:
+    advertise_interval_in_seconds: 5
+    heartbeat_interval_in_seconds: 10
+    memory_mb: 33996
+  description: Cloud Foundry sponsored by Pivotal
+  domain: system.cf.local
+  etcd:
+    machines: [10.0.4.103]
+    peer_require_ssl: false
+    require_ssl: false
+  hm9000:
+    url: https://hm9000.system.cf.local
+    port: 5155
+  logger_endpoint:
+    port: 4443
+  loggregator:
+    maxRetainedLogMessages: 100
+    debug: false
+    outgoing_dropsonde_port: 8081
+    etcd:
+      machines: [10.0.4.103]
+  loggregator_endpoint:
+    shared_secret: password
+  metron_agent:
+    zone: z1
+    deployment: minimal-aws
+  metron_endpoint:
+    shared_secret: password
+  nats:
+    machines: [10.0.4.103]
+    password: password
+    port: 4222
+    user: nats
+  ssl:
+    skip_cert_verify: true
+  system_domain: system.cf.local
+  system_domain_organization: default_organization
+  uaa:
+    clients:
+      cc_routing:
+        authorities: routing.router_groups.read
+        authorized-grant-types: client_credentials
+        secret: password
+      cf:
+        id: cf
+        override: true
+        authorized-grant-types: implicit,password,refresh_token
+        scope: cloud_controller.read,cloud_controller.write,openid,password.write,cloud_controller.admin,scim.read,scim.write,doppler.firehose,uaa.user,routing.router_groups.read
+        authorities: uaa.none
+        access-token-validity: 600
+        refresh-token-validity: 2592000
+        autoapprove: true
+      cloud_controller_username_lookup:
+        authorities: scim.userids
+        authorized-grant-types: client_credentials
+        secret: password
+      doppler:
+        authorities: uaa.resource
+        override: true
+        secret: password
+      gorouter:
+        authorities: routing.routes.read
+        authorized-grant-types: client_credentials,refresh_token
+        secret: password
+      tcp_emitter:
+        authorities: routing.routes.write,routing.routes.read
+        authorized-grant-types: client_credentials,refresh_token
+        secret: password
+      tcp_router:
+        authorities: routing.routes.read
+        authorized-grant-types: client_credentials,refresh_token
+        secret: password
+      login:
+        authorities: oauth.login,scim.write,clients.read,notifications.write,critical_notifications.write,emails.write,scim.userids,password.write
+        authorized-grant-types: authorization_code,client_credentials,refresh_token
+        override: true
+        redirect-uri: https://login.system.cf.local
+        scope: openid,oauth.approvals
+        secret: password
+      notifications:
+        authorities: cloud_controller.admin,scim.read
+        authorized-grant-types: client_credentials
+        secret: password
+    jwt:
+      signing_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        <RSA PRIVATE KEY>
+        -----END RSA PRIVATE KEY-----
+      verification_key: |
+        -----BEGIN PUBLIC KEY-----
+		<PUBLIC KEY>
+        -----END PUBLIC KEY-----
+    ssl:
+      port: -1
+    url: https://uaa.system.cf.local
+# code_snippet cf-minimal-aws end
+# The previous line helps maintain current documentation at http://docs.cloudfoundry.org.
+```
+
+After setting up the manifest, all you need to do is to run:
+
+```
+bosh deploy
+```
+
+If all goes well, your environment should now look like this:
+![Diagram 3](./img/cf-installation-3.jpg)
 
 ###Further Reading
-For more information on how to set up RackHD: 
+For more information on how to set up RackHD: [rackhd.readthedocs.org](rackhd.readthedocs.org)
 
 ###Questions
 There is a slack channel. 
