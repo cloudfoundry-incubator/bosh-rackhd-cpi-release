@@ -3,7 +3,7 @@
     "workflows": [],
     "catalogs": [],
     "persistent_disk": {
-      "disk_cid": "valid_disk_cid_1",
+      "disk_cid": "5665a65a0561790005b77b85-requestid",
       "location": "/dev/sdb",
       "attached": false
     },
@@ -50,6 +50,12 @@
         "service": "ipmi-obm-service"
       }
     ],
+    "persistent_disk": {
+      "pregenerated_disk_cid": "55e79eb14e66816f6152fffb-requestid",
+      "disk_cid": "",
+      "location": "",
+      "attached": false
+    },
     "cid": "vm-1234",
     "sku": "55e79e0e4e66816f6152ffe6",
     "type": "compute",
@@ -61,7 +67,7 @@
     "catalogs": [],
     "cid": "valid_vm_cid_2",
     "persistent_disk": {
-      "disk_cid": "5665a65a0561790005b77b85",
+      "disk_cid": "5665a65a0561790005b77b85-requestid",
       "location": "/dev/sdb",
       "attached": true
     },

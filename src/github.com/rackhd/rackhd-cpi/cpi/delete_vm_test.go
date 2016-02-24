@@ -25,7 +25,7 @@ var _ = Describe("DeleteVM", func() {
 
 	BeforeEach(func() {
 		server, jsonReader, cpiConfig, request = helpers.SetUp(bosh.DELETE_VM)
-		cpiConfig.RequestID = "my_request_id"
+		cpiConfig.RequestID = "requestid"
 	})
 
 	AfterEach(func() {
@@ -58,7 +58,7 @@ var _ = Describe("DeleteVM", func() {
 				server.AppendHandlers(
 					helpers.MakeWorkflowHandlers(
 						"Deprovision",
-						"my_request_id",
+						cpiConfig.RequestID,
 						"55e79ea54e66816f6152fff9",
 					)...,
 				)
@@ -78,7 +78,7 @@ var _ = Describe("DeleteVM", func() {
 				server.AppendHandlers(
 					helpers.MakeWorkflowHandlers(
 						"Deprovision",
-						"my_request_id",
+						cpiConfig.RequestID,
 						"55e79eb14e66816f6152fffb",
 					)...,
 				)
@@ -103,7 +103,7 @@ var _ = Describe("DeleteVM", func() {
 				nodeID := "5665a65a0561790005b77b85"
 				container := rackhdapi.PersistentDiskSettingsContainer{
 					PersistentDisk: rackhdapi.PersistentDiskSettings{
-						DiskCID:    nodeID,
+						DiskCID:    fmt.Sprintf("%s-%s", nodeID, cpiConfig.RequestID),
 						Location:   fmt.Sprintf("/dev/%s", rackhdapi.PersistentDiskLocation),
 						IsAttached: false,
 					},
@@ -120,7 +120,7 @@ var _ = Describe("DeleteVM", func() {
 				server.AppendHandlers(
 					helpers.MakeWorkflowHandlers(
 						"Deprovision",
-						"my_request_id",
+						cpiConfig.RequestID,
 						nodeID,
 					)...,
 				)
