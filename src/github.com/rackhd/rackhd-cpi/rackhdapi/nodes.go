@@ -68,9 +68,10 @@ type PersistentDiskSettingsContainer struct {
 }
 
 type PersistentDiskSettings struct {
-	DiskCID    string `json:"disk_cid"`
-	Location   string `json:"location"`
-	IsAttached bool   `json:"attached"`
+	PregeneratedDiskCID string `json:"pregenerated_disk_cid"`
+	DiskCID             string `json:"disk_cid"`
+	Location            string `json:"location"`
+	IsAttached          bool   `json:"attached"`
 }
 
 type Node struct {

@@ -20,6 +20,7 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		data:   diskSizeInMB,
 		method: FilterBasedOnSizeMethod,
 	}
+	var diskCID string
 	var node rackhdapi.Node
 	if vmCID != "" {
 		node, err = rackhdapi.GetNodeByVMCID(c, vmCID)
@@ -36,17 +37,22 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 			return "", fmt.Errorf("error creating disk: %v", err)
 		}
 
+		if node.PersistentDisk.PregeneratedDiskCID == "" {
+			return "", fmt.Errorf("error creating disk: can not find pregenerated disk cid for VM %s", vmCID)
+		}
+		diskCID = node.PersistentDisk.PregeneratedDiskCID
+
 	} else {
-		nodeID, err := TryReservationWithFilter(c, "", filter, SelectNodeFromRackHD, ReserveNodeFromRackHD)
+		node.ID, err = TryReservationWithFilter(c, "", filter, SelectNodeFromRackHD, ReserveNodeFromRackHD)
 		if err != nil {
 			return "", err
 		}
-		node.ID = nodeID
+		diskCID = fmt.Sprintf("%s-%s", node.ID, c.RequestID)
 	}
 
 	container := rackhdapi.PersistentDiskSettingsContainer{
 		PersistentDisk: rackhdapi.PersistentDiskSettings{
-			DiskCID:    fmt.Sprintf("%s-%s", node.ID, c.RequestID),
+			DiskCID:    diskCID,
 			Location:   fmt.Sprintf("/dev/%s", rackhdapi.PersistentDiskLocation),
 			IsAttached: false,
 		},

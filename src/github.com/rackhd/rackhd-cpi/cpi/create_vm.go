@@ -43,10 +43,38 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		}
 	}
 
+	node, err := rackhdapi.GetNode(c, nodeID)
+	if err != nil {
+		return "", err
+	}
+
+	var diskCID string
+	if node.PersistentDisk.DiskCID == "" {
+		diskCID = fmt.Sprintf("%s-%s", nodeID, c.RequestID)
+
+		container := rackhdapi.PersistentDiskSettingsContainer{
+			PersistentDisk: rackhdapi.PersistentDiskSettings{
+				PregeneratedDiskCID: diskCID,
+			},
+		}
+
+		bodyBytes, err := json.Marshal(container)
+		if err != nil {
+			return "", fmt.Errorf("error marshalling persistent disk information for agent %s", agentID)
+		}
+
+		err = rackhdapi.PatchNode(c, node.ID, bodyBytes)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		diskCID = node.PersistentDisk.DiskCID
+	}
+
 	persistentMetadata := map[string]interface{}{}
 	if _, sdbFound := nodeCatalog.Data.BlockDevices["sdb"]; sdbFound {
 		persistentMetadata = map[string]interface{}{
-			nodeID: map[string]string{
+			diskCID: map[string]string{
 				"path": "/dev/sdb",
 			},
 		}
