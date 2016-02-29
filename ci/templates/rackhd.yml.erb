@@ -12,13 +12,6 @@ compilation:
   reuse_compilation_vms: true
   cloud_properties:
     public_key: <%= properties.public_key %>
-    instance_type: <%= properties.instance_type || 'm1.small' %>
-    <% if properties.key_name %>
-    key_name: <%= properties.key_name %>
-    <% end %>
-    <% if properties.availability_zone %>
-    availability_zone: <%= properties.availability_zone %>
-    <% end %>
 
 update:
   canaries: <%= properties.canaries || 1 %>
