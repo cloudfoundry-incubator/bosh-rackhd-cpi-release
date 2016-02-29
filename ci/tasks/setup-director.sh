@@ -11,6 +11,7 @@ check_param BOSH_DIRECTOR_PUBLIC_KEY
 check_param RACKHD_API_URL
 check_param RACKHD_NETWORK
 check_param CPI_RELEASE_NAME
+check_param DIRECTOR_DEPLOYMENT_NAME
 
 base_dir=${PWD}
 

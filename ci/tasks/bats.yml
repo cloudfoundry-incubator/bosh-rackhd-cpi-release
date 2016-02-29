@@ -19,3 +19,5 @@ params:
   PRIMARY_NETWORK_MANUAL_IP:       replace-me
   SECONDARY_STATIC_IP:             replace-me
   BAT_SPEC:                        replace-me
+  BAT_STEMCELL_NAME:               replace-me
+  BAT_DEPLOYMENT_NAME:             replace-me
