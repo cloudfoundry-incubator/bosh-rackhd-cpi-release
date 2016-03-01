@@ -168,23 +168,25 @@ var _ = Describe("Workflows", func() {
 		Context("when the workflow completes successfully", func() {
 			Describe("SLOW_TEST", func() {
 				It("returns no error", func() {
+					apiServer, err := helpers.GetRackHDHost()
+					Expect(err).ToNot(HaveOccurred())
+					cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
+
 					rejectNodesRunningWorkflows := func(nodes []rackhdapi.Node) []rackhdapi.Node {
 						var n []rackhdapi.Node
 						for i := range nodes {
-							if len(nodes[i].Workflows) == 0 {
+							w, err := rackhdapi.GetActiveWorkflows(cpiConfig, nodes[i].ID)
+							Expect(err).ToNot(HaveOccurred())
+							if w.Name == "" {
 								n = append(n, nodes[i])
 							}
 						}
 						return n
 					}
 
-					apiServer, err := helpers.GetRackHDHost()
-					Expect(err).ToNot(HaveOccurred())
-
 					uuidObj, err := uuid.NewV4()
 					Expect(err).ToNot(HaveOccurred())
 					uuid := uuidObj.String()
-					cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
 
 					allNodes, err := rackhdapi.GetNodes(cpiConfig)
 					Expect(err).ToNot(HaveOccurred())
