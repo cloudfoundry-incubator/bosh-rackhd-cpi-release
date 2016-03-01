@@ -21,6 +21,8 @@
       "sudo tar --to-stdout -xvf {{ options.downloadDir }}/{{ options.stemcellFile }} | sudo dd of={{ options.device }}",
       "sudo sfdisk -R {{ options.device }}",
       "sudo mount {{ options.device }}1 /mnt",
+      "sudo dd if=/dev/zero of={{ options.device }}2 bs=1M count=100",
+      "sudo dd if=/dev/zero of={{ options.device }}3 bs=1M count=100",
       "sudo cp {{ options.downloadDir }}/{{ options.agentSettingsFile }} /mnt/{{ options.agentSettingsPath }}",
       "sudo sync"
     ],
