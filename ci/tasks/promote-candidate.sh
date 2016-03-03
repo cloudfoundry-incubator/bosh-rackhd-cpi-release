@@ -11,7 +11,6 @@ check_param S3_SECRET_ACCESS_KEY
 # Creates an integer version number from the semantic version format
 # May be changed when we decide to fully use semantic versions for releases
 integer_version=`cut -d "." -f1 release-version-semver/number`
-mkdir promote
 echo ${integer_version} > promote/integer_version
 
 pushd bosh-cpi-release
