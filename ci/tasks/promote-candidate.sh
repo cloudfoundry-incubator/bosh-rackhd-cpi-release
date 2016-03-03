@@ -2,7 +2,6 @@
 
 set -e -x
 
-
 source bosh-cpi-release/ci/tasks/utils.sh
 
 check_param S3_ACCESS_KEY_ID
@@ -11,11 +10,9 @@ check_param S3_SECRET_ACCESS_KEY
 # Creates an integer version number from the semantic version format
 # May be changed when we decide to fully use semantic versions for releases
 integer_version=`cut -d "." -f1 release-version-semver/number`
-mkdir -p promote
-echo $integer_version > promote/integer_version
+echo $integer_version > integer_version
 
-cp -r bosh-cpi-release promote/bosh-cpi-release
-cd promote/bosh-cpi-release
+cd bosh-cpi-release
 
 #source /etc/profile.d/chruby.sh
 #chruby 2.1.2
