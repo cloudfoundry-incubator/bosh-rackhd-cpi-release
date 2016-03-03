@@ -14,7 +14,7 @@ integer_version=`cut -d "." -f1 release-version-semver/number`
 mkdir -p promote
 echo $integer_version > promote/integer_version
 
-cp -r bosh-cpi-release promote/repo
+cp -r bosh-cpi-release promote/bosh-cpi-release
 cd promote/bosh-cpi-release
 
 #source /etc/profile.d/chruby.sh
