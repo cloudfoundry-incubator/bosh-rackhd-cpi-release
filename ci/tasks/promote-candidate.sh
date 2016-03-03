@@ -10,7 +10,7 @@ check_param S3_SECRET_ACCESS_KEY
 # Creates an integer version number from the semantic version format
 # May be changed when we decide to fully use semantic versions for releases
 integer_version=`cut -d "." -f1 release-version-semver/number`
-echo $integer_version > integer_version
+echo ${integer_version} > integer_version
 
 cd bosh-cpi-release
 
@@ -33,8 +33,8 @@ echo "using bosh CLI version..."
 bosh version
 
 echo "finalizing CPI release..."
-echo '' | bosh create release --force --with-tarball --version $integer_version
-bosh finalize release dev_releases/bosh-rackhd-cpi/*.tgz --version $integer_version
+echo '' | bosh create release --force --with-tarball --version ${integer_version}
+bosh finalize release dev_releases/bosh-rackhd-cpi/*.tgz --version ${integer_version}
 
 rm config/private.yml
 
@@ -43,4 +43,4 @@ git add .
 
 git config --global user.email emccmd-eng@emc.com
 git config --global user.name EMCCMD-CI
-git commit -m ":airplane: New final release v $integer_version" -m "[ci skip]"
+git commit -m ":airplane: New final release v ${integer_version}" -m "[ci skip]"

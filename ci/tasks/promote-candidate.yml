@@ -5,7 +5,8 @@ inputs:
 - name: bosh-cpi-release
 - name: release-version-semver
 outputs:
-- name: promote
+- name: bosh-cpi-release
+- name: integer_version
 run:
   path: bosh-cpi-release/ci/tasks/promote-candidate.sh
 params:
