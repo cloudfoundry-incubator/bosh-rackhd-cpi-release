@@ -155,37 +155,39 @@ jobs:
   - put: release-version-semver
     params: {file: release-version-semver/number}
 
-
 resources:
-  - &bosh-cpi-release-resource
-    name: bosh-rackhd-cpi-release
+  - name: bosh-rackhd-cpi-release
     type: git
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-rackhd-cpi-release.git
-      branch: WipeSDA3
+      branch: master
       private_key: {{github_key__bosh-rackhd-cpi-release}}
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
 
-  - <<: *bosh-cpi-release-resource
-    name: bosh-cpi-release-out
+  - name: bosh-cpi-release-out
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry-incubator/bosh-rackhd-cpi-release.git
+      branch: master
+      private_key: {{github_key__bosh-rackhd-cpi-release}}
 
   - name: rackhd-openstack-ubuntu-stemcell
     type: s3
     source:
       bucket: concourse-stemcells
       regexp: bosh-stemcell-(3202)-openstack-kvm-ubuntu-trusty-go_agent-raw.tgz
-      access_key_id: AKIAIH5B6ZRG6ITEGXMQ
-      secret_access_key: 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
+      access_key_id: {{s3_access_key_id}}
+      secret_access_key: {{s3_secret_access_key}}
 
   - name: rackhd-openstack-centos-stemcell
     type: s3
     source:
       bucket: concourse-stemcells
       regexp: bosh-stemcell-(3202)-openstack-kvm-centos-7-go_agent-raw.tgz
-      access_key_id: AKIAIH5B6ZRG6ITEGXMQ
-      secret_access_key: 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
+      access_key_id: {{s3_access_key_id}}
+      secret_access_key: {{s3_secret_access_key}}
 
   - name: bosh-acceptance-tests
     type: git
