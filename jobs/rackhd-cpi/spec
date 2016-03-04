@@ -9,9 +9,9 @@ packages:
 - rackhd-cpi
 
 properties:
-  rackhd-cpi.apiserver:
-    description: "API endpoint ip"
-    example: "10.10.10.10"
+  rackhd-cpi.api_url:
+    description: "API endpoint url"
+    example: "http://10.10.10.10:8080"
   rackhd-cpi.agent.mbus:
     description: "Mbus URL used by deployed BOSH agents"
     example: "nats://nats:nats-password@10.254.50.4:4222"
