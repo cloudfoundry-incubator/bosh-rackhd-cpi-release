@@ -24,7 +24,7 @@ func SetUp(cpiRequestType string) (*ghttp.Server, *strings.Reader, config.Cpi, b
 
 	var err error
 	server := ghttp.NewServer()
-	jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1}`, server.URL()))
+	jsonReader := strings.NewReader(fmt.Sprintf(`{"api_url":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost"}, "max_reserve_node_attempts":1}`, server.URL()))
 	request := bosh.CpiRequest{Method: cpiRequestType}
 	cpiConfig, err := config.New(jsonReader, request)
 	Expect(err).ToNot(HaveOccurred())

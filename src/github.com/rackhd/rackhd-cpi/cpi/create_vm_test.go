@@ -673,7 +673,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 			apiServer, err := helpers.GetRackHDHost()
 			Expect(err).ToNot(HaveOccurred())
 
-			jsonReader := strings.NewReader(fmt.Sprintf(`{"apiserver":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_reserve_node_attempts":1}`, apiServer))
+			jsonReader := strings.NewReader(fmt.Sprintf(`{"api_url":"%s", "agent":{"blobstore": {"provider":"local","some": "options"}, "mbus":"localhost", "disks":{"system": "/dev/sda"}}, "max_reserve_node_attempts":1}`, apiServer))
 			c, err := config.New(jsonReader, request)
 			Expect(err).ToNot(HaveOccurred())
 

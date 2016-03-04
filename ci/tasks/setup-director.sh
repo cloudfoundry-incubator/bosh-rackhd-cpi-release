@@ -179,7 +179,7 @@ jobs:
       resurrector_enabled: true
 
     rackhd-cpi:
-      apiserver: "${RACKHD_API_URL}"
+      api_url: "${RACKHD_API_URL}"
       agent:
         mbus: "nats://nats:nats-password@${BOSH_DIRECTOR_PRIVATE_IP}:4222"
         blobstore:
@@ -199,7 +199,7 @@ cloud_provider:
 
   properties:
     rackhd-cpi:
-      apiserver: "${RACKHD_API_URL}"
+      api_url: "${RACKHD_API_URL}"
       agent:
         mbus: "https://mbus:Pbc7ssdfh8w2@0.0.0.0:6868"
         blobstore:

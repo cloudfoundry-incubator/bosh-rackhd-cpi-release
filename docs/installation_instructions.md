@@ -20,9 +20,9 @@ Install BOSH init: <https://bosh.io/docs/install-bosh-init.html>
 
 Download a BOSH OpenStack stemcell for Ubuntu Trusty: <https://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw>
 
-Download the RackHD CPI release: <https://github.com/EMC-CMD/bosh-rackhd-cpi-release> 
+Download the RackHD CPI release: <https://github.com/EMC-CMD/bosh-rackhd-cpi-release>
 
-Then, build a release: 
+Then, build a release:
 
 ```
 $ cd bosh-rackhd-cpi-release
@@ -37,7 +37,7 @@ After prompting you for a passphrase, the command creates a public key, `ssh-key
 
 ### Prepare Manifest for Deployment
 
-Create a file like `redis.yml` below. Update the path to the CPI release file, IP addresses, and public key top match your configuration. 
+Create a file like `redis.yml` below. Update the path to the CPI release file, IP addresses, and public key top match your configuration.
 
 ```
 name: redis
@@ -101,13 +101,13 @@ cloud_provider:
 
   properties:
     rackhd-cpi:
-      apiserver: "RACKHD_SERVER_IP"
+      api_url: "RACKHD_ENDPOINT_URL"
       agent:
         mbus: "https://mbus:mbus-password@0.0.0.0:6868"
         blobstore:
           provider: local
           options: {blobstore_path: /var/vcap/micro_bosh/data/cache}
-        
+
 ```
 
 ### Deploy Redis

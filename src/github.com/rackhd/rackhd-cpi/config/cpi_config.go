@@ -19,7 +19,7 @@ const (
 )
 
 type Cpi struct {
-	ApiServer                 string        `json:"apiserver"`
+	ApiServer                 string        `json:"api_url"`
 	Agent                     AgentConfig   `json:"agent"`
 	MaxReserveNodeAttempts    int           `json:"max_reserve_node_attempts"`
 	RunWorkflowTimeoutSeconds time.Duration `json:"run_workflow_timeout"`
