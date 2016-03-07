@@ -1,0 +1,22 @@
+---
+packages:
+- name: golang
+  version: 9ea522d945c6dc518c77e4b260fb84f7e644167d
+  fingerprint: 9ea522d945c6dc518c77e4b260fb84f7e644167d
+  sha1: 975115e4beac3db5bf5c0013f4ec0b44e93f99d7
+  dependencies: []
+- name: rackhd-cpi
+  version: 311edf8b34123603d12849addb6c5ba17547c127
+  fingerprint: 311edf8b34123603d12849addb6c5ba17547c127
+  sha1: 61ae6973c11e6054d4b67278900f78a6a4abe7bb
+  dependencies:
+  - golang
+jobs:
+- name: rackhd-cpi
+  version: 62f6fac031a235dab3896ac7934fe9d9f57d2a24
+  fingerprint: 62f6fac031a235dab3896ac7934fe9d9f57d2a24
+  sha1: 66e2cb623827d6469125aba2c0a4f21dff29ea6c
+commit_hash: 3fb79ddd
+uncommitted_changes: false
+name: bosh-rackhd-cpi
+version: '15'
