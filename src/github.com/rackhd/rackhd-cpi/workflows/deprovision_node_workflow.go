@@ -72,7 +72,10 @@ type deprovisionNodeWorkflow struct {
 }
 
 func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
-	options := deprovisionNodeWorkflowOptions{}
+	ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
+	options := deprovisionNodeWorkflowOptions{
+		OBMServiceName: &ipmiServiceName,
+	}
 
 	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
 	if err != nil {

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	OMBSettingIPMIServiceName = "ipmi-obm-service"
+	OBMSettingIPMIServiceName = "ipmi-obm-service"
 	OBMSettingAMTServiceName  = "amt-obm-service"
 )
 

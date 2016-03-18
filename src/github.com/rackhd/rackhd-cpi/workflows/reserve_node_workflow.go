@@ -65,7 +65,10 @@ type reserveNodeWorkflow struct {
 }
 
 func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
-	options := reserveNodeWorkflowOptions{}
+	ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
+	options := reserveNodeWorkflowOptions{
+		OBMServiceName: &ipmiServiceName,
+	}
 
 	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
 	if err != nil {
