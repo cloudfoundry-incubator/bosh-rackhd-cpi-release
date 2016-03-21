@@ -72,19 +72,9 @@ type deprovisionNodeWorkflow struct {
 }
 
 func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
-	ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
-	options := deprovisionNodeWorkflowOptions{
-		OBMServiceName: &ipmiServiceName,
-	}
-
-	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
+	options, err := buildDeprovisionNodeWorkflowOptions(c, nodeID)
 	if err != nil {
 		return err
-	}
-
-	if isAMTService {
-		obmName := rackhdapi.OBMSettingAMTServiceName
-		options.OBMServiceName = &obmName
 	}
 
 	req := rackhdapi.RunWorkflowRequestBody{
@@ -157,4 +147,23 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	}
 
 	return [][]byte{deprovisionTaskBytes}, wBytes, nil
+}
+
+func buildDeprovisionNodeWorkflowOptions(c config.Cpi, nodeID string) (deprovisionNodeWorkflowOptions, error) {
+	ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
+	options := deprovisionNodeWorkflowOptions{
+		OBMServiceName: &ipmiServiceName,
+	}
+
+	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
+	if err != nil {
+		return deprovisionNodeWorkflowOptions{}, err
+	}
+
+	if isAMTService {
+		obmName := rackhdapi.OBMSettingAMTServiceName
+		options.OBMServiceName = &obmName
+	}
+
+	return options, nil
 }

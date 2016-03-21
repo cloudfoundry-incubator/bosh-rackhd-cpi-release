@@ -84,7 +84,7 @@ type provisionNodeWorkflow struct {
 }
 
 func RunProvisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, vmCID string, stemcellCID string, wipeDisk bool) error {
-	options, err := buildProvisionWorkflowOptions(c, nodeID, workflowName, vmCID, stemcellCID, wipeDisk)
+	options, err := buildProvisionWorkflowOptions(c, nodeID, vmCID, stemcellCID, wipeDisk)
 	if err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	return [][]byte{pBytes, sBytes}, wBytes, nil
 }
 
-func buildProvisionWorkflowOptions(c config.Cpi, nodeID string, workflowName string, vmCID string, stemcellCID string, wipeDisk bool) (ProvisionNodeWorkflowOptions, error) {
+func buildProvisionWorkflowOptions(c config.Cpi, nodeID string, vmCID string, stemcellCID string, wipeDisk bool) (ProvisionNodeWorkflowOptions, error) {
 	envPath := rackhdapi.RackHDEnvPath
 	ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
 	options := ProvisionNodeWorkflowOptions{

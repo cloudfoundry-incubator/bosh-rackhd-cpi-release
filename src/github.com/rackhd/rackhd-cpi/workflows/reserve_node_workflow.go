@@ -65,19 +65,9 @@ type reserveNodeWorkflow struct {
 }
 
 func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
-	ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
-	options := reserveNodeWorkflowOptions{
-		OBMServiceName: &ipmiServiceName,
-	}
-
-	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
+	options, err := buildReserveNodeWorkflowOptions(c, nodeID)
 	if err != nil {
 		return err
-	}
-
-	if isAMTService {
-		obmName := rackhdapi.OBMSettingAMTServiceName
-		options.OBMServiceName = &obmName
 	}
 
 	req := rackhdapi.RunWorkflowRequestBody{
@@ -146,4 +136,23 @@ func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	}
 
 	return [][]byte{reserveBytes}, wBytes, nil
+}
+
+func buildReserveNodeWorkflowOptions(c config.Cpi, nodeID string) (reserveNodeWorkflowOptions, error) {
+	ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
+	options := reserveNodeWorkflowOptions{
+		OBMServiceName: &ipmiServiceName,
+	}
+
+	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
+	if err != nil {
+		return reserveNodeWorkflowOptions{}, err
+	}
+
+	if isAMTService {
+		obmName := rackhdapi.OBMSettingAMTServiceName
+		options.OBMServiceName = &obmName
+	}
+
+	return options, nil
 }

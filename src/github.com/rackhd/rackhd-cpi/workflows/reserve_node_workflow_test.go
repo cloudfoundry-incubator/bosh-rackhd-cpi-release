@@ -12,14 +12,18 @@ package workflows
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 
 	"github.com/nu7hatch/gouuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
+	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
 var _ = Describe("ReserveNodeWorkflow", func() {
@@ -63,7 +67,23 @@ var _ = Describe("ReserveNodeWorkflow", func() {
 		})
 	})
 
-	Describe("generating the set of provision workflow tasks and workflow", func() {
+	Describe("PublishReserveNodeWorkflow", func() {
+		It("publishes the tasks and workflow", func() {
+			u, err := uuid.NewV4()
+			Expect(err).ToNot(HaveOccurred())
+			uID := u.String()
+
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
+			c := config.Cpi{ApiServer: apiServer, RequestID: uID}
+
+			workflowName, err := PublishReserveNodeWorkflow(c)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(workflowName).To(ContainSubstring(uID))
+		})
+	})
+
+	Describe("generateReserveNodeWorkflow", func() {
 		It("generates the required tasks and workflow with unique names", func() {
 			u, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())
@@ -90,19 +110,62 @@ var _ = Describe("ReserveNodeWorkflow", func() {
 		})
 	})
 
-	Describe("publishing generated reserve node workflow and tasks", func() {
-		It("publishes the tasks and workflow", func() {
-			u, err := uuid.NewV4()
-			Expect(err).ToNot(HaveOccurred())
-			uID := u.String()
+	Describe("buildReserveNodeWorkflowOptions", func() {
+		var server *ghttp.Server
+		var cpiConfig config.Cpi
 
-			apiServer, err := helpers.GetRackHDHost()
-			Expect(err).ToNot(HaveOccurred())
-			c := config.Cpi{ApiServer: apiServer, RequestID: uID}
+		BeforeEach(func() {
+			server, _, cpiConfig, _ = helpers.SetUp("")
+		})
 
-			workflowName, err := PublishReserveNodeWorkflow(c)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(workflowName).To(ContainSubstring(uID))
+		Context("when the node uses IPMI", func() {
+			It("sets the OBM settings to IPMI", func() {
+				expectedNode := helpers.LoadNode("../spec_assets/dummy_one_node_with_ipmi_response.json")
+				expectedNodeData, err := json.Marshal(expectedNode)
+				Expect(err).ToNot(HaveOccurred())
+
+				nodeID := "5665a65a0561790005b77b85"
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+						ghttp.RespondWith(http.StatusOK, expectedNodeData),
+					),
+				)
+
+				ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
+				expectedOptions := reserveNodeWorkflowOptions{
+					OBMServiceName: &ipmiServiceName,
+				}
+
+				options, err := buildReserveNodeWorkflowOptions(cpiConfig, nodeID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(options).To(Equal(expectedOptions))
+			})
+		})
+
+		Context("when the node uses AMT", func() {
+			It("sets the OMB settings to AMT", func() {
+				expectedNode := helpers.LoadNode("../spec_assets/dummy_one_node_response.json")
+				expectedNodeData, err := json.Marshal(expectedNode)
+				Expect(err).ToNot(HaveOccurred())
+
+				nodeID := "5665a65a0561790005b77b85"
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+						ghttp.RespondWith(http.StatusOK, expectedNodeData),
+					),
+				)
+
+				ipmiServiceName := rackhdapi.OBMSettingAMTServiceName
+				expectedOptions := reserveNodeWorkflowOptions{
+					OBMServiceName: &ipmiServiceName,
+				}
+
+				options, err := buildReserveNodeWorkflowOptions(cpiConfig, nodeID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(options).To(Equal(expectedOptions))
+			})
 		})
 	})
 })
