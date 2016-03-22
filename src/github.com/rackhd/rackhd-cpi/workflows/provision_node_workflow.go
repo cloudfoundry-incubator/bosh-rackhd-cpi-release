@@ -181,25 +181,19 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 
 func buildProvisionWorkflowOptions(c config.Cpi, nodeID string, vmCID string, stemcellCID string, wipeDisk bool) (ProvisionNodeWorkflowOptions, error) {
 	envPath := rackhdapi.RackHDEnvPath
-	ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
 	options := ProvisionNodeWorkflowOptions{
 		AgentSettingsFile: &nodeID,
 		AgentSettingsPath: &envPath,
 		CID:               &vmCID,
 		StemcellFile:      &stemcellCID,
 		WipeDisk:          strconv.FormatBool(wipeDisk),
-		OBMServiceName:    &ipmiServiceName,
 	}
 
-	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
+	obmServiceName, err := rackhdapi.GetOBMServiceName(c, nodeID)
 	if err != nil {
 		return ProvisionNodeWorkflowOptions{}, fmt.Errorf("error retrieving obm settings from node: %s", nodeID)
 	}
-
-	if isAMTService {
-		obmName := rackhdapi.OBMSettingAMTServiceName
-		options.OBMServiceName = &obmName
-	}
+	options.OBMServiceName = &obmServiceName
 
 	return options, nil
 }

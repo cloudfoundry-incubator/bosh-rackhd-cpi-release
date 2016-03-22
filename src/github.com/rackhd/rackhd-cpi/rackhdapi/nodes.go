@@ -180,19 +180,13 @@ func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {
 	return node.OBMSettings, nil
 }
 
-func IsAMTService(c config.Cpi, nodeID string) (bool, error) {
+func GetOBMServiceName(c config.Cpi, nodeID string) (string, error) {
 	obmSettings, err := GetOBMSettings(c, nodeID)
 	if err != nil {
-		return false, fmt.Errorf("error retrieving obm settings of node: %s, error: %v", nodeID, err)
+		return "", fmt.Errorf("error retrieving obm settings of node: %s, error: %v", nodeID, err)
 	}
 
-	for _, setting := range obmSettings {
-		if setting.ServiceName == OBMSettingAMTServiceName {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return obmSettings[0].ServiceName, nil
 }
 
 func ReleaseNode(c config.Cpi, nodeID string) error {

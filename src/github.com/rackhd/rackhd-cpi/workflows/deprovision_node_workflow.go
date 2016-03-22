@@ -150,20 +150,13 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 }
 
 func buildDeprovisionNodeWorkflowOptions(c config.Cpi, nodeID string) (deprovisionNodeWorkflowOptions, error) {
-	ipmiServiceName := rackhdapi.OBMSettingIPMIServiceName
-	options := deprovisionNodeWorkflowOptions{
-		OBMServiceName: &ipmiServiceName,
-	}
+	options := deprovisionNodeWorkflowOptions{}
 
-	isAMTService, err := rackhdapi.IsAMTService(c, nodeID)
+	obmServiceName, err := rackhdapi.GetOBMServiceName(c, nodeID)
 	if err != nil {
 		return deprovisionNodeWorkflowOptions{}, err
 	}
-
-	if isAMTService {
-		obmName := rackhdapi.OBMSettingAMTServiceName
-		options.OBMServiceName = &obmName
-	}
+	options.OBMServiceName = &obmServiceName
 
 	return options, nil
 }

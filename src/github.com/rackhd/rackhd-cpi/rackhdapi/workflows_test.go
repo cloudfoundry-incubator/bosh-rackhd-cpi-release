@@ -227,12 +227,8 @@ var _ = Describe("Workflows", func() {
 				i := rand.Intn(len(idleNodes))
 				nodeID = idleNodes[i].ID
 
-				obm = rackhdapi.OBMSettingIPMIServiceName
-				amt, err := rackhdapi.IsAMTService(cpiConfig, nodeID)
+				obm, err = rackhdapi.GetOBMServiceName(cpiConfig, nodeID)
 				Expect(err).ToNot(HaveOccurred())
-				if amt {
-					obm = rackhdapi.OBMSettingAMTServiceName
-				}
 
 				uuidObj, err := uuid.NewV4()
 				Expect(err).ToNot(HaveOccurred())

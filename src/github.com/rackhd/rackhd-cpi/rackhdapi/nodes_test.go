@@ -136,26 +136,6 @@ var _ = Describe("Nodes", func() {
 		})
 	})
 
-	Describe("IsAMTService", func() {
-		It("returns true if the node's obm settings is amt", func() {
-			dummyResponsePath := "../spec_assets/dummy_one_node_response.json"
-			httpResponse := helpers.LoadJSON(dummyResponsePath)
-
-			nodeID := "nodeID"
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
-					ghttp.RespondWith(http.StatusOK, httpResponse),
-				),
-			)
-
-			amtService, err := rackhdapi.IsAMTService(cpiConfig, nodeID)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(server.ReceivedRequests()).To(HaveLen(1))
-			Expect(amtService).To(BeTrue())
-		})
-	})
-
 	Describe("Getting catalog", func() {
 		It("returns a catalog", func() {
 			expectedNodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
