@@ -1,0 +1,37 @@
+{
+  "friendlyName": "Testing",
+  "injectableName": "Test.Success.CF.Fake.",
+  "options": {
+    "defaults": {
+      "obmServiceName": null
+    }
+  },
+  "tasks": [
+    {
+      "label": "set-boot-pxe",
+      "taskName": "Task.Obm.Node.PxeBoot",
+      "ignoreFailure": true
+    },
+    {
+      "label": "reboot",
+      "taskName": "Task.Obm.Node.Reboot",
+      "waitOn": {
+        "set-boot-pxe": "finished"
+      }
+    },
+    {
+      "label": "bootstrap-ubuntu",
+      "taskName": "Task.Linux.Bootstrap.Ubuntu",
+      "waitOn": {
+        "reboot": "succeeded"
+      }
+    },
+    {
+      "label": "fake-failure-task-label",
+      "taskName": "Requests.Test.Dummy.Timeout.",
+      "waitOn": {
+        "set-boot-pxe": "succeeded"
+      }
+    }
+  ]
+}

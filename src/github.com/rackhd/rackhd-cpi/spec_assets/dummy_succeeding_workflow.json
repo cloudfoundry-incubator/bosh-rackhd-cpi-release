@@ -1,0 +1,16 @@
+{
+  "friendlyName": "Testing",
+  "injectableName": "Test.Success.CF.Fake.",
+  "options": {
+    "defaults": {
+      "obmServiceName": null
+    }
+  },
+  "tasks": [
+    {
+      "label": "set-boot-pxe",
+      "taskName": "Task.Obm.Node.PxeBoot",
+      "ignoreFailure": true
+    }
+  ]
+}

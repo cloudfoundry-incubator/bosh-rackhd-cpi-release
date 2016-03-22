@@ -81,6 +81,7 @@ type workflowPosterFunc func(config.Cpi, string, RunWorkflowRequestBody) (Workfl
 func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 	url := fmt.Sprintf("%s/api/1.1/workflows", c.ApiServer)
 
+	log.Debug(fmt.Sprintf("workflow to publish: %s", string(workflowBytes)))
 	request, err := http.NewRequest("PUT", url, bytes.NewReader(workflowBytes))
 	request.Close = true
 
@@ -109,7 +110,7 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("error unmarshalling workflow: %s", err)
 	}
-	log.Debug("workflow to publish: %+v", workflowStub)
+	log.Debug("workflow received after publishing: %s", string(workflowBytes))
 
 	publishedWorkflowsBytes, err := RetrieveWorkflows(c)
 	if err != nil {

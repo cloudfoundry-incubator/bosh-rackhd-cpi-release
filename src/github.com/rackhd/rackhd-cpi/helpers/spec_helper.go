@@ -51,6 +51,25 @@ func LoadJSON(nodePath string) []byte {
 	return dummyResponseBytes
 }
 
+func LoadStruct(filePath string, o interface{}) interface{} {
+	dummyResponseBytes := LoadJSON(filePath)
+
+	err := json.Unmarshal(dummyResponseBytes, o)
+	Expect(err).ToNot(HaveOccurred())
+
+	return o
+}
+
+func LoadWorkflow(workflowPath string) rackhdapi.Workflow {
+	workflow := rackhdapi.Workflow{}
+	return *LoadStruct(workflowPath, &workflow).(*rackhdapi.Workflow)
+}
+
+func LoadTask(taskPath string) rackhdapi.Task {
+	task := rackhdapi.Task{}
+	return *LoadStruct(taskPath, &task).(*rackhdapi.Task)
+}
+
 func LoadNodes(nodePath string) []rackhdapi.Node {
 	dummyResponseBytes := LoadJSON(nodePath)
 
@@ -62,28 +81,13 @@ func LoadNodes(nodePath string) []rackhdapi.Node {
 }
 
 func LoadNode(nodePath string) rackhdapi.Node {
-	dummyResponseBytes := LoadJSON(nodePath)
-
 	node := rackhdapi.Node{}
-	err := json.Unmarshal(dummyResponseBytes, &node)
-	Expect(err).ToNot(HaveOccurred())
-
-	return node
+	return *LoadStruct(nodePath, &node).(*rackhdapi.Node)
 }
 
 func LoadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
-	dummyCatalogfile, err := os.Open(nodeCatalogPath)
-	Expect(err).ToNot(HaveOccurred())
-	defer dummyCatalogfile.Close()
-
-	b, err := ioutil.ReadAll(dummyCatalogfile)
-	Expect(err).ToNot(HaveOccurred())
-
 	nodeCatalog := rackhdapi.NodeCatalog{}
-
-	err = json.Unmarshal(b, &nodeCatalog)
-	Expect(err).ToNot(HaveOccurred())
-	return nodeCatalog
+	return *LoadStruct(nodeCatalogPath, &nodeCatalog).(*rackhdapi.NodeCatalog)
 }
 
 func MakeTryReservationHandlers(requestID string, nodeID string, expectedNodesPath string, expectedNodeCatalogPath string) []http.HandlerFunc {

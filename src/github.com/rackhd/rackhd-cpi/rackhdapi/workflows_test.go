@@ -14,7 +14,6 @@ import (
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
-	"github.com/rackhd/rackhd-cpi/workflows"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -78,7 +77,6 @@ var _ = Describe("Workflows", func() {
 	})
 
 	Describe("WorkflowFetcher", func() {
-
 		It("returns the workflow with the specified ID", func() {
 			httpResponse := helpers.LoadJSON("../spec_assets/dummy_workflow_response.json")
 			var expectedResponse rackhdapi.WorkflowResponse
@@ -165,119 +163,107 @@ var _ = Describe("Workflows", func() {
 	})
 
 	Describe("RunWorkflow", func() {
-		Context("when the workflow completes successfully", func() {
-			Describe("SLOW_TEST", func() {
+		Context("when the workflow completes with valid status", func() {
+			It("returns", func() {
+				workflowResponseFile, err := os.Open("../spec_assets/dummy_completed_workflow_response.json")
+				Expect(err).ToNot(HaveOccurred())
+				defer workflowResponseFile.Close()
+
+				workflowResponseBytes, err := ioutil.ReadAll(workflowResponseFile)
+				Expect(err).ToNot(HaveOccurred())
+
+				var wr rackhdapi.WorkflowResponse
+				err = json.Unmarshal(workflowResponseBytes, &wr)
+				Expect(err).ToNot(HaveOccurred())
+
+				fakeWorkflowPoster := func(config.Cpi, string, rackhdapi.RunWorkflowRequestBody) (rackhdapi.WorkflowResponse, error) {
+					return wr, nil
+				}
+
+				fakeWorkflowFetcher := func(config.Cpi, string) (rackhdapi.WorkflowResponse, error) {
+					return wr, nil
+				}
+
+				c := config.Cpi{RunWorkflowTimeoutSeconds: 5}
+				err = rackhdapi.RunWorkflow(fakeWorkflowPoster, fakeWorkflowFetcher, c, "nodeID", rackhdapi.RunWorkflowRequestBody{})
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Describe("INTEGRATION", func() {
+			var idleNodes []rackhdapi.Node
+			var cpiConfig config.Cpi
+			var nodeID string
+			var obm string
+			var guid string
+
+			type Options struct {
+				OBMServiceName *string `json:"obmServiceName"`
+			}
+
+			BeforeEach(func() {
+				apiServer, err := helpers.GetRackHDHost()
+				Expect(err).ToNot(HaveOccurred())
+				cpiConfig = config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
+
+				rejectNodesRunningWorkflows := func(nodes []rackhdapi.Node) []rackhdapi.Node {
+					var n []rackhdapi.Node
+					for i := range nodes {
+						w, err := rackhdapi.GetActiveWorkflows(cpiConfig, nodes[i].ID)
+						Expect(err).ToNot(HaveOccurred())
+						if w.Name == "" {
+							n = append(n, nodes[i])
+						}
+					}
+					return n
+				}
+
+				allNodes, err := rackhdapi.GetNodes(cpiConfig)
+				Expect(err).ToNot(HaveOccurred())
+				idleNodes = rejectNodesRunningWorkflows(allNodes)
+
+				t := time.Now()
+				rand.Seed(t.Unix())
+				i := rand.Intn(len(idleNodes))
+				nodeID = idleNodes[i].ID
+
+				obm = rackhdapi.OBMSettingIPMIServiceName
+				amt, err := rackhdapi.IsAMTService(cpiConfig, nodeID)
+				Expect(err).ToNot(HaveOccurred())
+				if amt {
+					obm = rackhdapi.OBMSettingAMTServiceName
+				}
+
+				uuidObj, err := uuid.NewV4()
+				Expect(err).ToNot(HaveOccurred())
+				guid = uuidObj.String()
+			})
+
+			Context("when the workflow completes successfully", func() {
 				It("returns no error", func() {
-					apiServer, err := helpers.GetRackHDHost()
-					Expect(err).ToNot(HaveOccurred())
-					cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
+					fakeWorkflow := helpers.LoadWorkflow("../spec_assets/dummy_succeeding_workflow.json")
+					fakeWorkflow.Name = fmt.Sprintf("Test.Success.CF.Fake.%s", guid)
 
-					rejectNodesRunningWorkflows := func(nodes []rackhdapi.Node) []rackhdapi.Node {
-						var n []rackhdapi.Node
-						for i := range nodes {
-							w, err := rackhdapi.GetActiveWorkflows(cpiConfig, nodes[i].ID)
-							Expect(err).ToNot(HaveOccurred())
-							if w.Name == "" {
-								n = append(n, nodes[i])
-							}
-						}
-						return n
-					}
-
-					uuidObj, err := uuid.NewV4()
-					Expect(err).ToNot(HaveOccurred())
-					uuid := uuidObj.String()
-
-					allNodes, err := rackhdapi.GetNodes(cpiConfig)
-					Expect(err).ToNot(HaveOccurred())
-
-					idleNodes := rejectNodesRunningWorkflows(allNodes)
-					t := time.Now()
-					rand.Seed(t.Unix())
-
-					i := rand.Intn(len(idleNodes))
-					nodeID := idleNodes[i].ID
-
-					fakeWorkflowName := fmt.Sprintf("Test.Success.CF.Fake.%s", uuid)
-					fakeTasks := []rackhdapi.WorkflowTask{
-						rackhdapi.WorkflowTask{
-							TaskName:      workflows.SetPxeBootTaskName,
-							Label:         "set-boot-pxe",
-							IgnoreFailure: true,
-						},
-					}
-
-					fakeWorkflowStub := rackhdapi.WorkflowStub{
-						Name:       fakeWorkflowName,
-						UnusedName: rackhdapi.DefaultUnusedName,
-						Tasks:      fakeTasks,
-					}
-
-					fakeWorkflowStubBytes, err := json.Marshal(fakeWorkflowStub)
+					fakeWorkflowStubBytes, err := json.Marshal(fakeWorkflow)
 					Expect(err).ToNot(HaveOccurred())
 
 					err = rackhdapi.PublishWorkflow(cpiConfig, fakeWorkflowStubBytes)
 					Expect(err).ToNot(HaveOccurred())
 
 					body := rackhdapi.RunWorkflowRequestBody{
-						Name: fakeWorkflowName,
+						Name:    fakeWorkflow.Name,
+						Options: map[string]interface{}{"defaults": Options{OBMServiceName: &obm}},
 					}
 
 					err = rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, cpiConfig, nodeID, body)
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})
-		})
 
-		Context("when the workflow completes with failure", func() {
-			Describe("SLOW_TEST", func() {
+			Context("when the workflow completes with failure", func() {
 				It("returns an error", func() {
-					rejectNodesRunningWorkflows := func(nodes []rackhdapi.Node) []rackhdapi.Node {
-						var n []rackhdapi.Node
-						for i := range nodes {
-							if len(nodes[i].Workflows) == 0 {
-								n = append(n, nodes[i])
-							}
-						}
-						return n
-					}
-
-					apiServer, err := helpers.GetRackHDHost()
-					Expect(err).ToNot(HaveOccurred())
-
-					uuidObj, err := uuid.NewV4()
-					Expect(err).ToNot(HaveOccurred())
-					uuid := uuidObj.String()
-					cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 10 * 60}
-
-					allNodes, err := rackhdapi.GetNodes(cpiConfig)
-					Expect(err).ToNot(HaveOccurred())
-
-					idleNodes := rejectNodesRunningWorkflows(allNodes)
-					t := time.Now()
-					rand.Seed(t.Unix())
-
-					i := rand.Intn(len(idleNodes))
-					nodeID := idleNodes[i].ID
-
-					dummyTaskFile, err := os.Open("../spec_assets/dummy_failing_task.json")
-					Expect(err).ToNot(HaveOccurred())
-					defer dummyTaskFile.Close()
-
-					b, err := ioutil.ReadAll(dummyTaskFile)
-					Expect(err).ToNot(HaveOccurred())
-
-					dummyTask := struct {
-						*rackhdapi.TaskStub
-						*rackhdapi.OptionContainer
-						*rackhdapi.PropertyContainer
-					}{}
-
-					err = json.Unmarshal(b, &dummyTask)
-					Expect(err).ToNot(HaveOccurred())
-
-					dummyTaskName := fmt.Sprintf("Requests.Test.Dummy.Failure.%s", uuid)
-					dummyTask.Name = dummyTaskName
+					dummyTask := helpers.LoadTask("../spec_assets/dummy_failing_task.json")
+					dummyTask.Name += guid
 
 					dummyTaskBytes, err := json.Marshal(dummyTask)
 					Expect(err).ToNot(HaveOccurred())
@@ -285,105 +271,32 @@ var _ = Describe("Workflows", func() {
 					err = rackhdapi.PublishTask(cpiConfig, dummyTaskBytes)
 					Expect(err).ToNot(HaveOccurred())
 
-					fakeTasks := []rackhdapi.WorkflowTask{
-						rackhdapi.WorkflowTask{
-							TaskName: workflows.SetPxeBootTaskName,
-							Label:    "set-boot-pxe",
-						},
-						rackhdapi.WorkflowTask{
-							TaskName: workflows.RebootNodeTaskName,
-							Label:    "reboot",
-							WaitOn: map[string]string{
-								"set-boot-pxe": "finished",
-							},
-						},
-						rackhdapi.WorkflowTask{
-							TaskName: workflows.BootstrapUbuntuTaskName,
-							Label:    "bootstrap-ubuntu",
-							WaitOn: map[string]string{
-								"reboot": "succeeded",
-							},
-						},
-						rackhdapi.WorkflowTask{
-							TaskName: dummyTaskName,
-							Label:    "fake-failure-task-label",
-							WaitOn: map[string]string{
-								"bootstrap-ubuntu": "succeeded",
-							},
-						},
-					}
+					fakeWorkflow := helpers.LoadWorkflow("../spec_assets/dummy_failing_workflow.json")
+					fakeWorkflow.Name += guid
+					fakeWorkflow.Tasks[3].TaskName += guid
 
-					fakeWorkflowName := fmt.Sprintf("Test.Failure.CF.Fake.%s", uuid)
-					fakeWorkflowStub := rackhdapi.WorkflowStub{
-						Name:       fakeWorkflowName,
-						UnusedName: rackhdapi.DefaultUnusedName,
-						Tasks:      fakeTasks,
-					}
-
-					fakeWorkflowStubBytes, err := json.Marshal(fakeWorkflowStub)
+					fakeWorkflowBytes, err := json.Marshal(fakeWorkflow)
 					Expect(err).ToNot(HaveOccurred())
 
-					err = rackhdapi.PublishWorkflow(cpiConfig, fakeWorkflowStubBytes)
+					err = rackhdapi.PublishWorkflow(cpiConfig, fakeWorkflowBytes)
 					Expect(err).ToNot(HaveOccurred())
 
 					body := rackhdapi.RunWorkflowRequestBody{
-						Name: fakeWorkflowName,
+						Name:    fakeWorkflow.Name,
+						Options: map[string]interface{}{"defaults": Options{OBMServiceName: &obm}},
 					}
 
 					err = rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, cpiConfig, nodeID, body)
 					Expect(err).To(HaveOccurred())
 				})
 			})
-		})
 
-		Context("when the workflow does not complete in the configurable timeout", func() {
-			Describe("SLOW_TEST", func() {
+			Context("when the workflow does not complete in the configurable timeout", func() {
 				It("returns an error", func() {
-					rejectNodesRunningWorkflows := func(nodes []rackhdapi.Node) []rackhdapi.Node {
-						var n []rackhdapi.Node
-						for i := range nodes {
-							if len(nodes[i].Workflows) == 0 {
-								n = append(n, nodes[i])
-							}
-						}
-						return n
-					}
-					apiServer, err := helpers.GetRackHDHost()
-					Expect(err).ToNot(HaveOccurred())
+					cpiConfig.RunWorkflowTimeoutSeconds = 1
 
-					uuidObj, err := uuid.NewV4()
-					Expect(err).ToNot(HaveOccurred())
-					uuid := uuidObj.String()
-					cpiConfig := config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 1}
-
-					allNodes, err := rackhdapi.GetNodes(cpiConfig)
-					Expect(err).ToNot(HaveOccurred())
-
-					idleNodes := rejectNodesRunningWorkflows(allNodes)
-					t := time.Now()
-					rand.Seed(t.Unix())
-
-					i := rand.Intn(len(idleNodes))
-					nodeID := idleNodes[i].ID
-
-					dummyTaskFile, err := os.Open("../spec_assets/dummy_timeout_task.json")
-					Expect(err).ToNot(HaveOccurred())
-					defer dummyTaskFile.Close()
-
-					b, err := ioutil.ReadAll(dummyTaskFile)
-					Expect(err).ToNot(HaveOccurred())
-
-					dummyTask := struct {
-						*rackhdapi.TaskStub
-						*rackhdapi.OptionContainer
-						*rackhdapi.PropertyContainer
-					}{}
-
-					err = json.Unmarshal(b, &dummyTask)
-					Expect(err).ToNot(HaveOccurred())
-
-					dummyTaskName := fmt.Sprintf("Requests.Test.Dummy.Timeout.%s", uuid)
-					dummyTask.Name = dummyTaskName
+					dummyTask := helpers.LoadTask("../spec_assets/dummy_timeout_task.json")
+					dummyTask.Name += guid
 
 					dummyTaskBytes, err := json.Marshal(dummyTask)
 					Expect(err).ToNot(HaveOccurred())
@@ -391,54 +304,25 @@ var _ = Describe("Workflows", func() {
 					err = rackhdapi.PublishTask(cpiConfig, dummyTaskBytes)
 					Expect(err).ToNot(HaveOccurred())
 
-					fakeTasks := []rackhdapi.WorkflowTask{
-						rackhdapi.WorkflowTask{
-							TaskName: workflows.SetPxeBootTaskName,
-							Label:    "set-boot-pxe",
-						},
-						rackhdapi.WorkflowTask{
-							TaskName: workflows.RebootNodeTaskName,
-							Label:    "reboot",
-							WaitOn: map[string]string{
-								"set-boot-pxe": "finished",
-							},
-						},
-						rackhdapi.WorkflowTask{
-							TaskName: workflows.BootstrapUbuntuTaskName,
-							Label:    "bootstrap-ubuntu",
-							WaitOn: map[string]string{
-								"reboot": "succeeded",
-							},
-						},
-						rackhdapi.WorkflowTask{
-							TaskName: dummyTaskName,
-							Label:    "fake-timeout-task-label",
-							WaitOn: map[string]string{
-								"bootstrap-ubuntu": "succeeded",
-							},
-						},
-					}
+					fakeWorkflow := helpers.LoadWorkflow("../spec_assets/dummy_failing_workflow.json")
+					fakeWorkflow.Name += guid
+					fakeWorkflow.Tasks[3].TaskName += guid
 
-					fakeWorkflowName := fmt.Sprintf("Test.Timeout.CF.Fake.%s", uuid)
-					fakeWorkflowStub := rackhdapi.WorkflowStub{
-						Name:       fakeWorkflowName,
-						UnusedName: rackhdapi.DefaultUnusedName,
-						Tasks:      fakeTasks,
-					}
-
-					fakeWorkflowStubBytes, err := json.Marshal(fakeWorkflowStub)
+					fakeWorkflowBytes, err := json.Marshal(fakeWorkflow)
 					Expect(err).ToNot(HaveOccurred())
 
-					err = rackhdapi.PublishWorkflow(cpiConfig, fakeWorkflowStubBytes)
+					err = rackhdapi.PublishWorkflow(cpiConfig, fakeWorkflowBytes)
 					Expect(err).ToNot(HaveOccurred())
 
 					body := rackhdapi.RunWorkflowRequestBody{
-						Name: fakeWorkflowName,
+						Name:    fakeWorkflow.Name,
+						Options: map[string]interface{}{"defaults": Options{OBMServiceName: &obm}},
 					}
 
 					err = rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, cpiConfig, nodeID, body)
 					Expect(err).To(HaveOccurred())
 
+					time.Sleep(10 * time.Millisecond)
 					Eventually(func() int {
 						url := fmt.Sprintf("%s/api/1.1/nodes/%s/workflows/active", cpiConfig.ApiServer, nodeID)
 						resp, err := http.Get(url)
@@ -447,35 +331,6 @@ var _ = Describe("Workflows", func() {
 
 						return resp.StatusCode
 					}, 10*time.Second, time.Second).Should(Equal(204))
-				})
-			})
-		})
-
-		Context("when the workflow completes with valid status", func() {
-			Describe("SLOW_TEST", func() {
-				It("returns", func() {
-					workflowResponseFile, err := os.Open("../spec_assets/dummy_completed_workflow_response.json")
-					Expect(err).ToNot(HaveOccurred())
-					defer workflowResponseFile.Close()
-
-					workflowResponseBytes, err := ioutil.ReadAll(workflowResponseFile)
-					Expect(err).ToNot(HaveOccurred())
-
-					var wr rackhdapi.WorkflowResponse
-					err = json.Unmarshal(workflowResponseBytes, &wr)
-					Expect(err).ToNot(HaveOccurred())
-
-					fakeWorkflowPoster := func(config.Cpi, string, rackhdapi.RunWorkflowRequestBody) (rackhdapi.WorkflowResponse, error) {
-						return wr, nil
-					}
-
-					fakeWorkflowFetcher := func(config.Cpi, string) (rackhdapi.WorkflowResponse, error) {
-						return wr, nil
-					}
-
-					c := config.Cpi{RunWorkflowTimeoutSeconds: 5}
-					err = rackhdapi.RunWorkflow(fakeWorkflowPoster, fakeWorkflowFetcher, c, "nodeID", rackhdapi.RunWorkflowRequestBody{})
-					Expect(err).ToNot(HaveOccurred())
 				})
 			})
 		})

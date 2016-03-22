@@ -13,6 +13,12 @@ import (
 	"github.com/rackhd/rackhd-cpi/config"
 )
 
+type Task struct {
+	TaskStub
+	OptionContainer
+	PropertyContainer
+}
+
 type TaskStub struct {
 	Name           string `json:"injectableName"`
 	UnusedName     string `json:"friendlyName"`
