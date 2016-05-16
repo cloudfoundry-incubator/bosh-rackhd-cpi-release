@@ -9,7 +9,7 @@ var setNodeIDTemplate = []byte(`{
   "options": {
     "cid": null,
     "commands":[
-      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'"
+      "curl -X PATCH {{ server.apiServerURI }}/api/1.1/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'"
     ]
   },
   "properties": {}

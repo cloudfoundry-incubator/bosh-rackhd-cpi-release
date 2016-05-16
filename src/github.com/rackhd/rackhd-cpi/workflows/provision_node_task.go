@@ -8,15 +8,15 @@ var provisionNodeTemplate = []byte(`{
   "injectableName": "Task.BOSH.Provision.Node",
   "options": {
     "agentSettingsFile": null,
-    "agentSettingsMd5Uri": "{{ api.files }}/md5/{{ options.agentSettingsFile }}/latest",
+    "agentSettingsMd5Uri": "/api/1.1/files/md5/{{ options.agentSettingsFile }}/latest",
     "agentSettingsPath": null,
-    "agentSettingsUri": "{{ api.files }}/{{ options.agentSettingsFile }}/latest",
+    "agentSettingsUri": "/api/1.1/files/{{ options.agentSettingsFile }}/latest",
     "commands": [
       "if {{ options.wipeDisk }}; then sudo dd if=/dev/zero of={{ options.persistent }} bs=1M count=100; fi",
-      "curl --retry 3 {{ options.stemcellUri }} -o {{ options.downloadDir }}/{{ options.stemcellFile }}",
-      "curl --retry 3 {{ options.agentSettingsUri }} -o {{ options.downloadDir }}/{{ options.agentSettingsFile }}",
-      "curl {{ options.stemcellFileMd5Uri }} | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
-      "curl {{ options.agentSettingsMd5Uri }} | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5",
+      "curl --retry 3 {{ server.apiServerURI }}{{ options.stemcellUri }} -o {{ options.downloadDir }}/{{ options.stemcellFile }}",
+      "curl --retry 3 {{ server.apiServerURI }}{{ options.agentSettingsUri }} -o {{ options.downloadDir }}/{{ options.agentSettingsFile }}",
+      "curl {{ server.apiServerURI }}{{ options.stemcellFileMd5Uri }} | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5",
+      "curl {{ server.apiServerURI }}{{ options.agentSettingsMd5Uri }} | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5",
       "md5sum {{ options.downloadDir }}/{{ options.stemcellFile }} | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5",
       "md5sum {{ options.downloadDir }}/{{ options.agentSettingsFile }} | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5",
       "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)",
@@ -34,8 +34,8 @@ var provisionNodeTemplate = []byte(`{
     "downloadDir": "/opt/downloads",
     "persistent": "/dev/sdb",
     "stemcellFile": null,
-    "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
-    "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest",
+    "stemcellFileMd5Uri": "/api/1.1/files/md5/{{ options.stemcellFile }}/latest",
+    "stemcellUri": "/api/1.1/files/{{ options.stemcellFile }}/latest",
     "wipeDisk": "true"
   },
   "properties": {}

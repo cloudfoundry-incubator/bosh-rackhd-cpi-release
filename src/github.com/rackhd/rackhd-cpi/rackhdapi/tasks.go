@@ -26,10 +26,10 @@ type TaskStub struct {
 }
 
 type WorkflowTask struct {
-	TaskName      string            `json:"taskName"`
-	Label         string            `json:"label"`
-	WaitOn        map[string]string `json:"waitOn,omitempty"`
-	IgnoreFailure bool              `json:"ignoreFailure,omitempty"`
+	TaskName      string                 `json:"taskName"`
+	Label         string                 `json:"label"`
+	WaitOn        map[string]interface{} `json:"waitOn,omitempty"`
+	IgnoreFailure bool                   `json:"ignoreFailure,omitempty"`
 }
 
 type TaskResponse struct {

@@ -10,7 +10,7 @@ var deprovisionNodeTaskTemplate = []byte(`{
     "type": "quick",
     "commands": [
         "sudo dd if=/dev/zero of=/dev/sda bs=1M count=100",
-        "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"\", \"metadata\": \"\"}'"
+        "curl -X PATCH {{ server.apiServerURI }}/api/1.1/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"\", \"metadata\": \"\"}'"
     ]
   },
   "properties": {}

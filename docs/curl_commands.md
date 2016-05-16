@@ -16,7 +16,7 @@ curl RACKHD_API_URL/api/common/workflows/tasks/library | jq '.[] | select(.injec
 
 ### Finding workflow by name
 ```
-curl RACKHD_API_URL/api/common/workflows/library | jq '.[] | select(.injectableName == "Graph.CF.DeleteVM")'
+curl RACKHD_API_URL/api/common/workflows | jq '.[] | select(.injectableName == "Graph.CF.DeleteVM")'
 ```
 
 ### Checking status of workflows

@@ -143,7 +143,7 @@ func MakeWorkflowHandlers(workflow string, requestID string, nodeID string) []ht
 		),
 		ghttp.VerifyRequest("PUT", "/api/1.1/workflows"),
 		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("GET", "/api/1.1/workflows/library"),
+			ghttp.VerifyRequest("GET", "/api/1.1/workflows"),
 			ghttp.RespondWith(http.StatusOK, workflowStubData),
 		),
 		ghttp.CombineHandlers(

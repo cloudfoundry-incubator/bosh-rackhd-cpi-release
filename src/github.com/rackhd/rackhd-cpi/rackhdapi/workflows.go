@@ -21,6 +21,8 @@ const (
 
 const (
 	workflowValidStatus      = "valid"
+	workflowPendingStatus    = "pending"
+	workflowFinishedStatus   = "finished"
 	workflowSuccessfulStatus = "succeeded"
 	workflowFailedStatus     = "failed"
 	workflowCancelledStatus  = "cancelled"
@@ -57,7 +59,7 @@ type WorkflowResponse struct {
 	Name         string                  `json:"injectableName"`
 	Tasks        map[string]TaskResponse `json:"tasks"`
 	Status       string                  `json:"_status"`
-	ID           string                  `json:"id"`
+	ID           string                  `json:"instanceId"`
 	PendingTasks []interface{}           `json:"pendingTasks"`
 }
 
@@ -120,7 +122,8 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 	publishedWorkflows := []WorkflowStub{}
 	err = json.Unmarshal(publishedWorkflowsBytes, &publishedWorkflows)
 	if err != nil {
-		return fmt.Errorf("error unmarshalling published workflows: %s", err)
+
+		return fmt.Errorf("error unmarshalling published workflows: %s ", err)
 	}
 
 	var uploadedWorkflow *WorkflowStub
@@ -138,7 +141,7 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 }
 
 func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
-	url := fmt.Sprintf("%s/api/1.1/workflows/library", c.ApiServer)
+	url := fmt.Sprintf("%s/api/1.1/workflows/library/*", c.ApiServer)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %s", err)
@@ -164,7 +167,7 @@ func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
 }
 
 func WorkflowFetcher(c config.Cpi, workflowID string) (WorkflowResponse, error) {
-	url := fmt.Sprintf("%s/api/common/workflows/%s", c.ApiServer, workflowID)
+	url := fmt.Sprintf("%s/api/1.1/workflows/%s", c.ApiServer, workflowID)
 	resp, err := http.Get(url)
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("Error requesting workflow on node at url: %s, msg: %s", url, err)
@@ -255,13 +258,12 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 			log.Debug(fmt.Sprintf("workflow: %s with status: %s and pending tasks: %d", wr.Name, wr.Status, len(wr.PendingTasks)))
 
 			switch wr.Status {
-			case workflowValidStatus:
-				if len(wr.PendingTasks) == 0 {
-					log.Info(fmt.Sprintf("workflow: %s completed with valid state against node: %s", req.Name, nodeID))
-					return nil
-				}
+			case workflowPendingStatus:
 				log.Debug(fmt.Sprintf("workflow: %s is still running against node: %s", req.Name, nodeID))
 				continue
+			case workflowFinishedStatus:
+				log.Info(fmt.Sprintf("workflow: %s completed with valid state against node: %s", req.Name, nodeID))
+				return nil
 			case workflowSuccessfulStatus:
 				log.Info(fmt.Sprintf("workflow: %s completed successfully against node: %s", req.Name, nodeID))
 				return nil
