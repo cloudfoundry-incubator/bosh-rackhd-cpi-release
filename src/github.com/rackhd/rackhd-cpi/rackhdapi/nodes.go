@@ -58,9 +58,9 @@ type NetworkAddress struct {
 	Family string `json:"family"`
 }
 
-type OBMSetting struct {
-	Config      interface{} `json:"config"`
-	ServiceName string      `json:"service"`
+type OBM struct {
+	ServiceName string `json:"service"`
+	Ref         string `json:"ref"`
 }
 
 type PersistentDiskSettingsContainer struct {
@@ -75,16 +75,16 @@ type PersistentDiskSettings struct {
 }
 
 type Node struct {
-	Workflows      []interface{}          `json:"workflows"`
-	Status         string                 `json:"status"`
 	ID             string                 `json:"id"`
+	Workflows      string                 `json:"workflows"`
+	OBMS           []OBM                  `json:"obms"`
 	CID            string                 `json:"cid"`
-	OBMSettings    []OBMSetting           `json:"obmSettings"`
+	Status         string                 `json:"status"`
 	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
 }
 
 func GetNodes(c config.Cpi) ([]Node, error) {
-	nodesURL := fmt.Sprintf("%s/api/common/nodes", c.ApiServer)
+	nodesURL := fmt.Sprintf("%s/api/1.1/nodes", c.ApiServer)
 	resp, err := http.Get(nodesURL)
 	if err != nil {
 		return []Node{}, fmt.Errorf("error fetching nodes %s", err)
@@ -103,6 +103,7 @@ func GetNodes(c config.Cpi) ([]Node, error) {
 	var nodes []Node
 	err = json.Unmarshal(nodeBytes, &nodes)
 	if err != nil {
+		fmt.Printf("body: %+v", string(nodeBytes))
 		return []Node{}, fmt.Errorf("error unmarshalling /common/nodes response %s", err)
 	}
 
@@ -125,7 +126,7 @@ func GetNodeByVMCID(c config.Cpi, cid string) (Node, error) {
 }
 
 func GetNode(c config.Cpi, nodeID string) (Node, error) {
-	nodeURL := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, nodeID)
+	nodeURL := fmt.Sprintf("%s/api/1.1/nodes/%s", c.ApiServer, nodeID)
 	resp, err := http.Get(nodeURL)
 	if err != nil {
 		return Node{}, fmt.Errorf("error fetching node %s: %s", nodeID, err)
@@ -150,8 +151,8 @@ func GetNode(c config.Cpi, nodeID string) (Node, error) {
 	return node, nil
 }
 
-func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {
-	nodeURL := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, nodeID)
+func GetOBMSettings(c config.Cpi, nodeID string) ([]OBM, error) {
+	nodeURL := fmt.Sprintf("%s/api/2.0/nodes/%s", c.ApiServer, nodeID)
 	resp, err := http.Get(nodeURL)
 	if err != nil {
 		return nil, fmt.Errorf("error getting node %s", err)
@@ -163,6 +164,7 @@ func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
+	fmt.Printf("obm body: %+v", string(b))
 	if err != nil {
 		return nil, fmt.Errorf("error reading node body %s", err)
 	}
@@ -173,11 +175,11 @@ func GetOBMSettings(c config.Cpi, nodeID string) ([]OBMSetting, error) {
 		return nil, fmt.Errorf("error unmarshal node body %s", err)
 	}
 
-	if len(node.OBMSettings) == 0 {
+	if len(node.OBMS) == 0 {
 		return nil, errors.New("error: got empty obm settings")
 	}
 
-	return node.OBMSettings, nil
+	return node.OBMS, nil
 }
 
 func GetOBMServiceName(c config.Cpi, nodeID string) (string, error) {
@@ -195,7 +197,7 @@ func ReleaseNode(c config.Cpi, nodeID string) error {
 }
 
 func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
-	catalogURL := fmt.Sprintf("%s/api/common/nodes/%s/catalogs/ohai", c.ApiServer, nodeID)
+	catalogURL := fmt.Sprintf("%s/api/2.0/nodes/%s/catalogs/ohai", c.ApiServer, nodeID)
 	resp, err := http.Get(catalogURL)
 	if err != nil {
 		return NodeCatalog{}, fmt.Errorf("error getting catalog %s", err)
@@ -231,7 +233,7 @@ func SetNodeMetadata(c config.Cpi, nodeID string, metadata string) error {
 }
 
 func PatchNode(c config.Cpi, nodeID string, body []byte) error {
-	url := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, nodeID)
+	url := fmt.Sprintf("%s/api/2.0/nodes/%s", c.ApiServer, nodeID)
 
 	request, err := http.NewRequest("PATCH", url, bytes.NewReader(body))
 	if err != nil {
@@ -252,8 +254,8 @@ func PatchNode(c config.Cpi, nodeID string, body []byte) error {
 
 	return nil
 }
-func MakeDiskRequest(c config.Cpi, node Node, newDiskState bool) error {
 
+func MakeDiskRequest(c config.Cpi, node Node, newDiskState bool) error {
 	container := PersistentDiskSettingsContainer{
 		PersistentDisk: node.PersistentDisk,
 	}

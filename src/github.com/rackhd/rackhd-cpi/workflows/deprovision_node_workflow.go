@@ -66,7 +66,7 @@ type deprovisionNodeWorkflowOptionsContainer struct {
 }
 
 type deprovisionNodeWorkflow struct {
-	*rackhdapi.WorkflowStub
+	*rackhdapi.Graph
 	*deprovisionNodeWorkflowOptionsContainer
 	Tasks []rackhdapi.WorkflowTask `json:"tasks"`
 }

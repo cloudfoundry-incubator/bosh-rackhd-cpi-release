@@ -78,7 +78,7 @@ type provisionNodeWorkflowDefaultOptionsContainer struct {
 }
 
 type provisionNodeWorkflow struct {
-	*rackhdapi.WorkflowStub
+	*rackhdapi.Graph
 	*provisionNodeWorkflowOptionsContainer
 	Tasks []rackhdapi.WorkflowTask `json:"tasks"`
 }

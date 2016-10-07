@@ -1,22 +1,18 @@
 [
   {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
+    "workflows": "/api/2.0/nodes/55e79ea54e66816f6152fff9/workflows",
+    "catalogs": "/api/2.0/nodes/55e79ea54e66816f6152fff9/catalogs",
+    "autoDiscover": "false",
     "cid": "",
-    "createdAt": "2016-01-14T20:11:36.981Z",
     "identifiers": [
       "c0:3f:d5:63:fe:13"
     ],
     "metadata": "",
     "name": "c0:3f:d5:63:fe:13",
-    "obmSettings": [
+    "obms": [
       {
         "service": "amt-obm-service",
-        "config": {
-          "host": "c0:3f:d5:63:fe:13",
-          "password": "Password1+"
-        }
+        "ref": "/api/2.0/obms/55e79ea54e66816f6152fff9"
       }
     ],
     "persistent_disk": {
@@ -27,7 +23,6 @@
     "sku": null,
     "status": "available",
     "type": "compute",
-    "updatedAt": "2016-01-18T22:26:29.312Z",
     "id": "55e79ea54e66816f6152fff9"
   }
 ]

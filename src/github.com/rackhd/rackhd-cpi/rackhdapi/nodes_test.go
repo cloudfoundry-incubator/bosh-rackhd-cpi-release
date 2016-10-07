@@ -41,7 +41,7 @@ var _ = Describe("Nodes", func() {
 			targetNodeID := nodes[0].ID
 			err = rackhdapi.ReleaseNode(c, targetNodeID)
 			Expect(err).ToNot(HaveOccurred())
-			nodeURL := fmt.Sprintf("%s/api/common/nodes/%s", c.ApiServer, targetNodeID)
+			nodeURL := fmt.Sprintf("%s/api/1.1/nodes/%s", c.ApiServer, targetNodeID)
 
 			resp, err := http.Get(nodeURL)
 			Expect(err).ToNot(HaveOccurred())
@@ -64,13 +64,12 @@ var _ = Describe("Nodes", func() {
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/1.1/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
 
 			nodes, err := rackhdapi.GetNodes(cpiConfig)
-
 			Expect(err).ToNot(HaveOccurred())
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 			Expect(nodes).To(Equal(expectedNodes))
@@ -84,13 +83,12 @@ var _ = Describe("Nodes", func() {
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/1.1/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
 
 			node, err := rackhdapi.GetNodeByVMCID(cpiConfig, "vm-5678")
-
 			Expect(err).ToNot(HaveOccurred())
 			Expect(node).To(Equal(expectedNodes[0]))
 		})
@@ -103,13 +101,12 @@ var _ = Describe("Nodes", func() {
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes/5665a65a0561790005b77b85"),
+					ghttp.VerifyRequest("GET", "/api/1.1/nodes/5665a65a0561790005b77b85"),
 					ghttp.RespondWith(http.StatusOK, expectedNodeData),
 				),
 			)
 
 			node, err := rackhdapi.GetNode(cpiConfig, "5665a65a0561790005b77b85")
-
 			Expect(err).ToNot(HaveOccurred())
 			Expect(node).To(Equal(expectedNode))
 		})
@@ -124,7 +121,7 @@ var _ = Describe("Nodes", func() {
 			nodeID := "nodeID"
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s", nodeID)),
 					ghttp.RespondWith(http.StatusOK, httpResponse),
 				),
 			)
@@ -132,7 +129,7 @@ var _ = Describe("Nodes", func() {
 			response, err := rackhdapi.GetOBMSettings(cpiConfig, nodeID)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
-			Expect(response).To(Equal(expectedResponse.OBMSettings))
+			Expect(response).To(Equal(expectedResponse.OBMS))
 		})
 	})
 
@@ -144,13 +141,12 @@ var _ = Describe("Nodes", func() {
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s/catalogs/ohai", testNodeID)),
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s/catalogs/ohai", testNodeID)),
 					ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
 				),
 			)
 
 			catalog, err := rackhdapi.GetNodeCatalog(cpiConfig, testNodeID)
-
 			Expect(err).ToNot(HaveOccurred())
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 			Expect(catalog).To(Equal(expectedNodeCatalog))
@@ -163,7 +159,7 @@ var _ = Describe("Nodes", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", nodes[0].ID)),
+					ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/2.0/nodes/%s", nodes[0].ID)),
 					ghttp.VerifyJSON(fmt.Sprintf(`{"status": "%s", "status_reason": "%s"}`, "blocked", "Node has missing disks")),
 				),
 			)
@@ -180,14 +176,13 @@ var _ = Describe("Nodes", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+					ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/2.0/nodes/%s", nodeID)),
 					ghttp.VerifyJSON(fmt.Sprintf(`{"metadata": %s}`, metadata)),
 				),
 			)
 
 			err := rackhdapi.SetNodeMetadata(cpiConfig, nodeID, metadata)
 			Expect(err).ToNot(HaveOccurred())
-
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 	})

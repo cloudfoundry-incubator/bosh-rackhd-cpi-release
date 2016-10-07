@@ -24,17 +24,10 @@ var _ = Describe("Tasks", func() {
 			uuid := uuidObj.String()
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 
-			fakeTaskStub := rackhdapi.TaskStub{
-				Name:       fmt.Sprintf("Task.CF.Fake.%s", uuid),
-				UnusedName: rackhdapi.DefaultUnusedName,
-			}
-
-			fakeTask := struct {
-				*rackhdapi.TaskStub
-				*rackhdapi.OptionContainer
-			}{
-				TaskStub:        &fakeTaskStub,
-				OptionContainer: &rackhdapi.OptionContainer{},
+			fakeTask := rackhdapi.Task{
+				Name:           fmt.Sprintf("Task.CF.Fake.%s", uuid),
+				UnusedName:     rackhdapi.DefaultUnusedName,
+				ImplementsTask: "Task.Base.Node.Update",
 			}
 
 			fakeTaskBytes, err := json.Marshal(fakeTask)
@@ -46,11 +39,11 @@ var _ = Describe("Tasks", func() {
 			taskLibraryBytes, err := rackhdapi.RetrieveTasks(cpiConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			taskLibrary := []rackhdapi.TaskStub{}
+			taskLibrary := []rackhdapi.Task{}
 			err = json.Unmarshal(taskLibraryBytes, &taskLibrary)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(taskLibrary).To(ContainElement(fakeTaskStub))
+			Expect(taskLibrary).To(ContainElement(fakeTask))
 		})
 	})
 })

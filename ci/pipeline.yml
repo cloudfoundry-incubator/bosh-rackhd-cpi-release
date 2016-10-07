@@ -1,13 +1,13 @@
 ---
 groups:
-  - name: bosh-rackhd-cpi
-    jobs:
-      - integration
-      - lifecycle
-      - bats-centos
-      - bats-ubuntu
-      - setup-director
-      - promote-candidate
+- name: bosh-rackhd-cpi
+  jobs:
+  - integration
+  - lifecycle
+  - bats-centos
+  - bats-ubuntu
+  - setup-director
+  - promote-candidate
 
 jobs:
 - name: integration

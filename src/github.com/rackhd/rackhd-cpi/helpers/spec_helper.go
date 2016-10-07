@@ -117,7 +117,7 @@ func MakeTryReservationHandlers(requestID string, nodeID string, expectedNodesPa
 			ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
 		),
 		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("GET", fmt.Sprintf("/api/1.1/nodes/%s/workflows/active", nodeID)),
+			ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s/workflows/active", nodeID)),
 			ghttp.RespondWith(http.StatusOK, nil),
 		),
 		ghttp.CombineHandlers(
@@ -136,14 +136,14 @@ func MakeWorkflowHandlers(workflow string, requestID string, nodeID string) []ht
 	completedWorkflowResponse := []byte(fmt.Sprintf("{\"id\": \"%s\", \"_status\": \"succeeded\"}", requestID))
 
 	return []http.HandlerFunc{
-		ghttp.VerifyRequest("PUT", "/api/1.1/workflows/tasks"),
+		ghttp.VerifyRequest("PUT", "/api/2.0/workflows/tasks"),
 		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("GET", "/api/1.1/workflows/tasks/library"),
+			ghttp.VerifyRequest("GET", "/api/2.0/workflows/tasks/library"),
 			ghttp.RespondWith(http.StatusOK, taskStubData),
 		),
-		ghttp.VerifyRequest("PUT", "/api/1.1/workflows"),
+		ghttp.VerifyRequest("PUT", "/api/2.0/workflows"),
 		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("GET", "/api/1.1/workflows/library"),
+			ghttp.VerifyRequest("GET", "/api/2.0/workflows/library"),
 			ghttp.RespondWith(http.StatusOK, workflowStubData),
 		),
 		ghttp.CombineHandlers(
@@ -151,7 +151,7 @@ func MakeWorkflowHandlers(workflow string, requestID string, nodeID string) []ht
 			ghttp.RespondWith(http.StatusOK, nodeStubData),
 		),
 		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("POST", fmt.Sprintf("/api/1.1/nodes/%s/workflows/", nodeID)),
+			ghttp.VerifyRequest("POST", fmt.Sprintf("/api/2.0/nodes/%s/workflows/", nodeID)),
 			ghttp.RespondWith(http.StatusCreated, completedWorkflowResponse),
 		),
 		ghttp.CombineHandlers(

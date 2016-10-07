@@ -59,7 +59,7 @@ type reserveNodeWorkflowOptionsContainer struct {
 }
 
 type reserveNodeWorkflow struct {
-	*rackhdapi.WorkflowStub
+	*rackhdapi.Graph
 	*reserveNodeWorkflowOptionsContainer
 	Tasks []rackhdapi.WorkflowTask `json:"tasks"`
 }

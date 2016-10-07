@@ -20,10 +20,11 @@ const (
 )
 
 const (
-	workflowValidStatus      = "valid"
 	workflowSuccessfulStatus = "succeeded"
 	workflowFailedStatus     = "failed"
 	workflowCancelledStatus  = "cancelled"
+	workflowRunningStatus    = "running"
+	workflowPendingStatus    = "pending"
 )
 
 const (
@@ -47,18 +48,23 @@ type Workflow struct {
 	Options    map[string]interface{} `json:"options"`
 }
 
-type WorkflowStub struct {
-	Name       string         `json:"injectableName"`
-	UnusedName string         `json:"friendlyName"`
-	Tasks      []WorkflowTask `json:"tasks"`
+type Graph struct {
+	Name       string                 `json:"injectableName"`
+	UnusedName string                 `json:"friendlyName"`
+	Options    map[string]interface{} `json:"options"`
+	Tasks      []WorkflowTask         `json:"tasks"`
+}
+
+type WorkflowTask struct {
+	TaskName string            `json:"taskName"`
+	Label    string            `json:"label"`
+	WaitOn   map[string]string `json:"waitOn"`
 }
 
 type WorkflowResponse struct {
-	Name         string                  `json:"injectableName"`
-	Tasks        map[string]TaskResponse `json:"tasks"`
-	Status       string                  `json:"_status"`
-	ID           string                  `json:"id"`
-	PendingTasks []interface{}           `json:"pendingTasks"`
+	Name       string `json:"injectableName"`
+	Status     string `json:"status"`
+	InstanceID string `json:"instanceId"`
 }
 
 type PropertyContainer struct {
@@ -76,13 +82,13 @@ type RunWorkflowRequestBody struct {
 
 type workflowFetcherFunc func(config.Cpi, string) (WorkflowResponse, error)
 
-type workflowPosterFunc func(config.Cpi, string, RunWorkflowRequestBody) (WorkflowResponse, error)
+type workflowPosterFunc func(config.Cpi, RunWorkflowRequestBody) (WorkflowResponse, error)
 
-func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
-	url := fmt.Sprintf("%s/api/1.1/workflows", c.ApiServer)
-
-	log.Debug(fmt.Sprintf("workflow to publish: %s", string(workflowBytes)))
-	request, err := http.NewRequest("PUT", url, bytes.NewReader(workflowBytes))
+func PublishWorkflow(c config.Cpi, graphBytes []byte) error {
+	url := fmt.Sprintf("%s/api/2.0/workflows/graphs", c.ApiServer)
+	fmt.Printf("\nrequest body: %+v\n", string(graphBytes))
+	log.Debug(fmt.Sprintf("workflow to publish: %s", string(graphBytes)))
+	request, err := http.NewRequest("PUT", url, bytes.NewReader(graphBytes))
 	request.Close = true
 
 	if err != nil {
@@ -91,41 +97,45 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 	request.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(request)
+
+	fmt.Printf("\n\n\nreq: %+v\n body: %+v", request, string(graphBytes))
 	if err != nil {
 		return fmt.Errorf("error sending publishing workflow to %s", url)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	b, err := ioutil.ReadAll(resp.Body)
+	fmt.Printf("\npublish body: %+v\n", string(b))
+
+	if resp.StatusCode != 201 {
 		return fmt.Errorf("error publishing workflow; response status code: %s,\nresponse body: %+v", resp.Status, resp)
 	}
 
-	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("error reading response body: %s", err)
 	}
 
-	workflowStub := WorkflowStub{}
-	err = json.Unmarshal(workflowBytes, &workflowStub)
+	graph := Graph{}
+	err = json.Unmarshal(graphBytes, &graph)
 	if err != nil {
-		return fmt.Errorf("error unmarshalling workflow: %s", err)
+		return fmt.Errorf("error unmarshalling graph: %s", err)
 	}
-	log.Debug("workflow received after publishing: %s", string(workflowBytes))
+	log.Debug("workflow received after publishing: %s", string(graphBytes))
 
 	publishedWorkflowsBytes, err := RetrieveWorkflows(c)
 	if err != nil {
 		return err
 	}
 
-	publishedWorkflows := []WorkflowStub{}
+	publishedWorkflows := []Graph{}
 	err = json.Unmarshal(publishedWorkflowsBytes, &publishedWorkflows)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling published workflows: %s", err)
 	}
 
-	var uploadedWorkflow *WorkflowStub
+	var uploadedWorkflow *Graph
 	for i := range publishedWorkflows {
-		if publishedWorkflows[i].Name == workflowStub.Name {
+		if publishedWorkflows[i].Name == graph.Name {
 			uploadedWorkflow = &publishedWorkflows[i]
 		}
 	}
@@ -138,7 +148,7 @@ func PublishWorkflow(c config.Cpi, workflowBytes []byte) error {
 }
 
 func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
-	url := fmt.Sprintf("%s/api/1.1/workflows/library", c.ApiServer)
+	url := fmt.Sprintf("%s/api/2.0/workflows/graphs", c.ApiServer)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %s", err)
@@ -163,8 +173,8 @@ func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
 	return body, nil
 }
 
-func WorkflowFetcher(c config.Cpi, workflowID string) (WorkflowResponse, error) {
-	url := fmt.Sprintf("%s/api/common/workflows/%s", c.ApiServer, workflowID)
+func WorkflowFetcher(c config.Cpi, graphName string) (WorkflowResponse, error) {
+	url := fmt.Sprintf("%s/api/2.0/workflows/%s", c.ApiServer, graphName)
 	resp, err := http.Get(url)
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("Error requesting workflow on node at url: %s, msg: %s", url, err)
@@ -180,14 +190,15 @@ func WorkflowFetcher(c config.Cpi, workflowID string) (WorkflowResponse, error) 
 	var workflow WorkflowResponse
 	err = json.Unmarshal(body, &workflow)
 	if err != nil {
+		fmt.Printf("workflow fetcher: %+v", string(body))
 		return WorkflowResponse{}, fmt.Errorf("Error unmarshalling workflow: %s", err)
 	}
 
 	return workflow, nil
 }
 
-func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (WorkflowResponse, error) {
-	url := fmt.Sprintf("%s/api/1.1/nodes/%s/workflows/", c.ApiServer, nodeID)
+func WorkflowPoster(c config.Cpi, req RunWorkflowRequestBody) (WorkflowResponse, error) {
+	url := fmt.Sprintf("%s/api/2.0/workflows/", c.ApiServer)
 	body, err := json.Marshal(req)
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("error marshalling workflow request body, %s", err)
@@ -215,6 +226,7 @@ func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (Wo
 	}
 
 	workflowResp := WorkflowResponse{}
+	fmt.Printf("workflow response in poster: %+v\n\n", string(wfRespBytes))
 	err = json.Unmarshal(wfRespBytes, &workflowResp)
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("error unmarshalling /common/node/workflows response %s", err)
@@ -225,7 +237,7 @@ func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (Wo
 }
 
 func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c config.Cpi, nodeID string, req RunWorkflowRequestBody) error {
-	postedWorkflow, err := poster(c, nodeID, req)
+	postedWorkflow, err := poster(c, req)
 	if err != nil {
 		return fmt.Errorf("Failed to post workflow: %s", err)
 	}
@@ -240,27 +252,17 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 			if err != nil {
 				return fmt.Errorf("Could not abort timed out workflow on node: %s", nodeID)
 			}
-
 			return fmt.Errorf("Timed out running workflow: %s on node: %s", req.Name, nodeID)
+
 		case <-retryChan:
-			wr, err := fetcher(c, postedWorkflow.ID)
+			wr, err := fetcher(c, postedWorkflow.InstanceID)
 			if err != nil {
 				return fmt.Errorf("Unable to fetch workflow status: %s", err)
 			}
 
-			for _, value := range wr.Tasks {
-				log.Debug(fmt.Sprintf("task: %v", value))
-			}
-
-			log.Debug(fmt.Sprintf("workflow: %s with status: %s and pending tasks: %d", wr.Name, wr.Status, len(wr.PendingTasks)))
-
 			switch wr.Status {
-			case workflowValidStatus:
-				if len(wr.PendingTasks) == 0 {
-					log.Info(fmt.Sprintf("workflow: %s completed with valid state against node: %s", req.Name, nodeID))
-					return nil
-				}
-				log.Debug(fmt.Sprintf("workflow: %s is still running against node: %s", req.Name, nodeID))
+			case workflowRunningStatus:
+				log.Info(fmt.Sprintf("workflow: %s is running against node: %s", req.Name, nodeID))
 				continue
 			case workflowSuccessfulStatus:
 				log.Info(fmt.Sprintf("workflow: %s completed successfully against node: %s", req.Name, nodeID))
@@ -270,8 +272,11 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 			case workflowCancelledStatus:
 				log.Info(fmt.Sprintf("workflow: %s was cancelled against node: %s", req.Name, nodeID))
 				return nil
+			case workflowPendingStatus:
+				log.Info(fmt.Sprintf("workflow: %s is pending on node: %s", req.Name, nodeID))
+				continue
 			default:
-				return fmt.Errorf("workflow: %s has unexpected status %s on node: %s", req.Name, wr.Status, nodeID)
+				return fmt.Errorf("workflow: %s has unexpected status '%s' on node: %s", req.Name, wr.Status, nodeID)
 			}
 		}
 	}
