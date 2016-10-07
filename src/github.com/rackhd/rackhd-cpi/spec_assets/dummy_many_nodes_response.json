@@ -1,367 +1,281 @@
 [
   {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:12:15.069Z",
-    "identifiers": [
-      "00:1e:67:ab:58:1c",
-      "00:1e:67:ab:58:1d"
-    ],
-    "name": "00:1e:67:ab:58:1c,00:1e:67:ab:58:1d",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:69:45:64",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:39:51.699Z",
-    "id": "55e79e6f4e66816f6152ffed"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:12:17.975Z",
-    "identifiers": [
-      "00:1e:67:ab:58:18",
-      "00:1e:67:ab:58:19"
-    ],
-    "name": "00:1e:67:ab:58:18,00:1e:67:ab:58:19",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:69:67:b0",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:14:22.314Z",
-    "id": "55e79e714e66816f6152ffee"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:12:32.389Z",
-    "identifiers": [
-      "00:1e:67:ab:5e:d4",
-      "00:1e:67:ab:5e:d5"
-    ],
-    "name": "00:1e:67:ab:5e:d4,00:1e:67:ab:5e:d5",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:69:4c:17",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:14:34.727Z",
-    "id": "55e79e804e66816f6152ffef"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:12:48.309Z",
-    "identifiers": [
-      "00:1e:67:ab:5e:dc",
-      "00:1e:67:ab:5e:dd"
-    ],
-    "name": "00:1e:67:ab:5e:dc,00:1e:67:ab:5e:dd",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:69:4c:bc",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:14:55.992Z",
-    "id": "55e79e904e66816f6152fff0"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:12:51.751Z",
-    "identifiers": [
-      "00:1e:67:ab:57:fc",
-      "00:1e:67:ab:57:fd"
-    ],
-    "name": "00:1e:67:ab:57:fc,00:1e:67:ab:57:fd",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:69:64:9a",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:15:01.140Z",
-    "id": "55e79e934e66816f6152fff3"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:12:49.475Z",
-    "identifiers": [
-      "00:1e:67:ab:5e:e4",
-      "00:1e:67:ab:5e:e5"
-    ],
-    "name": "00:1e:67:ab:5e:e4,00:1e:67:ab:5e:e5",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:69:41:4a",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:15:03.325Z",
-    "id": "55e79e914e66816f6152fff1"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:12:51.101Z",
-    "identifiers": [
-      "00:1e:67:ab:56:cc",
-      "00:1e:67:ab:56:cd"
-    ],
-    "name": "00:1e:67:ab:56:cc,00:1e:67:ab:56:cd",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:6a:22:ea",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:15:20.339Z",
-    "id": "55e79e934e66816f6152fff2"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:13:00.685Z",
-    "identifiers": [
-      "00:1e:67:c2:4c:72",
-      "00:1e:67:c2:4c:73"
-    ],
-    "name": "00:1e:67:c2:4c:72,00:1e:67:c2:4c:73",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:a3:90:04",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:15:22.590Z",
-    "id": "55e79e9c4e66816f6152fff4"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:13:09.548Z",
-    "identifiers": [
-      "00:1e:67:c4:dc:40",
-      "00:1e:67:c4:dc:41"
-    ],
-    "name": "00:1e:67:c4:dc:40,00:1e:67:c4:dc:41",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:6a:06:61",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:15:33.468Z",
-    "id": "55e79ea54e66816f6152fff8"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:13:16.630Z",
-    "identifiers": [
-      "8c:7c:ff:30:e1:0a"
-    ],
-    "name": "8c:7c:ff:30:e1:0a",
-    "sku": "55e79e0e4e66816f6152ffea",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:15:47.203Z",
-    "id": "55e79eac4e66816f6152fffa"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:13:03.976Z",
-    "identifiers": [
-      "00:1e:67:c2:41:b2",
-      "00:1e:67:c2:41:b3"
-    ],
-    "name": "00:1e:67:c2:41:b2,00:1e:67:c2:41:b3",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:69:ef:28",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T15:33:25.186Z",
-    "id": "55e79e9f4e66816f6152fff5"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:13:05.957Z",
-    "identifiers": [
-      "00:1e:67:c2:41:96",
-      "00:1e:67:c2:41:97"
-    ],
-    "name": "00:1e:67:c2:41:96,00:1e:67:c2:41:97",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:6a:24:20",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:15:39.080Z",
-    "id": "55e79ea14e66816f6152fff6"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:13:07.748Z",
-    "identifiers": [
-      "00:1e:67:c2:44:86",
-      "00:1e:67:c2:44:87"
-    ],
-    "name": "00:1e:67:c2:44:86,00:1e:67:c2:44:87",
-    "obmSettings": [
-      {
-        "config": {
-          "host": "00:1e:67:6a:12:c3",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
-      }
-    ],
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "updatedAt": "2015-09-03T01:15:41.301Z",
-    "id": "55e79ea34e66816f6152fff7"
-  },
-  {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:13:09.677Z",
+    "workflows": "/api/2.0/nodes/55e79e6f4e66816f6152ffed/workflows",
+    "catalogs": "/api/2.0/nodes/55e79e6f4e66816f6152ffed/catalogs",
+    "autoDiscover": "false",
     "identifiers": [
       "00:1e:67:c2:67:06",
       "00:1e:67:c2:67:07"
     ],
     "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
-    "obmSettings": [
+    "obms": [
       {
-        "config": {
-          "host": "00:1e:67:6a:0a:b7",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79e6f4e66816f6152ffed"
       }
     ],
     "sku": "55e79e0e4e66816f6152ffe6",
     "type": "compute",
-    "updatedAt": "2015-09-03T01:15:43.515Z",
+    "id": "55e79e6f4e66816f6152ffed"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79e714e66816f6152ffee/workflows",
+    "catalogs": "/api/2.0/nodes/55e79e714e66816f6152ffee/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79e714e66816f6152ffee"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79e714e66816f6152ffee"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79e804e66816f6152ffef/workflows",
+    "catalogs": "/api/2.0/nodes/55e79e804e66816f6152ffef/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79e804e66816f6152ffef"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79e804e66816f6152ffef"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79e904e66816f6152fff0/workflows",
+    "catalogs": "/api/2.0/nodes/55e79e904e66816f6152fff0/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79e904e66816f6152fff0"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79e904e66816f6152fff0"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79e934e66816f6152fff3/workflows",
+    "catalogs": "/api/2.0/nodes/55e79e934e66816f6152fff3/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79e934e66816f6152fff3"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79e934e66816f6152fff3"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79e914e66816f6152fff1/workflows",
+    "catalogs": "/api/2.0/nodes/55e79e914e66816f6152fff1/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79e914e66816f6152fff1"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79e914e66816f6152fff1"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79e934e66816f6152fff2/workflows",
+    "catalogs": "/api/2.0/nodes/55e79e934e66816f6152fff2/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79e934e66816f6152fff2"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79e934e66816f6152fff2"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79e9c4e66816f6152fff4/workflows",
+    "catalogs": "/api/2.0/nodes/55e79e9c4e66816f6152fff4/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79e9c4e66816f6152fff4"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79e9c4e66816f6152fff4"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79ea54e66816f6152fff8/workflows",
+    "catalogs": "/api/2.0/nodes/55e79ea54e66816f6152fff8/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79ea54e66816f6152fff8"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79ea54e66816f6152fff8"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79eac4e66816f6152fffa/workflows",
+    "catalogs": "/api/2.0/nodes/55e79eac4e66816f6152fffa/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79eac4e66816f6152fffa"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79e9f4e66816f6152fff5/workflows",
+    "catalogs": "/api/2.0/nodes/55e79e9f4e66816f6152fff5/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79e9f4e66816f6152fff5"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79e9f4e66816f6152fff5"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79ea14e66816f6152fff6/workflows",
+    "catalogs": "/api/2.0/nodes/55e79ea14e66816f6152fff6/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79ea14e66816f6152fff6"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79ea14e66816f6152fff6"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79ea34e66816f6152fff7/workflows",
+    "catalogs": "/api/2.0/nodes/55e79ea34e66816f6152fff7/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79ea34e66816f6152fff7"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
+    "id": "55e79ea34e66816f6152fff7"
+  },
+  {
+    "workflows": "/api/2.0/nodes/55e79ea54e66816f6152fff9/workflows",
+    "catalogs": "/api/2.0/nodes/55e79ea54e66816f6152fff9/catalogs",
+    "autoDiscover": "false",
+    "identifiers": [
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
+    ],
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
+      {
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79ea54e66816f6152fff9"
+      }
+    ],
+    "sku": "55e79e0e4e66816f6152ffe6",
+    "type": "compute",
     "id": "55e79ea54e66816f6152fff9"
   },
   {
-    "workflows": [],
-    "catalogs": [],
-    "autoDiscover": false,
-    "createdAt": "2015-09-03T01:13:21.870Z",
+    "workflows": "/api/2.0/nodes/55e79eb14e66816f6152fffb/workflows",
+    "catalogs": "/api/2.0/nodes/55e79eb14e66816f6152fffb/catalogs",
+    "autoDiscover": "false",
     "identifiers": [
-      "00:1e:67:c4:e1:a0",
-      "00:1e:67:c4:e1:a1"
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
     ],
-    "name": "00:1e:67:c4:e1:a0,00:1e:67:c4:e1:a1",
-    "obmSettings": [
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+    "obms": [
       {
-        "config": {
-          "host": "00:1e:67:6a:27:95",
-          "password": "password1",
-          "user": "root"
-        },
-        "service": "ipmi-obm-service"
+        "service": "amt-obm-service",
+        "ref": "/api/2.0/obms/55e79eb14e66816f6152fffb"
       }
     ],
-    "reserved": "vm-1234",
     "sku": "55e79e0e4e66816f6152ffe6",
     "type": "compute",
-    "updatedAt": "2015-09-14T15:47:55.323Z",
     "id": "55e79eb14e66816f6152fffb"
   }
 ]

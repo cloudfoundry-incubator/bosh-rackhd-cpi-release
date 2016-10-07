@@ -11,7 +11,6 @@ import (
 )
 
 func SetVMMetadata(c config.Cpi, extInput bosh.MethodArguments) error {
-
 	var cid string
 	if reflect.TypeOf(extInput[0]) != reflect.TypeOf(cid) {
 		return fmt.Errorf("Cannot set VM metadata: received unexpected value for vm cid: %s", cid)

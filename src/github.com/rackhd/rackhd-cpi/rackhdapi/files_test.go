@@ -30,7 +30,7 @@ var _ = Describe("Files", func() {
 			Expect(err).ToNot(HaveOccurred())
 			baseName := uuid.String()
 
-			url := fmt.Sprintf("%s/api/common/files/metadata/%s", c.ApiServer, baseName)
+			url := fmt.Sprintf("%s/api/2.0/files/%s/metadata", c.ApiServer, baseName)
 			resp, err := http.Get(url)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(404))
@@ -49,11 +49,16 @@ var _ = Describe("Files", func() {
 			Expect(getResp.StatusCode).To(Equal(200))
 
 			fileMetadataResp := rackhdapi.FileMetadataResponse{}
+			fmt.Printf("resp: %+v", string(respBytes))
 			err = json.Unmarshal(respBytes, &fileMetadataResp)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fileMetadataResp).To(HaveLen(1))
+			//Expect(fileMetadataResp).To(HaveLen(1))
+			Expect(fileMetadataResp.Basename).ToNot(BeEmpty())
+			Expect(fileMetadataResp.Md5).ToNot(BeEmpty())
+			Expect(fileMetadataResp.Sha256).ToNot(BeEmpty())
+			Expect(fileMetadataResp.UUID).ToNot(BeEmpty())
 
-			fileMetadata := fileMetadataResp[0]
+			fileMetadata := fileMetadataResp
 			Expect(fileMetadata.Basename).To(Equal(baseName))
 
 			err = rackhdapi.DeleteFile(c, baseName)

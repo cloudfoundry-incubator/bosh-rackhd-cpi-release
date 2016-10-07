@@ -12,17 +12,15 @@ import (
 	"github.com/rackhd/rackhd-cpi/config"
 )
 
-type FileMetadataResponse []struct {
-	Basename string `json:"basename"`
-	Filename string `json:"filename"`
+type FileMetadataResponse struct {
+	Basename string `json:"name"`
 	UUID     string `json:"uuid"`
 	Md5      string `json:"md5"`
 	Sha256   string `json:"sha256"`
-	Version  int    `json:"version"`
 }
 
 func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64) (string, error) {
-	url := fmt.Sprintf("%s/api/common/files/%s", c.ApiServer, baseName)
+	url := fmt.Sprintf("%s/api/2.0/files/%s", c.ApiServer, baseName)
 	body := ioutil.NopCloser(r)
 	request, err := http.NewRequest("PUT", url, body)
 	if err != nil {
@@ -53,7 +51,7 @@ func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64)
 }
 
 func DeleteFile(c config.Cpi, baseName string) error {
-	url := fmt.Sprintf("%s/api/common/files/metadata/%s", c.ApiServer, baseName)
+	url := fmt.Sprintf("%s/api/2.0/files/%s/metadata", c.ApiServer, baseName)
 	metadataResp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("error getting file metadata: %s", err)
@@ -76,7 +74,7 @@ func DeleteFile(c config.Cpi, baseName string) error {
 		return fmt.Errorf("error unmarshalling metadata response: %s", err)
 	}
 
-	url = fmt.Sprintf("%s/api/common/files/%s", c.ApiServer, metadata[0].UUID)
+	url = fmt.Sprintf("%s/api/2.0/files/%s", c.ApiServer, metadata.UUID)
 	deleteReq, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return fmt.Errorf("error creating delete request %s", err)
