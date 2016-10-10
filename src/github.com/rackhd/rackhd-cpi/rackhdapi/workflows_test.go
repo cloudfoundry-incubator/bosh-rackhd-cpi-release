@@ -122,7 +122,7 @@ var _ = Describe("Workflows", func() {
 				rackhdapi.WorkflowTask{
 					TaskName: fakeTaskName,
 					Label:    "fake-label",
-					WaitOn:   map[string]string{},
+					WaitOn:   &map[string]string{},
 				},
 			}
 

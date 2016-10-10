@@ -1,11 +1,7 @@
 {
   "friendlyName": "Testing",
   "injectableName": "Test.Success.CF.Fake.",
-  "options": {
-    "defaults": {
-      "obmServiceName": null
-    }
-  },
+  "options": {},
   "tasks": [
     {
       "label": "set-boot-pxe",
@@ -28,7 +24,7 @@
     },
     {
       "label": "fake-failure-task-label",
-      "taskName": "Requests.Test.Dummy.Timeout.",
+      "taskName": "Requests.Test.Dummy.Failing.",
       "waitOn": {
         "set-boot-pxe": "succeeded"
       }

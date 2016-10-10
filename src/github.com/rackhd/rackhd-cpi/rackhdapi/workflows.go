@@ -56,9 +56,9 @@ type Graph struct {
 }
 
 type WorkflowTask struct {
-	TaskName string            `json:"taskName"`
-	Label    string            `json:"label"`
-	WaitOn   map[string]string `json:"waitOn"`
+	TaskName string             `json:"taskName"`
+	Label    string             `json:"label"`
+	WaitOn   *map[string]string `json:"waitOn,omitempty"`
 }
 
 type WorkflowResponse struct {
@@ -82,7 +82,7 @@ type RunWorkflowRequestBody struct {
 
 type workflowFetcherFunc func(config.Cpi, string) (WorkflowResponse, error)
 
-type workflowPosterFunc func(config.Cpi, RunWorkflowRequestBody) (WorkflowResponse, error)
+type workflowPosterFunc func(config.Cpi, string, RunWorkflowRequestBody) (WorkflowResponse, error)
 
 func PublishWorkflow(c config.Cpi, graphBytes []byte) error {
 	url := fmt.Sprintf("%s/api/2.0/workflows/graphs", c.ApiServer)
@@ -197,8 +197,8 @@ func WorkflowFetcher(c config.Cpi, graphName string) (WorkflowResponse, error) {
 	return workflow, nil
 }
 
-func WorkflowPoster(c config.Cpi, req RunWorkflowRequestBody) (WorkflowResponse, error) {
-	url := fmt.Sprintf("%s/api/2.0/workflows/", c.ApiServer)
+func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (WorkflowResponse, error) {
+	url := fmt.Sprintf("%s/api/2.0/nodes/%s/workflows", c.ApiServer, nodeID)
 	body, err := json.Marshal(req)
 	if err != nil {
 		return WorkflowResponse{}, fmt.Errorf("error marshalling workflow request body, %s", err)
@@ -214,6 +214,8 @@ func WorkflowPoster(c config.Cpi, req RunWorkflowRequestBody) (WorkflowResponse,
 		return WorkflowResponse{}, fmt.Errorf("error running workflow at url %s", url)
 	}
 	defer resp.Body.Close()
+	bo, _ := ioutil.ReadAll(resp.Body)
+	fmt.Printf("\n\npost body: %+v\n\n", string(bo))
 
 	if resp.StatusCode != 201 {
 		msg, _ := ioutil.ReadAll(resp.Body)
@@ -237,7 +239,7 @@ func WorkflowPoster(c config.Cpi, req RunWorkflowRequestBody) (WorkflowResponse,
 }
 
 func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c config.Cpi, nodeID string, req RunWorkflowRequestBody) error {
-	postedWorkflow, err := poster(c, req)
+	postedWorkflow, err := poster(c, nodeID, req)
 	if err != nil {
 		return fmt.Errorf("Failed to post workflow: %s", err)
 	}
