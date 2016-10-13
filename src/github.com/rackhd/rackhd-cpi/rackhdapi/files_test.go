@@ -11,6 +11,7 @@ import (
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
+	"github.com/rackhd/rackhd-cpi/models"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -48,7 +49,7 @@ var _ = Describe("Files", func() {
 			defer getResp.Body.Close()
 			Expect(getResp.StatusCode).To(Equal(200))
 
-			fileMetadataResp := rackhdapi.FileMetadataResponse{}
+			fileMetadataResp := models.FileMetadataResponse{}
 			fmt.Printf("resp: %+v", string(respBytes))
 			err = json.Unmarshal(respBytes, &fileMetadataResp)
 			Expect(err).ToNot(HaveOccurred())

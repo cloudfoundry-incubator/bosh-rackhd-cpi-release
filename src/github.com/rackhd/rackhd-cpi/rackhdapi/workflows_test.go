@@ -11,6 +11,7 @@ import (
 	"github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
+	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
@@ -36,7 +37,7 @@ var _ = Describe("Workflows", func() {
 			It("returns a node's active workflow", func() {
 				rawWorkflow := helpers.LoadJSON("../spec_assets/dummy_workflow_response.json")
 				httpResponse := []byte(fmt.Sprintf("%s", string(rawWorkflow)))
-				var expectedResponse rackhdapi.WorkflowResponse
+				var expectedResponse models.WorkflowResponse
 				err := json.Unmarshal(httpResponse, &expectedResponse)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -68,7 +69,7 @@ var _ = Describe("Workflows", func() {
 				response, err := rackhdapi.GetActiveWorkflows(cpiConfig, nodeID)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(server.ReceivedRequests()).To(HaveLen(1))
-				Expect(response).To(Equal(rackhdapi.WorkflowResponse{}))
+				Expect(response).To(Equal(models.WorkflowResponse{}))
 			})
 		})
 	})
@@ -76,7 +77,7 @@ var _ = Describe("Workflows", func() {
 	Describe("WorkflowFetcher", func() {
 		It("returns the workflow with the specified ID", func() {
 			httpResponse := helpers.LoadJSON("../spec_assets/dummy_workflow_response.json")
-			var expectedResponse rackhdapi.WorkflowResponse
+			var expectedResponse models.WorkflowResponse
 			err := json.Unmarshal(httpResponse, &expectedResponse)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -106,9 +107,9 @@ var _ = Describe("Workflows", func() {
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 
 			fakeTaskName := "Task.CF.Fake." + uuid
-			fakeTask := rackhdapi.Task{
+			fakeTask := models.Task{
 				Name:           fakeTaskName,
-				UnusedName:     rackhdapi.DefaultUnusedName,
+				UnusedName:     models.DefaultUnusedName,
 				ImplementsTask: "Task.Base.Node.Update",
 			}
 
@@ -118,17 +119,17 @@ var _ = Describe("Workflows", func() {
 			err = rackhdapi.PublishTask(cpiConfig, fakeTaskBytes)
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeTasks := []rackhdapi.WorkflowTask{
-				rackhdapi.WorkflowTask{
+			fakeTasks := []models.WorkflowTask{
+				models.WorkflowTask{
 					TaskName: fakeTaskName,
 					Label:    "fake-label",
 					WaitOn:   &map[string]string{},
 				},
 			}
 
-			fakeGraph := rackhdapi.Graph{
+			fakeGraph := models.Graph{
 				Name:       "Task.CF.Fake." + uuid,
-				UnusedName: rackhdapi.DefaultUnusedName,
+				UnusedName: models.DefaultUnusedName,
 				Options:    map[string]interface{}{},
 				Tasks:      fakeTasks,
 			}
@@ -142,7 +143,7 @@ var _ = Describe("Workflows", func() {
 			workflowLibraryBytes, err := rackhdapi.RetrieveWorkflows(cpiConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			workflowLibrary := []rackhdapi.Graph{}
+			workflowLibrary := []models.Graph{}
 			err = json.Unmarshal(workflowLibraryBytes, &workflowLibrary)
 			Expect(err).ToNot(HaveOccurred())
 			fakeGraph.Tasks[0].TaskName = "/api/2.0/workflows/tasks/" + fakeTaskName
@@ -151,7 +152,7 @@ var _ = Describe("Workflows", func() {
 	})
 
 	Describe("INTEGRATION", func() {
-		var idleNodes []rackhdapi.Node
+		var idleNodes []models.Node
 		var cpiConfig config.Cpi
 		var nodeID string
 		var obm string
@@ -167,8 +168,8 @@ var _ = Describe("Workflows", func() {
 			Expect(err).ToNot(HaveOccurred())
 			cpiConfig = config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
 
-			rejectNodesRunningWorkflows := func(nodes []rackhdapi.Node) []rackhdapi.Node {
-				var n []rackhdapi.Node
+			rejectNodesRunningWorkflows := func(nodes []models.Node) []models.Node {
+				var n []models.Node
 				for i := range nodes {
 					w, err := rackhdapi.GetActiveWorkflows(cpiConfig, nodes[i].ID)
 					Expect(err).ToNot(HaveOccurred())
@@ -207,7 +208,7 @@ var _ = Describe("Workflows", func() {
 				err = rackhdapi.PublishWorkflow(cpiConfig, fakeGraphBytes)
 				Expect(err).ToNot(HaveOccurred())
 
-				body := rackhdapi.RunWorkflowRequestBody{
+				body := models.RunWorkflowRequestBody{
 					Name: fakeWorkflow.Name,
 
 					Options: map[string]interface{}{"defaults": Options{OBMServiceName: &obm, NodeID: nodeID}},
@@ -219,7 +220,7 @@ var _ = Describe("Workflows", func() {
 		})
 
 		Context("when the workflow completes with failure", func() {
-			FIt("returns an error", func() {
+			It("returns an error", func() {
 				dummyTask := helpers.LoadTask("../spec_assets/dummy_failing_task.json")
 				dummyTask.Name += guid
 
@@ -239,7 +240,7 @@ var _ = Describe("Workflows", func() {
 				err = rackhdapi.PublishWorkflow(cpiConfig, fakeWorkflowBytes)
 				Expect(err).ToNot(HaveOccurred())
 
-				body := rackhdapi.RunWorkflowRequestBody{
+				body := models.RunWorkflowRequestBody{
 					Name:    fakeWorkflow.Name,
 					Options: map[string]interface{}{"defaults": Options{OBMServiceName: &obm}},
 				}
@@ -272,7 +273,7 @@ var _ = Describe("Workflows", func() {
 				err = rackhdapi.PublishWorkflow(cpiConfig, fakeWorkflowBytes)
 				Expect(err).ToNot(HaveOccurred())
 
-				body := rackhdapi.RunWorkflowRequestBody{
+				body := models.RunWorkflowRequestBody{
 					Name:    fakeWorkflow.Name,
 					Options: map[string]interface{}{"defaults": Options{OBMServiceName: &obm}},
 				}

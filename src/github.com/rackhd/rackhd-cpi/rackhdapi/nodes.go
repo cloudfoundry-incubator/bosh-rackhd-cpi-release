@@ -9,111 +9,40 @@ import (
 	"net/http"
 
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/models"
 )
 
-const (
-	NetworkActive    = "up"
-	NetworkInactive  = "down"
-	EthernetNetwork  = "Ethernet"
-	MacAddressFamily = "lladdr"
-)
-
-const (
-	Available   = "available"
-	Reserved    = "reserved"
-	Blocked     = "blocked"
-	DiskReason  = "Node has missing disks"
-	Maintenance = "maintenance"
-)
-
-const (
-	PersistentDiskLocation = "sdb"
-)
-
-type NodeCatalog struct {
-	Data CatalogData `json:"data"`
-}
-
-type Device struct {
-	Size string `json:"size"`
-}
-
-type CatalogData struct {
-	NetworkData  NetworkCatalog    `json:"network"`
-	BlockDevices map[string]Device `json:"block_device"`
-}
-
-type NetworkCatalog struct {
-	Networks map[string]Network `json:"interfaces"`
-}
-
-type Network struct {
-	Encapsulation string                    `json:"encapsulation"`
-	Number        string                    `json:"number"`
-	Addresses     map[string]NetworkAddress `json:"addresses"`
-	State         string                    `json:"state"`
-}
-
-type NetworkAddress struct {
-	Family string `json:"family"`
-}
-
-type OBM struct {
-	ServiceName string `json:"service"`
-	Ref         string `json:"ref"`
-}
-
-type PersistentDiskSettingsContainer struct {
-	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
-}
-
-type PersistentDiskSettings struct {
-	PregeneratedDiskCID string `json:"pregenerated_disk_cid"`
-	DiskCID             string `json:"disk_cid"`
-	Location            string `json:"location"`
-	IsAttached          bool   `json:"attached"`
-}
-
-type Node struct {
-	ID             string                 `json:"id"`
-	Workflows      string                 `json:"workflows"`
-	OBMS           []OBM                  `json:"obms"`
-	CID            string                 `json:"cid"`
-	Status         string                 `json:"status"`
-	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
-}
-
-func GetNodes(c config.Cpi) ([]Node, error) {
+func GetNodes(c config.Cpi) ([]models.Node, error) {
 	nodesURL := fmt.Sprintf("%s/api/1.1/nodes", c.ApiServer)
 	resp, err := http.Get(nodesURL)
 	if err != nil {
-		return []Node{}, fmt.Errorf("error fetching nodes %s", err)
+		return []models.Node{}, fmt.Errorf("error fetching nodes %s", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return []Node{}, fmt.Errorf("Failed getting nodes with status: %s, err: %s", resp.Status, err)
+		return []models.Node{}, fmt.Errorf("Failed getting nodes with status: %s, err: %s", resp.Status, err)
 	}
 
 	nodeBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return []Node{}, fmt.Errorf("error reading node response body %s", err)
+		return []models.Node{}, fmt.Errorf("error reading node response body %s", err)
 	}
 
-	var nodes []Node
+	var nodes []models.Node
 	err = json.Unmarshal(nodeBytes, &nodes)
 	if err != nil {
 		fmt.Printf("body: %+v", string(nodeBytes))
-		return []Node{}, fmt.Errorf("error unmarshalling /common/nodes response %s", err)
+		return []models.Node{}, fmt.Errorf("error unmarshalling /common/nodes response %s", err)
 	}
 
 	return nodes, nil
 }
 
-func GetNodeByVMCID(c config.Cpi, cid string) (Node, error) {
+func GetNodeByVMCID(c config.Cpi, cid string) (models.Node, error) {
 	nodes, err := GetNodes(c)
 	if err != nil {
-		return Node{}, err
+		return models.Node{}, err
 	}
 
 	for _, node := range nodes {
@@ -122,36 +51,36 @@ func GetNodeByVMCID(c config.Cpi, cid string) (Node, error) {
 		}
 	}
 
-	return Node{}, fmt.Errorf("vm with cid: %s was not found", cid)
+	return models.Node{}, fmt.Errorf("vm with cid: %s was not found", cid)
 }
 
-func GetNode(c config.Cpi, nodeID string) (Node, error) {
+func GetNode(c config.Cpi, nodeID string) (models.Node, error) {
 	nodeURL := fmt.Sprintf("%s/api/1.1/nodes/%s", c.ApiServer, nodeID)
 	resp, err := http.Get(nodeURL)
 	if err != nil {
-		return Node{}, fmt.Errorf("error fetching node %s: %s", nodeID, err)
+		return models.Node{}, fmt.Errorf("error fetching node %s: %s", nodeID, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return Node{}, fmt.Errorf("Failed getting node %s with status: %s", nodeID, resp.Status)
+		return models.Node{}, fmt.Errorf("Failed getting node %s with status: %s", nodeID, resp.Status)
 	}
 
 	nodeBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return Node{}, fmt.Errorf("error reading node %s response body %s", nodeID, err)
+		return models.Node{}, fmt.Errorf("error reading node %s response body %s", nodeID, err)
 	}
 
-	var node Node
+	var node models.Node
 	err = json.Unmarshal(nodeBytes, &node)
 	if err != nil {
-		return Node{}, fmt.Errorf("error unmarshalling /common/node/%s response %s", nodeID, err)
+		return models.Node{}, fmt.Errorf("error unmarshalling /common/node/%s response %s", nodeID, err)
 	}
 
 	return node, nil
 }
 
-func GetOBMSettings(c config.Cpi, nodeID string) ([]OBM, error) {
+func GetOBMSettings(c config.Cpi, nodeID string) ([]models.OBM, error) {
 	nodeURL := fmt.Sprintf("%s/api/2.0/nodes/%s", c.ApiServer, nodeID)
 	resp, err := http.Get(nodeURL)
 	if err != nil {
@@ -169,7 +98,7 @@ func GetOBMSettings(c config.Cpi, nodeID string) ([]OBM, error) {
 		return nil, fmt.Errorf("error reading node body %s", err)
 	}
 
-	var node Node
+	var node models.Node
 	err = json.Unmarshal(b, &node)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshal node body %s", err)
@@ -192,38 +121,38 @@ func GetOBMServiceName(c config.Cpi, nodeID string) (string, error) {
 }
 
 func ReleaseNode(c config.Cpi, nodeID string) error {
-	blockFlag := []byte(fmt.Sprintf("{\"status\": \"%s\"}", Available))
+	blockFlag := []byte(fmt.Sprintf("{\"status\": \"%s\"}", models.Available))
 	return PatchNode(c, nodeID, blockFlag)
 }
 
-func GetNodeCatalog(c config.Cpi, nodeID string) (NodeCatalog, error) {
+func GetNodeCatalog(c config.Cpi, nodeID string) (models.NodeCatalog, error) {
 	catalogURL := fmt.Sprintf("%s/api/2.0/nodes/%s/catalogs/ohai", c.ApiServer, nodeID)
 	resp, err := http.Get(catalogURL)
 	if err != nil {
-		return NodeCatalog{}, fmt.Errorf("error getting catalog %s", err)
+		return models.NodeCatalog{}, fmt.Errorf("error getting catalog %s", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return NodeCatalog{}, fmt.Errorf("Failed getting node catalog with status: %s, err: %s", resp.Status, err)
+		return models.NodeCatalog{}, fmt.Errorf("Failed getting node catalog with status: %s, err: %s", resp.Status, err)
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return NodeCatalog{}, fmt.Errorf("error reading catalog body %s", err)
+		return models.NodeCatalog{}, fmt.Errorf("error reading catalog body %s", err)
 	}
 
-	var nodeCatalog NodeCatalog
+	var nodeCatalog models.NodeCatalog
 	err = json.Unmarshal(b, &nodeCatalog)
 	if err != nil {
-		return NodeCatalog{}, fmt.Errorf("error unmarshal catalog body %s", err)
+		return models.NodeCatalog{}, fmt.Errorf("error unmarshal catalog body %s", err)
 	}
 
 	return nodeCatalog, nil
 }
 
 func BlockNode(c config.Cpi, nodeID string) error {
-	blockFlag := []byte(fmt.Sprintf("{\"status\": \"%s\", \"status_reason\": \"%s\"}", Blocked, DiskReason))
+	blockFlag := []byte(fmt.Sprintf("{\"status\": \"%s\", \"status_reason\": \"%s\"}", models.Blocked, models.DiskReason))
 	return PatchNode(c, nodeID, blockFlag)
 }
 
@@ -255,8 +184,8 @@ func PatchNode(c config.Cpi, nodeID string, body []byte) error {
 	return nil
 }
 
-func MakeDiskRequest(c config.Cpi, node Node, newDiskState bool) error {
-	container := PersistentDiskSettingsContainer{
+func MakeDiskRequest(c config.Cpi, node models.Node, newDiskState bool) error {
+	container := models.PersistentDiskSettingsContainer{
 		PersistentDisk: node.PersistentDisk,
 	}
 	container.PersistentDisk.IsAttached = newDiskState

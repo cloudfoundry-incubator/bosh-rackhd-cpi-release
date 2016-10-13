@@ -10,14 +10,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/models"
 )
-
-type FileMetadataResponse struct {
-	Basename string `json:"name"`
-	UUID     string `json:"uuid"`
-	Md5      string `json:"md5"`
-	Sha256   string `json:"sha256"`
-}
 
 func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64) (string, error) {
 	url := fmt.Sprintf("%s/api/2.0/files/%s", c.ApiServer, baseName)
@@ -68,7 +62,7 @@ func DeleteFile(c config.Cpi, baseName string) error {
 		return fmt.Errorf("error reading metadata response body %s", err)
 	}
 
-	metadata := FileMetadataResponse{}
+	metadata := models.FileMetadataResponse{}
 	err = json.Unmarshal(metadataBytes, &metadata)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling metadata response: %s", err)

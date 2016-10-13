@@ -9,6 +9,7 @@ import (
 
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
+	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
@@ -50,10 +51,10 @@ var _ = Describe("Nodes", func() {
 			nodeBytes, err := ioutil.ReadAll(resp.Body)
 			Expect(err).ToNot(HaveOccurred())
 
-			var node rackhdapi.Node
+			var node models.Node
 			err = json.Unmarshal(nodeBytes, &node)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(node.Status).To(Equal(rackhdapi.Available))
+			Expect(node.Status).To(Equal(models.Available))
 		})
 	})
 

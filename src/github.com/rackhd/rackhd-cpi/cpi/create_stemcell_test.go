@@ -42,7 +42,7 @@ var _ = Describe("CreateStemcell", func() {
 			defer resp.Body.Close()
 			Expect(resp.StatusCode).To(Equal(200))
 
-			fileMetadataResp := rackhdapi.FileMetadataResponse{}
+			fileMetadataResp := models.FileMetadataResponse{}
 			err = json.Unmarshal(respBytes, &fileMetadataResp)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fileMetadataResp).To(HaveLen(1))

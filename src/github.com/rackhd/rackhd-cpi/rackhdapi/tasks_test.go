@@ -7,6 +7,7 @@ import (
 	"github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
+	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
@@ -24,9 +25,9 @@ var _ = Describe("Tasks", func() {
 			uuid := uuidObj.String()
 			cpiConfig := config.Cpi{ApiServer: apiServer}
 
-			fakeTask := rackhdapi.Task{
+			fakeTask := models.Task{
 				Name:           fmt.Sprintf("Task.CF.Fake.%s", uuid),
-				UnusedName:     rackhdapi.DefaultUnusedName,
+				UnusedName:     models.DefaultUnusedName,
 				ImplementsTask: "Task.Base.Node.Update",
 			}
 
@@ -39,7 +40,7 @@ var _ = Describe("Tasks", func() {
 			taskLibraryBytes, err := rackhdapi.RetrieveTasks(cpiConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			taskLibrary := []rackhdapi.Task{}
+			taskLibrary := []models.Task{}
 			err = json.Unmarshal(taskLibraryBytes, &taskLibrary)
 			Expect(err).ToNot(HaveOccurred())
 
