@@ -11,17 +11,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/models"
 )
-
-type Task struct {
-	Name           string                 `json:"injectableName"`
-	UnusedName     string                 `json:"friendlyName"`
-	ImplementsTask string                 `json:"implementsTask"`
-	Options        map[string]interface{} `json:"options"`
-	Properties     TaskProperties         `json:"properties"`
-}
-
-type TaskProperties struct{}
 
 func PublishTask(c config.Cpi, taskBytes []byte) error {
 	url := fmt.Sprintf("%s/api/2.0/workflows/tasks", c.ApiServer)
@@ -49,7 +40,7 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 		return fmt.Errorf("error reading response body: %s", err)
 	}
 
-	task := Task{}
+	task := models.Task{}
 	err = json.Unmarshal(taskBytes, &task)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling task: %s", err)
@@ -61,13 +52,13 @@ func PublishTask(c config.Cpi, taskBytes []byte) error {
 		return err
 	}
 
-	publishedTasks := []Task{}
+	publishedTasks := []models.Task{}
 	err = json.Unmarshal(publishedTaskBytes, &publishedTasks)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling published tasks: %s", err)
 	}
 
-	var uploadedTask *Task
+	var uploadedTask *models.Task
 	for i := range publishedTasks {
 		if publishedTasks[i].Name == task.Name {
 			uploadedTask = &publishedTasks[i]

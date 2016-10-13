@@ -10,7 +10,7 @@ import (
 
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
-	"github.com/rackhd/rackhd-cpi/rackhdapi"
+	"github.com/rackhd/rackhd-cpi/models"
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -60,41 +60,41 @@ func LoadStruct(filePath string, o interface{}) interface{} {
 	return o
 }
 
-func LoadWorkflow(workflowPath string) rackhdapi.Workflow {
-	workflow := rackhdapi.Workflow{}
-	return *LoadStruct(workflowPath, &workflow).(*rackhdapi.Workflow)
+func LoadWorkflow(workflowPath string) models.Workflow {
+	workflow := models.Workflow{}
+	return *LoadStruct(workflowPath, &workflow).(*models.Workflow)
 }
 
-func LoadTask(taskPath string) rackhdapi.Task {
-	task := rackhdapi.Task{}
-	return *LoadStruct(taskPath, &task).(*rackhdapi.Task)
+func LoadTask(taskPath string) models.Task {
+	task := models.Task{}
+	return *LoadStruct(taskPath, &task).(*models.Task)
 }
 
-func LoadNodes(nodePath string) []rackhdapi.Node {
+func LoadNodes(nodePath string) []models.Node {
 	dummyResponseBytes := LoadJSON(nodePath)
 
-	nodes := []rackhdapi.Node{}
+	nodes := []models.Node{}
 	err := json.Unmarshal(dummyResponseBytes, &nodes)
 	Expect(err).ToNot(HaveOccurred())
 
 	return nodes
 }
 
-func LoadNode(nodePath string) rackhdapi.Node {
-	node := rackhdapi.Node{}
-	return *LoadStruct(nodePath, &node).(*rackhdapi.Node)
+func LoadNode(nodePath string) models.Node {
+	node := models.Node{}
+	return *LoadStruct(nodePath, &node).(*models.Node)
 }
 
-func LoadNodeCatalog(nodeCatalogPath string) rackhdapi.NodeCatalog {
-	nodeCatalog := rackhdapi.NodeCatalog{}
-	return *LoadStruct(nodeCatalogPath, &nodeCatalog).(*rackhdapi.NodeCatalog)
+func LoadNodeCatalog(nodeCatalogPath string) models.NodeCatalog {
+	nodeCatalog := models.NodeCatalog{}
+	return *LoadStruct(nodeCatalogPath, &nodeCatalog).(*models.NodeCatalog)
 }
 
 func MakeTryReservationHandlers(requestID string, nodeID string, expectedNodesPath string, expectedNodeCatalogPath string) []http.HandlerFunc {
 	expectedNodes := LoadNodes(expectedNodesPath)
 	expectedNodesData, err := json.Marshal(expectedNodes)
 	Expect(err).ToNot(HaveOccurred())
-	var expectedNode rackhdapi.Node
+	var expectedNode models.Node
 	for n := range expectedNodes {
 		if expectedNodes[n].ID == nodeID {
 			expectedNode = expectedNodes[n]

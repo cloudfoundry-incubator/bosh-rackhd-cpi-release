@@ -12,77 +12,12 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/models"
 )
 
-const (
-	OBMSettingIPMIServiceName = "ipmi-obm-service"
-	OBMSettingAMTServiceName  = "amt-obm-service"
-)
+type workflowFetcherFunc func(config.Cpi, string) (models.WorkflowResponse, error)
 
-const (
-	workflowSuccessfulStatus = "succeeded"
-	workflowFailedStatus     = "failed"
-	workflowCancelledStatus  = "cancelled"
-	workflowRunningStatus    = "running"
-	workflowPendingStatus    = "pending"
-)
-
-const (
-	RackHDReserveVMGraphName = "Graph.CF.ReserveVM"
-	RackHDCreateVMGraphName  = "Graph.BOSH.ProvisionNode"
-	RackHDDeleteVMGraphName  = "Graph.CF.DeleteVM"
-	RackHDEnvPath            = "/var/vcap/bosh/agent-bootstrap-env.json"
-	DefaultUnusedName        = "UPLOADED_BY_RACKHD_CPI"
-)
-
-type NodeWorkflow struct {
-	NodeID         string `json:"node"`
-	InjectableName string `json:"injectableName"`
-	Status         string `json:"_status"`
-}
-
-type Workflow struct {
-	Name       string                 `json:"injectableName"`
-	UnusedName string                 `json:"friendlyName"`
-	Tasks      []WorkflowTask         `json:"tasks"`
-	Options    map[string]interface{} `json:"options"`
-}
-
-type Graph struct {
-	Name       string                 `json:"injectableName"`
-	UnusedName string                 `json:"friendlyName"`
-	Options    map[string]interface{} `json:"options"`
-	Tasks      []WorkflowTask         `json:"tasks"`
-}
-
-type WorkflowTask struct {
-	TaskName string             `json:"taskName"`
-	Label    string             `json:"label"`
-	WaitOn   *map[string]string `json:"waitOn,omitempty"`
-}
-
-type WorkflowResponse struct {
-	Name       string `json:"injectableName"`
-	Status     string `json:"status"`
-	InstanceID string `json:"instanceId"`
-}
-
-type PropertyContainer struct {
-	Properties interface{} `json:"properties"`
-}
-
-type OptionContainer struct {
-	Options interface{} `json:"options"`
-}
-
-type RunWorkflowRequestBody struct {
-	Name    string                 `json:"name"`
-	Options map[string]interface{} `json:"options"`
-}
-
-type workflowFetcherFunc func(config.Cpi, string) (WorkflowResponse, error)
-
-type workflowPosterFunc func(config.Cpi, string, RunWorkflowRequestBody) (WorkflowResponse, error)
+type workflowPosterFunc func(config.Cpi, string, models.RunWorkflowRequestBody) (models.WorkflowResponse, error)
 
 func PublishWorkflow(c config.Cpi, graphBytes []byte) error {
 	url := fmt.Sprintf("%s/api/2.0/workflows/graphs", c.ApiServer)
@@ -115,7 +50,7 @@ func PublishWorkflow(c config.Cpi, graphBytes []byte) error {
 		return fmt.Errorf("error reading response body: %s", err)
 	}
 
-	graph := Graph{}
+	graph := models.Graph{}
 	err = json.Unmarshal(graphBytes, &graph)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling graph: %s", err)
@@ -127,13 +62,13 @@ func PublishWorkflow(c config.Cpi, graphBytes []byte) error {
 		return err
 	}
 
-	publishedWorkflows := []Graph{}
+	publishedWorkflows := []models.Graph{}
 	err = json.Unmarshal(publishedWorkflowsBytes, &publishedWorkflows)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling published workflows: %s", err)
 	}
 
-	var uploadedWorkflow *Graph
+	var uploadedWorkflow *models.Graph
 	for i := range publishedWorkflows {
 		if publishedWorkflows[i].Name == graph.Name {
 			uploadedWorkflow = &publishedWorkflows[i]
@@ -173,45 +108,45 @@ func RetrieveWorkflows(c config.Cpi) ([]byte, error) {
 	return body, nil
 }
 
-func WorkflowFetcher(c config.Cpi, graphName string) (WorkflowResponse, error) {
+func WorkflowFetcher(c config.Cpi, graphName string) (models.WorkflowResponse, error) {
 	url := fmt.Sprintf("%s/api/2.0/workflows/%s", c.ApiServer, graphName)
 	resp, err := http.Get(url)
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("Error requesting workflow on node at url: %s, msg: %s", url, err)
+		return models.WorkflowResponse{}, fmt.Errorf("Error requesting workflow on node at url: %s, msg: %s", url, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		return WorkflowResponse{}, fmt.Errorf("Failed retrieving workflow at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+		return models.WorkflowResponse{}, fmt.Errorf("Failed retrieving workflow at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
-	var workflow WorkflowResponse
+	var workflow models.WorkflowResponse
 	err = json.Unmarshal(body, &workflow)
 	if err != nil {
 		fmt.Printf("workflow fetcher: %+v", string(body))
-		return WorkflowResponse{}, fmt.Errorf("Error unmarshalling workflow: %s", err)
+		return models.WorkflowResponse{}, fmt.Errorf("Error unmarshalling workflow: %s", err)
 	}
 
 	return workflow, nil
 }
 
-func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (WorkflowResponse, error) {
+func WorkflowPoster(c config.Cpi, nodeID string, req models.RunWorkflowRequestBody) (models.WorkflowResponse, error) {
 	url := fmt.Sprintf("%s/api/2.0/nodes/%s/workflows", c.ApiServer, nodeID)
 	body, err := json.Marshal(req)
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("error marshalling workflow request body, %s", err)
+		return models.WorkflowResponse{}, fmt.Errorf("error marshalling workflow request body, %s", err)
 	}
 	request, err := http.NewRequest("POST", url, bytes.NewReader(body))
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("error building http request to run workflow, %s", err)
+		return models.WorkflowResponse{}, fmt.Errorf("error building http request to run workflow, %s", err)
 	}
 	request.Header.Set("Content-Type", "application/json")
 	log.Debug("Posting workflow...")
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("error running workflow at url %s", url)
+		return models.WorkflowResponse{}, fmt.Errorf("error running workflow at url %s", url)
 	}
 	defer resp.Body.Close()
 	bo, _ := ioutil.ReadAll(resp.Body)
@@ -219,26 +154,26 @@ func WorkflowPoster(c config.Cpi, nodeID string, req RunWorkflowRequestBody) (Wo
 
 	if resp.StatusCode != 201 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		return WorkflowResponse{}, fmt.Errorf("Failed running workflow at url: %s with status: %s, message: %s, body: %s", url, resp.Status, string(msg), string(body))
+		return models.WorkflowResponse{}, fmt.Errorf("Failed running workflow at url: %s with status: %s, message: %s, body: %s", url, resp.Status, string(msg), string(body))
 	}
 
 	wfRespBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("error reading workflow response body %s", err)
+		return models.WorkflowResponse{}, fmt.Errorf("error reading workflow response body %s", err)
 	}
 
-	workflowResp := WorkflowResponse{}
+	workflowResp := models.WorkflowResponse{}
 	fmt.Printf("workflow response in poster: %+v\n\n", string(wfRespBytes))
 	err = json.Unmarshal(wfRespBytes, &workflowResp)
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("error unmarshalling /common/node/workflows response %s", err)
+		return models.WorkflowResponse{}, fmt.Errorf("error unmarshalling /common/node/workflows response %s", err)
 	}
 
 	log.Debug("Workflow post successful")
 	return workflowResp, nil
 }
 
-func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c config.Cpi, nodeID string, req RunWorkflowRequestBody) error {
+func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c config.Cpi, nodeID string, req models.RunWorkflowRequestBody) error {
 	postedWorkflow, err := poster(c, nodeID, req)
 	if err != nil {
 		return fmt.Errorf("Failed to post workflow: %s", err)
@@ -263,18 +198,18 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 			}
 
 			switch wr.Status {
-			case workflowRunningStatus:
+			case models.WorkflowRunningStatus:
 				log.Info(fmt.Sprintf("workflow: %s is running against node: %s", req.Name, nodeID))
 				continue
-			case workflowSuccessfulStatus:
+			case models.WorkflowSuccessfulStatus:
 				log.Info(fmt.Sprintf("workflow: %s completed successfully against node: %s", req.Name, nodeID))
 				return nil
-			case workflowFailedStatus:
+			case models.WorkflowFailedStatus:
 				return fmt.Errorf("workflow: %s failed against node: %s", req.Name, nodeID)
-			case workflowCancelledStatus:
+			case models.WorkflowCancelledStatus:
 				log.Info(fmt.Sprintf("workflow: %s was cancelled against node: %s", req.Name, nodeID))
 				return nil
-			case workflowPendingStatus:
+			case models.WorkflowPendingStatus:
 				log.Info(fmt.Sprintf("workflow: %s is pending on node: %s", req.Name, nodeID))
 				continue
 			default:
@@ -309,30 +244,30 @@ func KillActiveWorkflow(c config.Cpi, nodeID string) error {
 	return nil
 }
 
-func GetActiveWorkflows(c config.Cpi, nodeID string) (WorkflowResponse, error) {
-	var workflows WorkflowResponse
+func GetActiveWorkflows(c config.Cpi, nodeID string) (models.WorkflowResponse, error) {
+	var workflows models.WorkflowResponse
 
 	url := fmt.Sprintf("%s/api/1.1/nodes/%s/workflows/active", c.ApiServer, nodeID)
 	resp, err := http.Get(url)
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
+		return models.WorkflowResponse{}, fmt.Errorf("Error requesting active workflows on node at url: %s, msg: %s", url, err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 204 {
-		return WorkflowResponse{}, nil
+		return models.WorkflowResponse{}, nil
 	}
 
 	if resp.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(resp.Body)
-		return WorkflowResponse{}, fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
+		return models.WorkflowResponse{}, fmt.Errorf("Failed retrieving active workflows at url: %s with status: %s, message: %s", url, resp.Status, string(msg))
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &workflows)
 	if err != nil {
-		return WorkflowResponse{}, fmt.Errorf("Error unmarshalling active workflows: %s %s", err, string(body))
+		return models.WorkflowResponse{}, fmt.Errorf("Error unmarshalling active workflows: %s %s", err, string(body))
 	}
 
 	return workflows, nil
