@@ -1,70 +1,64 @@
 package cpi_test
 
 import (
-	"github.com/rackhd/rackhd-cpi/bosh"
-	"github.com/rackhd/rackhd-cpi/config"
-	"github.com/rackhd/rackhd-cpi/cpi"
-	"github.com/rackhd/rackhd-cpi/helpers"
-	"github.com/rackhd/rackhd-cpi/rackhdapi"
+  "encoding/json"
+  "fmt"
+  "io/ioutil"
+  "net/http"
 
-	"encoding/json"
-	"net/http"
+  "github.com/rackhd/rackhd-cpi/bosh"
+  "github.com/rackhd/rackhd-cpi/config"
+  "github.com/rackhd/rackhd-cpi/cpi"
+  "github.com/rackhd/rackhd-cpi/helpers"
+  "github.com/rackhd/rackhd-cpi/models"
+  "github.com/rackhd/rackhd-cpi/rackhdapi"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	"fmt"
-	"io/ioutil"
+  . "github.com/onsi/ginkgo"
+  . "github.com/onsi/gomega"
 )
 
 var _ = Describe("CreateStemcell", func() {
-	Context("With valid CPI v1 input", func() {
-		It("Uploads the image from an OpenStack stemcell", func() {
-			apiServer, err := helpers.GetRackHDHost()
-			Expect(err).ToNot(HaveOccurred())
+  Context("With valid CPI v1 input", func() {
+    It("Uploads the image from an OpenStack stemcell", func() {
+      apiServer, err := helpers.GetRackHDHost()
+      Expect(err).ToNot(HaveOccurred())
 
-			config := config.Cpi{ApiServer: apiServer}
+      config := config.Cpi{ApiServer: apiServer}
+      var input bosh.MethodArguments
+      input = append(input, "../spec_assets/image")
 
-			var input bosh.MethodArguments
-			input = append(input, "../spec_assets/image")
+      uuid, err := cpi.CreateStemcell(config, input)
+      Expect(err).ToNot(HaveOccurred())
+      Expect(uuid).ToNot(BeEmpty())
 
-			uuid, err := cpi.CreateStemcell(config, input)
-			Expect(err).ToNot(HaveOccurred())
+      url := fmt.Sprintf("%s/api/2.0/files/%s/metadata", config.ApiServer, uuid)
+      resp, err := http.Get(url)
+      Expect(err).ToNot(HaveOccurred())
+      Expect(resp.StatusCode).To(Equal(200))
 
-			Expect(uuid).ToNot(BeEmpty())
-			url := fmt.Sprintf("%s/api/common/files/metadata/%s", config.ApiServer, uuid)
-			resp, err := http.Get(url)
-			Expect(err).ToNot(HaveOccurred())
+      respBytes, err := ioutil.ReadAll(resp.Body)
+      Expect(err).ToNot(HaveOccurred())
+      defer resp.Body.Close()
 
-			respBytes, err := ioutil.ReadAll(resp.Body)
-			Expect(err).ToNot(HaveOccurred())
+      fileMetadataResp := models.FileMetadataResponse{}
+      err = json.Unmarshal(respBytes, &fileMetadataResp)
+      Expect(err).ToNot(HaveOccurred())
+      Expect(fileMetadataResp.Basename).To(Equal(uuid))
 
-			defer resp.Body.Close()
-			Expect(resp.StatusCode).To(Equal(200))
+      err = rackhdapi.DeleteFile(config, fileMetadataResp.Basename)
+      Expect(err).ToNot(HaveOccurred())
+    })
+  })
 
-			fileMetadataResp := models.FileMetadataResponse{}
-			err = json.Unmarshal(respBytes, &fileMetadataResp)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fileMetadataResp).To(HaveLen(1))
+  Context("With invalid CPI v1 input", func() {
+    It("Returns an error", func() {
+      config := config.Cpi{}
+      var input bosh.MethodArguments
+      input = append(input, map[string]string{"foo": "bar"})
 
-			fileMetadata := fileMetadataResp[0]
-			Expect(fileMetadata.Basename).To(Equal(uuid))
-
-			err = rackhdapi.DeleteFile(config, fileMetadata.UUID)
-			Expect(err).ToNot(HaveOccurred())
-		})
-	})
-
-	Context("With invalid CPI v1 input", func() {
-		It("Returns an error", func() {
-			config := config.Cpi{}
-
-			var input bosh.MethodArguments
-			input = append(input, map[string]string{"foo": "bar"})
-
-			uuid, err := cpi.CreateStemcell(config, input)
-			Expect(err).To(MatchError("received unexpected type for stemcell image path"))
-			Expect(uuid).To(BeEmpty())
-		})
-	})
+      uuid, err := cpi.CreateStemcell(config, input)
+      Expect(err).To(MatchError("received unexpected type for stemcell image path"))
+      Expect(uuid).To(BeEmpty())
+    })
+  })
 })

@@ -3,8 +3,10 @@ package helpers
 import (
   "bytes"
   "fmt"
-  "net/http"
   "io/ioutil"
+  "net/http"
+
+  "github.com/nu7hatch/gouuid"
 )
 
 func MakeRequest(url, method string, statusCode int, body []byte) ([]byte, error) {
@@ -29,6 +31,14 @@ func MakeRequest(url, method string, statusCode int, body []byte) ([]byte, error
   if resp.StatusCode != statusCode {
     return nil, fmt.Errorf("error getting response from %s: %d, %s", errMsg, resp.StatusCode, string(respBody))
   }
-
   return respBody, nil
+}
+
+func GenerateUUID() (string, error) {
+  uuid, err := uuid.NewV4()
+  if err != nil {
+    return "", fmt.Errorf("error generating UUID: %s", err)
+  }
+
+  return uuid.String(), nil
 }
