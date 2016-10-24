@@ -1,6 +1,15 @@
 package models
 
-type Tag struct {
-  Key string
-  Value string
+const (
+  Available   = "available"
+  Unavailable = "unavailable"
+)
+
+type Tags struct {
+  T []string `json:"tags"`
+}
+
+type TagNode struct {
+  ID string `json:"id"`
+  Tags
 }

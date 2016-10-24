@@ -1,0 +1,35 @@
+[
+  {
+    "sku": null,
+    "autoDiscover": false,
+    "createdAt": "2016-10-10T14:03:28.799Z",
+    "identifiers": [
+      "c0:3f:d5:63:fe:13"
+    ],
+    "name": "c0:3f:d5:63:fe:13",
+    "relations": [],
+    "tags": [
+      "fake-vm-cid",
+      "reserved"
+    ],
+    "type": "compute",
+    "updatedAt": "2016-10-24T15:45:28.938Z",
+    "id": "57fb9fb03fcc55c807add41b"
+  },
+  {
+    "sku": null,
+    "autoDiscover": false,
+    "createdAt": "2016-10-10T14:03:28.799Z",
+    "identifiers": [
+      "c0:3f:d5:63:fe:12"
+    ],
+    "name": "c0:3f:d5:63:fe:12",
+    "relations": [],
+    "tags": [
+      "reserved"
+    ],
+    "type": "compute",
+    "updatedAt": "2016-10-24T15:45:28.938Z",
+    "id": "57fb9fb03fcc55c807add41c"
+  }
+]
