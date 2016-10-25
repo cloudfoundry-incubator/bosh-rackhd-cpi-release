@@ -1,6 +1,6 @@
 {
   "friendlyName": "Testing",
-  "injectableName": "Test.Success.CF.Fake.",
+  "injectableName": "Test.Worlflow.Success.",
   "options": {
     "defaults": {
       "obmServiceName": null
