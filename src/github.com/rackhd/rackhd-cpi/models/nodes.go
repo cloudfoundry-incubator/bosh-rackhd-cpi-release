@@ -59,7 +59,5 @@ type Node struct {
   ID             string                 `json:"id"`
   Workflows      string                 `json:"workflows"`
   OBMS           []OBM                  `json:"obms"`
-  CID            string                 `json:"cid"`
-  Status         string                 `json:"status"`
   PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
 }
