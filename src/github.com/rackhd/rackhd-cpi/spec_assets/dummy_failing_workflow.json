@@ -1,6 +1,6 @@
 {
   "friendlyName": "Testing",
-  "injectableName": "Test.Success.CF.Fake.",
+  "injectableName": "Test.Workflow.Failure.",
   "options": {},
   "tasks": [
     {
@@ -24,7 +24,7 @@
     },
     {
       "label": "fake-failure-task-label",
-      "taskName": "Requests.Test.Dummy.Failing.",
+      "taskName": "Test.Task.Failure.",
       "waitOn": {
         "set-boot-pxe": "succeeded"
       }

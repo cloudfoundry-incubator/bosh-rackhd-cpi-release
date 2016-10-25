@@ -1,6 +1,6 @@
 {
   "friendlyName" : "RackHD CPI Test Failing Task",
-  "injectableName" : "Requests.Test.Dummy.Failing.",
+  "injectableName" : "Test.Task.Failure.",
   "implementsTask": "Task.Base.Linux.Commands",
   "tasks": [],
   "options": {
