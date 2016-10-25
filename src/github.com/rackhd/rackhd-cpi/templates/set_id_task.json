@@ -5,7 +5,7 @@
   "options": {
     "cid": null,
     "commands":[
-      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"{{ options.cid }}\" }'"
+      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }}/tags -H \"Content-Type: application/json\" -d '{\"tags\": [\"{{ options.cid }}\"]}'"
     ]
   },
   "properties": {}
