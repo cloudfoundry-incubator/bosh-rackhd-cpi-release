@@ -14,7 +14,7 @@ import (
   "github.com/onsi/gomega/ghttp"
 )
 
-var _ = FDescribe("Tags", func() {
+var _ = Describe("Tags", func() {
   var c config.Cpi
   var nodeID string
   var server *ghttp.Server

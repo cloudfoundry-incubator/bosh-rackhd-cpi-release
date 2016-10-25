@@ -75,6 +75,10 @@ func GetNodeByVMCID(c config.Cpi, cid string) (models.TagNode, error) {
   return GetNodeByTag(c, cid)
 }
 
+func GetAvailableNodes(c config.Cpi) ([]models.TagNode, error) {
+  return GetNodesByTag(c, models.Available)
+}
+
 // ReleaseNode delete unavailable tag on the node and create available tag
 func ReleaseNode(c config.Cpi, nodeID string) error {
   err := DeleteTag(c, nodeID, models.Unavailable)

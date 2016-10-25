@@ -3,12 +3,11 @@ package rackhdapi_test
 import (
   "encoding/json"
   "fmt"
-  "io/ioutil"
   "net/http"
+  "os"
 
   "github.com/rackhd/rackhd-cpi/config"
   "github.com/rackhd/rackhd-cpi/helpers"
-  "github.com/rackhd/rackhd-cpi/models"
   "github.com/rackhd/rackhd-cpi/rackhdapi"
 
   . "github.com/onsi/ginkgo"
@@ -18,10 +17,10 @@ import (
 
 var _ = Describe("Nodes", func() {
   var server *ghttp.Server
-  var cpiConfig config.Cpi
+  var c config.Cpi
 
   BeforeEach(func() {
-    server, _, cpiConfig, _ = helpers.SetUp("")
+    server, _, c, _ = helpers.SetUp("")
   })
 
   AfterEach(func() {
@@ -30,29 +29,18 @@ var _ = Describe("Nodes", func() {
 
   Describe("ReleaseNode", func() {
     It("return a node with reserved flag unset", func() {
-      apiServer, err := helpers.GetRackHDHost()
-      Expect(err).ToNot(HaveOccurred())
-
-      c := config.Cpi{ApiServer: apiServer}
-
+      c := config.Cpi{ApiServer: os.Getenv("RACKHD_API_URL")}
       nodes, err := rackhdapi.GetNodes(c)
       Expect(err).ToNot(HaveOccurred())
+
       targetNodeID := nodes[0].ID
       err = rackhdapi.ReleaseNode(c, targetNodeID)
       Expect(err).ToNot(HaveOccurred())
-      nodeURL := fmt.Sprintf("%s/api/1.1/nodes/%s", c.ApiServer, targetNodeID)
 
-      resp, err := http.Get(nodeURL)
+      tags, err := rackhdapi.GetTags(c, targetNodeID)
       Expect(err).ToNot(HaveOccurred())
-      Expect(resp.StatusCode).To(Equal(200))
-
-      nodeBytes, err := ioutil.ReadAll(resp.Body)
-      Expect(err).ToNot(HaveOccurred())
-
-      var node models.Node
-      err = json.Unmarshal(nodeBytes, &node)
-      Expect(err).ToNot(HaveOccurred())
-      Expect(node.Status).To(Equal(models.Available))
+      Expect(tags).ToNot(ContainElement("unavailable"))
+      Expect(tags).To(ContainElement("available"))
     })
   })
 
@@ -63,12 +51,12 @@ var _ = Describe("Nodes", func() {
       Expect(err).ToNot(HaveOccurred())
       server.AppendHandlers(
         ghttp.CombineHandlers(
-          ghttp.VerifyRequest("GET", "/api/1.1/nodes"),
+          ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
           ghttp.RespondWith(http.StatusOK, expectedNodesData),
         ),
       )
 
-      nodes, err := rackhdapi.GetNodes(cpiConfig)
+      nodes, err := rackhdapi.GetNodes(c)
       Expect(err).ToNot(HaveOccurred())
       Expect(server.ReceivedRequests()).To(HaveLen(1))
       Expect(nodes).To(Equal(expectedNodes))
@@ -82,12 +70,12 @@ var _ = Describe("Nodes", func() {
       Expect(err).ToNot(HaveOccurred())
       server.AppendHandlers(
         ghttp.CombineHandlers(
-          ghttp.VerifyRequest("GET", "/api/1.1/nodes/5665a65a0561790005b77b85"),
+          ghttp.VerifyRequest("GET", "/api/2.0/nodes/5665a65a0561790005b77b85"),
           ghttp.RespondWith(http.StatusOK, expectedNodeData),
         ),
       )
 
-      node, err := rackhdapi.GetNode(cpiConfig, "5665a65a0561790005b77b85")
+      node, err := rackhdapi.GetNode(c, "5665a65a0561790005b77b85")
       Expect(err).ToNot(HaveOccurred())
       Expect(node).To(Equal(expectedNode))
     })
@@ -107,7 +95,7 @@ var _ = Describe("Nodes", func() {
         ),
       )
 
-      response, err := rackhdapi.GetOBMSettings(cpiConfig, nodeID)
+      response, err := rackhdapi.GetOBMSettings(c, nodeID)
       Expect(err).ToNot(HaveOccurred())
       Expect(server.ReceivedRequests()).To(HaveLen(1))
       Expect(response).To(Equal(expectedResponse.OBMS))
@@ -127,7 +115,7 @@ var _ = Describe("Nodes", func() {
         ),
       )
 
-      catalog, err := rackhdapi.GetNodeCatalog(cpiConfig, testNodeID)
+      catalog, err := rackhdapi.GetNodeCatalog(c, testNodeID)
       Expect(err).ToNot(HaveOccurred())
       Expect(server.ReceivedRequests()).To(HaveLen(1))
       Expect(catalog).To(Equal(expectedNodeCatalog))
@@ -146,7 +134,7 @@ var _ = Describe("Nodes", func() {
         ),
       )
 
-      err := rackhdapi.SetNodeMetadata(cpiConfig, nodeID, metadata)
+      err := rackhdapi.SetNodeMetadata(c, nodeID, metadata)
       Expect(err).ToNot(HaveOccurred())
       Expect(server.ReceivedRequests()).To(HaveLen(1))
     })
