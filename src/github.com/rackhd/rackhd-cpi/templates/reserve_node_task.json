@@ -4,7 +4,8 @@
   "implementsTask": "Task.Base.Linux.Commands",
   "options": {
     "commands":[
-      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"status\": \"reserved\" }'"
+      "curl -X DELETE {{ api.base }}/nodes/{{ task.nodeId }}/unavailable",
+      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"tags\": [\"available\"]}'"
     ]
   },
   "properties": {}
