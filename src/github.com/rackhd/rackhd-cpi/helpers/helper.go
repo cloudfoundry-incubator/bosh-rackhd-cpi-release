@@ -2,13 +2,16 @@ package helpers
 
 import (
   "bytes"
+  "encoding/json"
   "fmt"
   "io/ioutil"
   "net/http"
+  "os"
   "regexp"
   "strings"
 
   "github.com/nu7hatch/gouuid"
+  "github.com/rackhd/rackhd-cpi/models"
 )
 
 // MakeRequestWithMultiCode builds a request with given info and makes the request
@@ -68,4 +71,36 @@ func BytesToArray(b []byte) []string {
   rg := regexp.MustCompile("[\"\\[\\]\"]")
   array := strings.Split(rg.ReplaceAllString(string(b), ""), ",")
   return array
+}
+
+func ReadFile(filePath string) ([]byte, error) {
+  reader, err := os.Open(filePath)
+  defer reader.Close()
+  if err != nil {
+    return nil, err
+  }
+
+  return ioutil.ReadAll(reader)
+}
+
+func AddIDForTask(template string) (string, []byte, error) {
+  taskBytes, err := ReadFile(template)
+  if err != nil {
+    return "", nil, err
+  }
+
+  task := models.Task{}
+  err = json.Unmarshal(taskBytes, &task)
+
+  uuid, err := GenerateUUID()
+  if err != nil {
+    return "", nil, err
+  }
+  task.Name += uuid
+
+  taskBytes, err = json.Marshal(task)
+  if err != nil {
+    return "", nil, err
+  }
+  return task.Name, taskBytes, nil
 }
