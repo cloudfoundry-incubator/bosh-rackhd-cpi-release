@@ -8,6 +8,7 @@ import (
 
   "github.com/rackhd/rackhd-cpi/config"
   "github.com/rackhd/rackhd-cpi/helpers"
+  "github.com/rackhd/rackhd-cpi/models"
   "github.com/rackhd/rackhd-cpi/rackhdapi"
 
   . "github.com/onsi/ginkgo"
@@ -39,8 +40,7 @@ var _ = Describe("Nodes", func() {
 
       tags, err := rackhdapi.GetTags(c, targetNodeID)
       Expect(err).ToNot(HaveOccurred())
-      Expect(tags).ToNot(ContainElement("unavailable"))
-      Expect(tags).To(ContainElement("available"))
+      Expect(tags).ToNot(ContainElement(models.Reserved))
     })
   })
 

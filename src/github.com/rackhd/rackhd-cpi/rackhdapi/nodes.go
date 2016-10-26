@@ -24,7 +24,7 @@ func GetNodes(c config.Cpi) ([]models.Node, error) {
   var nodes []models.Node
   err = json.Unmarshal(respBody, &nodes)
   if err != nil {
-    return []models.Node{}, fmt.Errorf("error unmarshalling /2.0/nodes response %s", err)
+    return []models.Node{}, fmt.Errorf("error unmarshalling all nodes: %s", err)
   }
 
   return nodes, nil
