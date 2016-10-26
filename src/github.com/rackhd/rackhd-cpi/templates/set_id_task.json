@@ -1,11 +1,13 @@
 {
-  "friendlyName" : "Set Id and Reboot VM",
-  "injectableName" : "Task.BOSH.SetNodeId",
+  "friendlyName": "Set Id and Reboot VM",
+  "injectableName": "Task.BOSH.SetNodeId",
   "implementsTask": "Task.Base.Linux.Commands",
   "options": {
     "cid": null,
-    "commands":[
-      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }}/tags -H \"Content-Type: application/json\" -d '{\"tags\": [\"{{ options.cid }}\"]}'"
+    "commands": [
+      {
+        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }}/tags -H \"Content-Type: application/json\" -d '{\"tags\": [\"{{ options.cid }}\"]}'"
+      }
     ]
   },
   "properties": {}
