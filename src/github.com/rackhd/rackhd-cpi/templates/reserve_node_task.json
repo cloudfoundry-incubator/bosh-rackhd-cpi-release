@@ -1,11 +1,15 @@
 {
-  "friendlyName" : "Reserve Node",
-  "injectableName" : "Task.BOSH.Reserve.Node",
+  "friendlyName": "Reserve Node",
+  "injectableName": "Task.BOSH.Reserve.Node",
   "implementsTask": "Task.Base.Linux.Commands",
   "options": {
-    "commands":[
-      "curl -X DELETE {{ api.base }}/nodes/{{ task.nodeId }}/unavailable",
-      "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"tags\": [\"available\"]}'"
+    "commands": [
+      {
+        "command": "curl -X DELETE {{ api.base }}/nodes/{{ task.nodeId }}/unavailable"
+      },
+      {
+        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"tags\": [\"available\"]}'"
+      }
     ]
   },
   "properties": {}

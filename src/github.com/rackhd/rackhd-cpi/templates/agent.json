@@ -1,13 +1,13 @@
 {
-    "Infrastructure": {
-        "Settings": {
-            "Sources": [
-                {
-                    "SettingsPath": "/var/vcap/bosh/rackhd-cpi-agent-env.json",
-                    "Type": "File"
-                }
-            ],
-            "UseRegistry": true
+  "Infrastructure": {
+    "Settings": {
+      "Sources": [
+        {
+          "SettingsPath": "/var/vcap/bosh/rackhd-cpi-agent-env.json",
+          "Type": "File"
         }
+      ],
+      "UseRegistry": true
     }
+  }
 }
