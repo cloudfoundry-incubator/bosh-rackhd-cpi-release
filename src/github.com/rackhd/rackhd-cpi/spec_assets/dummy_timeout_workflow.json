@@ -1,6 +1,6 @@
 {
   "friendlyName": "Testing",
-  "injectableName": "Test.Workflow.Failure.",
+  "injectableName": "Test.Worlkflow.Timeout.",
   "options": {},
   "tasks": [
     {
@@ -23,8 +23,8 @@
       }
     },
     {
-      "label": "fake-failure-task-label",
-      "taskName": "Test.Task.Failure.",
+      "label": "timeout-task",
+      "taskName": "Test.Task.Timeout.",
       "waitOn": {
         "set-boot-pxe": "succeeded"
       }

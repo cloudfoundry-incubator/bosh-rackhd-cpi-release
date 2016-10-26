@@ -4,16 +4,15 @@
     "autoDiscover": false,
     "createdAt": "2016-10-10T14:03:28.799Z",
     "identifiers": [
-      "c0:3f:d5:63:fe:13"
+      "c0:3f:d5:63:fe:01"
     ],
-    "name": "c0:3f:d5:63:fe:13",
+    "name": "c0:3f:d5:63:fe:01",
     "relations": [],
     "tags": [
-      "reserved",
-      "fake-vm-cid"
+      "blocked"
     ],
     "type": "compute",
     "updatedAt": "2016-10-24T15:45:28.938Z",
-    "id": "57fb9fb03fcc55c807add41c"
+    "id": "57fb9fb03fcc55c807add401"
   }
 ]

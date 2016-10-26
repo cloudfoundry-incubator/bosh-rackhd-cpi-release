@@ -1,11 +1,12 @@
 {
-"friendlyName" : "RackHD CPI Test Timing Out Task",
-"injectableName" : "Test.Task.Timeout.",
-"implementsTask": "Task.Base.Linux.Commands",
-"options": {
-  "commands":[
-    "sleep inf"
-  ]
- },
- "properties": {}
+  "friendlyName": "RackHD CPI Test Timing Out Task",
+  "injectableName": "Test.Task.Timeout.",
+  "implementsTask": "Task.Base.Linux.Commands",
+  "options": {
+    "commands": [
+      "sleep inf"
+    ],
+    "_taskTimeout": 10000
+  },
+  "properties": {}
 }

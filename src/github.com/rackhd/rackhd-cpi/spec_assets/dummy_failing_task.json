@@ -1,11 +1,22 @@
 {
-  "friendlyName" : "RackHD CPI Test Failing Task",
-  "injectableName" : "Test.Task.Failure.",
+  "friendlyName": "RackHD CPI Test Failing Task",
+  "injectableName": "Test.Task.Failure.",
   "implementsTask": "Task.Base.Linux.Commands",
   "tasks": [],
   "options": {
-    "commands":[
-      "false"
+    "commands": [
+      {
+        "command": "sleep 3",
+        "acceptedResponseCodes": [
+          0
+        ]
+      },
+      {
+        "command": "false",
+        "acceptedResponseCodes": [
+          0
+        ]
+      }
     ]
   },
   "properties": {}
