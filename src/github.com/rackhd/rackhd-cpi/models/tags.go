@@ -1,8 +1,8 @@
 package models
 
 const (
-  Available   = "available"
-  Unavailable = "unavailable"
+  Blocked  = "blocked"
+  Reserved = "reserved"
 )
 
 type Tags struct {
