@@ -31,7 +31,9 @@ func DeleteTag(c config.Cpi, nodeID, tag string) error {
 
 // CreateTag creates the given tag on the given node
 func CreateTag(c config.Cpi, nodeID, tag string) error {
-  tags := models.Tags{[]string{tag}}
+  tags := models.Tags{
+    T: []string{tag},
+  }
   body, err := json.Marshal(tags)
   if err != nil {
     return nil
@@ -75,16 +77,42 @@ func GetNodeByVMCID(c config.Cpi, cid string) (models.TagNode, error) {
   return GetNodeByTag(c, cid)
 }
 
-func GetAvailableNodes(c config.Cpi) ([]models.TagNode, error) {
-  return GetNodesByTag(c, models.Available)
+// GetAvailableNodes return all available nodes that are not blocked nor reserved
+func GetAvailableNodes(c config.Cpi) ([]models.Node, error) {
+  unavailableNodes := map[string]bool{}
+  blockedNodes, err := GetNodesByTag(c, models.Blocked)
+  if err != nil {
+    return nil, err
+  }
+  for _, node := range blockedNodes {
+    unavailableNodes[node.ID] = true
+  }
+
+  reservedNodes, err := GetNodesByTag(c, models.Reserved)
+  if err != nil {
+    return nil, err
+  }
+  for _, node := range reservedNodes {
+    unavailableNodes[node.ID] = true
+  }
+
+  nodes, err := GetNodes(c)
+  if err != nil {
+    return nil, err
+  }
+
+  availableNodes := make([]models.Node, len(nodes))
+  counter := 0
+  for _, node := range nodes {
+    if unavailableNodes[node.ID] == false {
+      availableNodes[counter] = node
+      counter++
+    }
+  }
+  return availableNodes[:counter], nil
 }
 
 // ReleaseNode delete unavailable tag on the node and create available tag
 func ReleaseNode(c config.Cpi, nodeID string) error {
-  err := DeleteTag(c, nodeID, models.Unavailable)
-  if err != nil {
-    return err
-  }
-
-  return CreateTag(c, nodeID, models.Available)
+  return DeleteTag(c, nodeID, models.Reserved)
 }

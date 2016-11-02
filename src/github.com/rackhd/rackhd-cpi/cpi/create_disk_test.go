@@ -48,7 +48,7 @@ var _ = Describe("CreateDisk", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
@@ -78,7 +78,7 @@ var _ = Describe("CreateDisk", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
@@ -112,11 +112,11 @@ var _ = Describe("CreateDisk", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/api/common/nodes"),
+						ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 						ghttp.RespondWith(http.StatusOK, expectedNodesData),
 					),
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/api/common/nodes/55e79eb14e66816f6152fffb/catalogs/ohai"),
+						ghttp.VerifyRequest("GET", "/api/2.0/nodes/55e79eb14e66816f6152fffb/catalogs/ohai"),
 						ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
 					),
 				)
@@ -160,7 +160,7 @@ var _ = Describe("CreateDisk", func() {
 					)
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
+							ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79ea54e66816f6152fff9"),
 							ghttp.VerifyJSON(expectedPersistentDiskSettings),
 						),
 					)
@@ -193,14 +193,14 @@ var _ = Describe("CreateDisk", func() {
 
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/common/nodes"),
+							ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 							ghttp.RespondWith(http.StatusOK, expectedNodesData),
 						),
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/common/nodes/55e79eb14e66816f6152fffb/catalogs/ohai"),
+							ghttp.VerifyRequest("GET", "/api/2.0/nodes/55e79eb14e66816f6152fffb/catalogs/ohai"),
 							ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
 						),
-						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79eb14e66816f6152fffb"),
+						ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79eb14e66816f6152fffb"),
 					)
 
 					diskCID, err := cpi.CreateDisk(cpiConfig, extInput)

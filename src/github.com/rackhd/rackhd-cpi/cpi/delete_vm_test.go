@@ -34,7 +34,7 @@ var _ = Describe("DeleteVM", func() {
 
 	Context("with a valid VM CID and valid states", func() {
 		var extInput bosh.MethodArguments
-		var expectedNodes []rackhdapi.Node
+		var expectedNodes []models.Node
 
 		BeforeEach(func() {
 			expectedNodes = helpers.LoadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
@@ -43,7 +43,7 @@ var _ = Describe("DeleteVM", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
@@ -84,7 +84,7 @@ var _ = Describe("DeleteVM", func() {
 				)
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79eb14e66816f6152fffb"),
+						ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79eb14e66816f6152fffb"),
 						ghttp.VerifyJSON("{\"status\": \"available\"}"),
 					),
 				)
@@ -113,7 +113,7 @@ var _ = Describe("DeleteVM", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+						ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/2.0/nodes/%s", nodeID)),
 						ghttp.VerifyJSON(string(expectedPersistentDiskSettings)),
 					),
 				)

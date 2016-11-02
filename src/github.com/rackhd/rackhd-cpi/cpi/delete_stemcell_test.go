@@ -13,7 +13,7 @@ import (
   . "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("DeleteStemcell", func() {
+var _ = Describe("DeleteStemcell", func() {
   var c config.Cpi
 
   BeforeEach(func() {

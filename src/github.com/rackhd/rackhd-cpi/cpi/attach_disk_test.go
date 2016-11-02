@@ -9,7 +9,6 @@ import (
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	. "github.com/rackhd/rackhd-cpi/cpi"
-	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -48,7 +47,7 @@ var _ = Describe("AttachDisk", func() {
 					Expect(err).ToNot(HaveOccurred())
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/common/nodes"),
+							ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 							ghttp.RespondWith(http.StatusOK, expectedNodesData),
 						),
 					)
@@ -75,7 +74,7 @@ var _ = Describe("AttachDisk", func() {
 						Expect(err).ToNot(HaveOccurred())
 						server.AppendHandlers(
 							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("GET", "/api/common/nodes"),
+								ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 								ghttp.RespondWith(http.StatusOK, expectedNodesData),
 							),
 						)
@@ -101,7 +100,7 @@ var _ = Describe("AttachDisk", func() {
 						Expect(err).ToNot(HaveOccurred())
 						server.AppendHandlers(
 							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("GET", "/api/common/nodes"),
+								ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 								ghttp.RespondWith(http.StatusOK, expectedNodesData),
 							),
 						)
@@ -140,11 +139,11 @@ var _ = Describe("AttachDisk", func() {
 
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/common/nodes"),
+							ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 							ghttp.RespondWith(http.StatusOK, expectedNodesData),
 						),
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
+							ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79ea54e66816f6152fff9"),
 							ghttp.VerifyJSON(string(bodyBytes)),
 						),
 					)
@@ -172,7 +171,7 @@ var _ = Describe("AttachDisk", func() {
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)

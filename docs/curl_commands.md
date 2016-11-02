@@ -21,17 +21,17 @@ curl RACKHD_API_URL/api/common/workflows/library | jq '.[] | select(.injectableN
 
 ### Checking status of workflows
 ```
-curl RACKHD_API_URL/api/common/nodes/55e79ea54e66816f6152fff9/workflows/active | jq .
+curl RACKHD_API_URL/api/common/nodes/55e79ea54e66816f6152fff9/workflows?active=true | jq .
 ```
 
 ### Watch workflow status
 ```
-watch -c -n 10 'curl RACKHD_API_URL/api/common/nodes/55e79eb14e66816f6152fffb/workflows/active | jq ". | ._status"'
+watch -c -n 10 'curl RACKHD_API_URL/api/common/nodes/55e79eb14e66816f6152fffb/workflows?active=true | jq ". | ._status"'
 ```
 
 ### Canceling active workflow
 ```
-curl -X DELETE RACKHD_API_URL/api/common/nodes/55e79ea54e66816f6152fff9/workflows/active
+curl -X DELETE RACKHD_API_URL/api/common/nodes/55e79ea54e66816f6152fff9/workflows?active=true
 ```
 ### Submitting CreateVM workflow
 ```

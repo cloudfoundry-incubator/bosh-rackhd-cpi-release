@@ -24,7 +24,6 @@ var _ = Describe("DeleteDisk", func() {
 
 	BeforeEach(func() {
 		server, jsonReader, cpiConfig, request = helpers.SetUp(bosh.DELETE_DISK)
-
 	})
 
 	AfterEach(func() {
@@ -48,7 +47,7 @@ var _ = Describe("DeleteDisk", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
@@ -64,7 +63,7 @@ var _ = Describe("DeleteDisk", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79e9f4e66816f6152fff5"),
+						ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79e9f4e66816f6152fff5"),
 						ghttp.VerifyJSON(string(expectedDeleteDiskBodyBytes)),
 					),
 				)
@@ -85,11 +84,11 @@ var _ = Describe("DeleteDisk", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
+						ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79ea54e66816f6152fff9"),
 						ghttp.VerifyJSON(string(expectedDeleteDiskBodyBytes)),
 					),
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79ea54e66816f6152fff9"),
+						ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79ea54e66816f6152fff9"),
 						ghttp.VerifyJSON("{\"status\": \"available\"}"),
 					),
 				)
@@ -115,7 +114,7 @@ var _ = Describe("DeleteDisk", func() {
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
@@ -140,7 +139,7 @@ var _ = Describe("DeleteDisk", func() {
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)

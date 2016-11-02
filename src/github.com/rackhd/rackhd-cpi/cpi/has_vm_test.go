@@ -41,7 +41,7 @@ var _ = Describe("Cpi/HasVm", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
@@ -63,7 +63,7 @@ var _ = Describe("Cpi/HasVm", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)

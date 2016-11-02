@@ -100,7 +100,7 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 				nodeID := "5665a65a0561790005b77b85"
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s", nodeID)),
 						ghttp.RespondWith(http.StatusOK, expectedNodeData),
 					),
 				)
@@ -125,7 +125,7 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 				nodeID := "5665a65a0561790005b77b85"
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/common/nodes/%s", nodeID)),
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s", nodeID)),
 						ghttp.RespondWith(http.StatusOK, expectedNodeData),
 					),
 				)

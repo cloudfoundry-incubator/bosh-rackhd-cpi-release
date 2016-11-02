@@ -7,6 +7,7 @@ import (
 
   "github.com/rackhd/rackhd-cpi/config"
   "github.com/rackhd/rackhd-cpi/helpers"
+  "github.com/rackhd/rackhd-cpi/models"
   "github.com/rackhd/rackhd-cpi/rackhdapi"
 
   . "github.com/onsi/ginkgo"
@@ -87,16 +88,35 @@ var _ = Describe("Tags", func() {
     Context("when searching for nodes with existing tag", func() {
       It("should find nodes with the tag", func() {
         fakeTag := "reserved"
-        expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_nodes.json")
-        expectedNodesData, err := json.Marshal(expectedNodes)
-        Expect(err).ToNot(HaveOccurred())
-
+        expectedNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_reserved.json")
         url := fmt.Sprintf("/api/2.0/tags/%s/nodes", fakeTag)
-        helpers.AddHandler(server, "GET", url, http.StatusOK, expectedNodesData)
+        helpers.AddHandler(server, "GET", url, http.StatusOK, expectedNodesBytes)
 
         nodes, err := rackhdapi.GetNodesByTag(c, fakeTag)
         Expect(err).ToNot(HaveOccurred())
-        Expect(len(nodes)).To(Equal(2))
+        Expect(len(nodes)).To(Equal(1))
+      })
+    })
+  })
+
+  Describe("GetAvailableNodes", func() {
+    Context("when there are available nodes", func() {
+      It("should return nodes without error", func() {
+        blockedNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_blocked.json")
+        url := fmt.Sprintf("/api/2.0/tags/%s/nodes", models.Blocked)
+        helpers.AddHandler(server, "GET", url, 200, blockedNodesBytes)
+
+        reservedNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_reserved.json")
+        url = fmt.Sprintf("/api/2.0/tags/%s/nodes", models.Reserved)
+        helpers.AddHandler(server, "GET", url, 200, reservedNodesBytes)
+
+        allNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_all.json")
+        helpers.AddHandler(server, "GET", "/api/2.0/nodes", 200, allNodesBytes)
+
+        nodes, err := rackhdapi.GetAvailableNodes(c)
+        Expect(err).ToNot(HaveOccurred())
+        Expect(len(nodes)).To(Equal(1))
+        Expect(nodes[0].ID).To(Equal("57fb9fb03fcc55c807add402"))
       })
     })
   })
