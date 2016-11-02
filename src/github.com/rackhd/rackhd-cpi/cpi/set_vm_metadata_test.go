@@ -50,10 +50,10 @@ var _ = Describe("Setting VM Metadata", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
-				ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/common/nodes/%s", id)),
+				ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/2.0/nodes/%s", id)),
 			)
 
 			err = cpi.SetVMMetadata(cpiConfig, metadataInput)

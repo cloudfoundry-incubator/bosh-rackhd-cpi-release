@@ -46,7 +46,7 @@ var _ = Describe("DetachDisk", func() {
 				Expect(err).ToNot(HaveOccurred())
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/api/common/nodes"),
+						ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 						ghttp.RespondWith(http.StatusOK, expectedNodesData),
 					),
 				)
@@ -73,7 +73,7 @@ var _ = Describe("DetachDisk", func() {
 					Expect(err).ToNot(HaveOccurred())
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/common/nodes"),
+							ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 							ghttp.RespondWith(http.StatusOK, expectedNodesData),
 						),
 					)
@@ -109,11 +109,11 @@ var _ = Describe("DetachDisk", func() {
 
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/common/nodes"),
+							ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 							ghttp.RespondWith(http.StatusOK, expectedNodesData),
 						),
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("PATCH", "/api/common/nodes/55e79eb14e66816f6152fffb"),
+							ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79eb14e66816f6152fffb"),
 							ghttp.VerifyJSON(string(bodyBytes)),
 						),
 					)
@@ -141,7 +141,7 @@ var _ = Describe("DetachDisk", func() {
 			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/common/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)

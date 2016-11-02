@@ -8,6 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
@@ -16,9 +17,7 @@ const (
 )
 
 type bootstrapTask struct {
-	*rackhdapi.TaskStub
-	Options    json.RawMessage `json:"options"`
-	Properties json.RawMessage `json:"properties"`
+	*models.Task
 }
 
 func BootstrappingTasksExist(c config.Cpi) error {

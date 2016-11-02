@@ -16,8 +16,8 @@ var bootstrapUbuntuTaskTemplate = []byte(`
 	  "options": {
 			"kernelFile": "vmlinuz-3.13.0-32-generic",
 			"initrdFile": "initrd.img-3.13.0-32-generic",
-			"kernelUri": "{{ api.server }}/common/{{ options.kernelFile }}",
-			"initrdUri": "{{ api.server }}/common/{{ options.initrdFile }}",
+			"kernelUri": "{{ api.server }}/2.0/{{ options.kernelFile }}",
+			"initrdUri": "{{ api.server }}/2.0/{{ options.initrdFile }}",
 			"basefs": "common/base.trusty.3.13.0-32-generic.squashfs.img",
 			"overlayfs": "common/discovery.overlay.cpio.gz",
 			"profile": "linux.ipxe",

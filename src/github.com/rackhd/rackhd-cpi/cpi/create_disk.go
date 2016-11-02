@@ -21,7 +21,7 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		method: FilterBasedOnSizeMethod,
 	}
 	var diskCID string
-	var node rackhdapi.Node
+	var node models.Node
 	if vmCID != "" {
 		node, err = rackhdapi.GetNodeByVMCID(c, vmCID)
 		if err != nil {
