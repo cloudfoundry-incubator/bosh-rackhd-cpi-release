@@ -1,63 +1,84 @@
 package models
 
 const (
-  NetworkActive    = "up"
-  NetworkInactive  = "down"
-  EthernetNetwork  = "Ethernet"
-  MacAddressFamily = "lladdr"
+	NetworkActive    = "up"
+	NetworkInactive  = "down"
+	EthernetNetwork  = "Ethernet"
+	MacAddressFamily = "lladdr"
 )
 
 const (
-  PersistentDiskLocation = "sdb"
+	PersistentDiskLocation = "sdb"
 )
 
 type NodeCatalog struct {
-  Data CatalogData `json:"data"`
+	Data CatalogData `json:"data"`
+}
+
+type BMCCatalog struct {
+	Data BMCCatalogData `json:"data"`
+}
+
+type BMCCatalogData struct {
+	MACAddress string `json:"MAC Address"`
 }
 
 type Device struct {
-  Size string `json:"size"`
+	Size string `json:"size"`
 }
 
 type CatalogData struct {
-  NetworkData  NetworkCatalog    `json:"network"`
-  BlockDevices map[string]Device `json:"block_device"`
+	NetworkData  NetworkCatalog    `json:"network"`
+	BlockDevices map[string]Device `json:"block_device"`
 }
 
 type NetworkCatalog struct {
-  Networks map[string]Network `json:"interfaces"`
+	Networks map[string]Network `json:"interfaces"`
 }
 
 type Network struct {
-  Encapsulation string                    `json:"encapsulation"`
-  Number        string                    `json:"number"`
-  Addresses     map[string]NetworkAddress `json:"addresses"`
-  State         string                    `json:"state"`
+	Encapsulation string                    `json:"encapsulation"`
+	Number        string                    `json:"number"`
+	Addresses     map[string]NetworkAddress `json:"addresses"`
+	State         string                    `json:"state"`
 }
 
 type NetworkAddress struct {
-  Family string `json:"family"`
+	Family string `json:"family"`
 }
 
 type OBM struct {
-  ServiceName string `json:"service"`
-  Ref         string `json:"ref"`
+	ServiceName string `json:"service"`
+	Ref         string `json:"ref"`
+}
+
+type OBMServiceRequest struct {
+	Config      OBMConfig `json:"config"`
+	NodeID      string    `json:"nodeId"`
+	ServiceName string    `json:"service"`
+}
+
+type OBMConfig struct {
+	Host     string `json:"host"`
+	Password string `json:"password"`
+	User     string `json:"user"`
 }
 
 type PersistentDiskSettingsContainer struct {
-  PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
+	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
 }
 
 type PersistentDiskSettings struct {
-  PregeneratedDiskCID string `json:"pregenerated_disk_cid"`
-  DiskCID             string `json:"disk_cid"`
-  Location            string `json:"location"`
-  IsAttached          bool   `json:"attached"`
+	PregeneratedDiskCID string `json:"pregenerated_disk_cid"`
+	DiskCID             string `json:"disk_cid"`
+	Location            string `json:"location"`
+	IsAttached          bool   `json:"attached"`
 }
 
 type Node struct {
-  ID             string                 `json:"id"`
-  Workflows      string                 `json:"workflows"`
-  OBMS           []OBM                  `json:"obms"`
-  PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
+	ID             string                 `json:"id"`
+	Name           string                 `json:"name"`
+	Workflows      string                 `json:"workflows"`
+	OBMS           []OBM                  `json:"obms"`
+	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
 }

@@ -20,7 +20,7 @@ func UploadFile(c config.Cpi, baseName string, r io.Reader, contentLength int64)
   }
   request.ContentLength = contentLength
 
-  respBody, err := helpers.MakeConfigedRequest(request, []int{201})
+  respBody, err := helpers.MakeConfigRequest(request, []int{201})
   return string(respBody), nil
 }
 
