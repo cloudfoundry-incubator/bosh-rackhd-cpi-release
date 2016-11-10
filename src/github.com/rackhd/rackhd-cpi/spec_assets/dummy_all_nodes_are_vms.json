@@ -3,6 +3,7 @@
     "workflows": "/api/2.0/nodes/55e79ea54e66816f6152fff9/workflows",
     "catalogs": "/api/2.0/nodes/55e79ea54e66816f6152fff9/catalogs",
     "persistent_disk": {
+      "pregenerated_disk_cid": "55e79eb14e66816f6152fffb-requestid",
       "disk_cid": "5665a65a0561790005b77b85-requestid",
       "location": "/dev/sdb",
       "attached": false
@@ -25,55 +26,28 @@
     "id": "55e79ea54e66816f6152fff9"
   },
   {
-    "workflows": "/api/2.0/nodes/55e79eb14e66816f6152fffb/workflows",
-    "catalogs": "/api/2.0/nodes/55e79eb14e66816f6152fffb/catalogs",
-    "autoDiscover": "false",
-    "identifiers": [
-      "00:1e:67:c4:e1:a0",
-      "00:1e:67:c4:e1:a1"
-    ],
-    "name": "00:1e:67:c4:e1:a0,00:1e:67:c4:e1:a1",
-    "obms": [
-      {
-        "service": "amt-obm-service",
-        "ref": "/api/2.0/obms/55e79eb14e66816f6152fffb"
-      }
-    ],
-    "persistent_disk": {
-      "pregenerated_disk_cid": "55e79eb14e66816f6152fffb-requestid",
-      "disk_cid": "",
-      "location": "",
-      "attached": false
-    },
-    "cid": "vm-1234",
-    "sku": "55e79e0e4e66816f6152ffe6",
-    "type": "compute",
-    "id": "55e79eb14e66816f6152fffb"
-  },
-  {
-    "workflows": "/api/2.0/nodes/5665a65a0561790005b77b85/workflows",
-    "catalogs": "/api/2.0/nodes/5665a65a0561790005b77b85/catalogs",
-    "cid": "valid_vm_cid_2",
+    "workflows": "/api/2.0/nodes/55e79ea54e66816f6152fff9/workflows",
+    "catalogs": "/api/2.0/nodes/55e79ea54e66816f6152fff9/catalogs",
     "persistent_disk": {
       "disk_cid": "5665a65a0561790005b77b85-requestid",
       "location": "/dev/sdb",
-      "attached": true
+      "attached": false
     },
     "autoDiscover": "false",
     "identifiers": [
-      "00:1e:67:c4:e1:a0",
-      "00:1e:67:c4:e1:a1"
+      "00:1e:67:c2:67:06",
+      "00:1e:67:c2:67:07"
     ],
-    "name": "00:1e:67:c4:e1:a0,00:1e:67:c4:e1:a1",
+    "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
     "obms": [
       {
         "service": "amt-obm-service",
-        "ref": "/api/2.0/obms/5665a65a0561790005b77b85"
+        "ref": "/api/2.0/obms/55e79ea54e66816f6152fff9"
       }
     ],
-    "status": "reserved",
+    "cid": "vm-5678",
     "sku": "55e79e0e4e66816f6152ffe6",
     "type": "compute",
-    "id": "5665a65a0561790005b77b85"
+    "id": "55e79ea54e66816f6152fff6"
   }
 ]
