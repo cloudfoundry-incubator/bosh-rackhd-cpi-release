@@ -1,7 +1,7 @@
 package cpi_test
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -35,13 +35,11 @@ var _ = Describe("Cpi/HasVm", func() {
 
 			var metadataInput bosh.MethodArguments
 			metadataInput = append(metadataInput, cid)
-			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
-			expectedNodesData, err := json.Marshal(expectedNodes)
-			Expect(err).ToNot(HaveOccurred())
+			expectedNodesData := helpers.LoadJSON("../spec_assets/tag_node_with_cid.json")
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", cid)),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
@@ -54,22 +52,18 @@ var _ = Describe("Cpi/HasVm", func() {
 
 		It("Cannot find a vm that does not exist", func() {
 			cid := "does-not-exist-cid"
-
 			var metadataInput bosh.MethodArguments
 			metadataInput = append(metadataInput, cid)
-			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
-			expectedNodesData, err := json.Marshal(expectedNodes)
-			Expect(err).ToNot(HaveOccurred())
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
-					ghttp.RespondWith(http.StatusOK, expectedNodesData),
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", cid)),
+					ghttp.RespondWith(http.StatusOK, `[]`),
 				),
 			)
 
 			hasVM, err := cpi.HasVM(cpiConfig, metadataInput)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).To(HaveOccurred())
 			Expect(hasVM).To(BeFalse())
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
