@@ -17,16 +17,10 @@ func HasVM(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 
 	cid = extInput[0].(string)
 
-	nodes, err := rackhdapi.GetNodes(c)
+	_, err := rackhdapi.GetNodeByVMCID(c, cid)
 	if err != nil {
 		return false, err
 	}
 
-	for _, node := range nodes {
-		if node.CID == cid {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return true, nil
 }
