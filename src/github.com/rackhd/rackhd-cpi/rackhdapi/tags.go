@@ -143,5 +143,5 @@ func GetComputeNodesWithoutTags(c config.Cpi, tags []string) ([]models.Node, err
 
 // ReleaseNode delete unavailable tag on the node and create available tag
 func ReleaseNode(c config.Cpi, nodeID string) error {
-	return DeleteTag(c, nodeID, models.Reserved)
+	return DeleteTag(c, nodeID, models.Unavailable)
 }

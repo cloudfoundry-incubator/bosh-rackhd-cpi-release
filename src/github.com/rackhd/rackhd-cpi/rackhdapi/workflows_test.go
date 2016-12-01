@@ -112,7 +112,7 @@ var _ = Describe("Workflows", func() {
 			err := json.Unmarshal(httpResponse, &expectedResponse)
 			Expect(err).ToNot(HaveOccurred())
 
-			workflowID := "5665a788fd797bfc044efe6e"
+			workflowID := "3c7760db-c57b-4212-afc5-93e4e204b72f"
 			url := "/api/2.0/workflows/" + workflowID
 			helpers.AddHandler(server, "GET", url, 200, httpResponse)
 
@@ -122,12 +122,16 @@ var _ = Describe("Workflows", func() {
 		})
 	})
 
-	Describe("PublishWorkflow", func() {
-		It("add workflow to library, retrieves updated list of tasks from task library", func() {
+	Describe("PublishGraph INTEGRATION", func() {
+		var cpiConfig config.Cpi
+		BeforeEach(func() {
 			apiServer, err := helpers.GetRackHDHost()
 			Expect(err).ToNot(HaveOccurred())
-			cpiConfig := config.Cpi{ApiServer: apiServer}
+			cpiConfig = config.Cpi{ApiServer: apiServer}
+		})
 
+		It("add workflow to library, retrieves updated list of tasks from task library", func() {
+			//*******Public task
 			uuid, err := helpers.GenerateUUID()
 			Expect(err).ToNot(HaveOccurred())
 
@@ -144,6 +148,7 @@ var _ = Describe("Workflows", func() {
 			err = rackhdapi.PublishTask(cpiConfig, fakeTaskBytes)
 			Expect(err).ToNot(HaveOccurred())
 
+			//******Public workflow
 			fakeTasks := []models.WorkflowTask{
 				models.WorkflowTask{
 					TaskName: fakeTaskName,
@@ -160,13 +165,25 @@ var _ = Describe("Workflows", func() {
 			fakeGraphBytes, err := json.Marshal(fakeGraph)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = rackhdapi.PublishWorkflow(cpiConfig, fakeGraphBytes)
+			err = rackhdapi.PublishGraph(cpiConfig, fakeGraphBytes)
 			Expect(err).ToNot(HaveOccurred())
 
 			publishedGraph, err := rackhdapi.RetrieveGraph(cpiConfig, fakeGraphName)
 			Expect(err).ToNot(HaveOccurred())
 			fakeGraph.Tasks[0].TaskName = "/api/2.0/workflows/tasks/" + fakeTaskName
 			Expect(publishedGraph).To(Equal(fakeGraph))
+
+			//**** Delete Graph
+			err = rackhdapi.DeleteGraph(cpiConfig, fakeGraphName)
+			Expect(err).ToNot(HaveOccurred())
+			_, err = rackhdapi.RetrieveGraph(cpiConfig, fakeGraphName)
+			Expect(err).To(MatchError(fmt.Sprintf("could not find %s", fakeGraphName)))
+
+			//**** Delete Task
+			err = rackhdapi.DeleteTask(cpiConfig, fakeTaskName)
+			Expect(err).ToNot(HaveOccurred())
+			_, err = rackhdapi.RetrieveTask(cpiConfig, fakeTaskName)
+			Expect(err).To(MatchError(fmt.Sprintf("could not find %s", fakeTaskName)))
 		})
 	})
 
@@ -185,9 +202,9 @@ var _ = Describe("Workflows", func() {
 		BeforeEach(func() {
 			apiServer, err := helpers.GetRackHDHost()
 			Expect(err).ToNot(HaveOccurred())
-			cpiConfig = config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 2 * 60}
+			cpiConfig = config.Cpi{ApiServer: apiServer, RunWorkflowTimeoutSeconds: 5 * 60}
 
-			availableNodes, err = rackhdapi.GetComputeNodesWithoutTags(cpiConfig, []string{"reserved", "blocked"})
+			availableNodes, err = rackhdapi.GetComputeNodesWithoutTags(cpiConfig, []string{models.Unavailable, models.Blocked})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(availableNodes)).To(BeNumerically(">", 0))
 			nodeWithoutWorkflows, err := rackhdapi.SelectRandomNodeWithoutWorkflow(cpiConfig, availableNodes)
@@ -209,7 +226,7 @@ var _ = Describe("Workflows", func() {
 				fakeGraphBytes, err := json.Marshal(fakeWorkflow)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = rackhdapi.PublishWorkflow(cpiConfig, fakeGraphBytes)
+				err = rackhdapi.PublishGraph(cpiConfig, fakeGraphBytes)
 				Expect(err).ToNot(HaveOccurred())
 
 				body := models.RunWorkflowRequestBody{
@@ -218,6 +235,10 @@ var _ = Describe("Workflows", func() {
 				}
 
 				err = rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, cpiConfig, nodeID, body)
+				Expect(err).ToNot(HaveOccurred())
+
+				//*** clean up
+				err = rackhdapi.DeleteGraphAndTasks(cpiConfig, fakeWorkflow.Name, []string{})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -240,7 +261,7 @@ var _ = Describe("Workflows", func() {
 				fakeWorkflowBytes, err := json.Marshal(fakeWorkflow)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = rackhdapi.PublishWorkflow(cpiConfig, fakeWorkflowBytes)
+				err = rackhdapi.PublishGraph(cpiConfig, fakeWorkflowBytes)
 				Expect(err).ToNot(HaveOccurred())
 
 				body := models.RunWorkflowRequestBody{
@@ -251,11 +272,19 @@ var _ = Describe("Workflows", func() {
 				err = rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, cpiConfig, nodeID, body)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(MatchRegexp(".+failed against node.+"))
+
+				//*** delete workflow and tasks
+				err = rackhdapi.DeleteGraphAndTasks(cpiConfig, fakeWorkflow.Name, []string{
+					dummyTask.Name,
+				})
+
+				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
-		XContext("when the workflow does not complete in the configurable timeout", func() {
-			It("returns an error", func() {
+		Context("when the workflow does not complete in the configurable timeout", func() {
+			 It("returns an error", func() {
+				cpiConfig.RunWorkflowTimeoutSeconds = 10
 				dummyTask := helpers.LoadTask("../spec_assets/dummy_timeout_task.json")
 				dummyTask.Name += guid
 				dummyTaskBytes, err := json.Marshal(dummyTask)
@@ -270,7 +299,7 @@ var _ = Describe("Workflows", func() {
 				fakeWorkflowBytes, err := json.Marshal(fakeWorkflow)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = rackhdapi.PublishWorkflow(cpiConfig, fakeWorkflowBytes)
+				err = rackhdapi.PublishGraph(cpiConfig, fakeWorkflowBytes)
 				Expect(err).ToNot(HaveOccurred())
 
 				body := models.RunWorkflowRequestBody{
@@ -279,6 +308,12 @@ var _ = Describe("Workflows", func() {
 				}
 				err = rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, cpiConfig, nodeID, body)
 				Expect(err).To(HaveOccurred())
+
+				//*** delete workflow and tasks
+				err = rackhdapi.DeleteGraphAndTasks(cpiConfig, fakeWorkflow.Name, []string{
+					dummyTask.Name,
+				})
+				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 	})

@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+	"os"
 )
 
 var _ = Describe("Tags", func() {
@@ -24,6 +25,7 @@ var _ = Describe("Tags", func() {
 		server = ghttp.NewServer()
 		c = config.Cpi{ApiServer: server.URL()}
 		nodeID = "fake-node-id"
+
 	})
 
 	Describe("GetTags", func() {
@@ -51,6 +53,40 @@ var _ = Describe("Tags", func() {
 
 				err := rackhdapi.DeleteTag(c, nodeID, fakeTag)
 				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+	})
+
+	Describe("Lifecycle", func() {
+		var testNode models.Node
+		BeforeEach(func() {
+			rack_server_url := os.Getenv("RACKHD_API_URL")
+			Expect(rack_server_url).ToNot(BeEmpty())
+
+			c = config.Cpi{ApiServer: rack_server_url}
+			nodes, err := rackhdapi.GetNodes(c)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(nodes)).To(BeNumerically(">", 1))
+			testNode, err = rackhdapi.GetNode(c, nodes[0].ID)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		Context("When call put a tag name to a node", func() {
+			It("should attach a tag to a node", func() {
+				//Create tags and verify that they are attached to a node
+				err := rackhdapi.CreateTag(c, testNode.ID, "test_tag")
+				Expect(err).ToNot(HaveOccurred())
+				tags, err := rackhdapi.GetTags(c, testNode.ID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(tags).To(ContainElement("test_tag"))
+
+				//Delete created tags and verify that they are there
+				err = rackhdapi.DeleteTag(c, testNode.ID, "test_tag")
+				Expect(err).ToNot(HaveOccurred())
+				tags, err = rackhdapi.GetTags(c, testNode.ID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(tags).ToNot(ContainElement("test_tag"))
 			})
 		})
 	})
@@ -107,13 +143,13 @@ var _ = Describe("Tags", func() {
 				helpers.AddHandler(server, "GET", url, 200, blockedNodesBytes)
 
 				reservedNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_reserved.json")
-				url = fmt.Sprintf("/api/2.0/tags/%s/nodes", models.Reserved)
+				url = fmt.Sprintf("/api/2.0/tags/%s/nodes", models.Unavailable)
 				helpers.AddHandler(server, "GET", url, 200, reservedNodesBytes)
 
 				allNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_all.json")
 				helpers.AddHandler(server, "GET", "/api/2.0/nodes", 200, allNodesBytes)
 
-				nodes, err := rackhdapi.GetNodesWithoutTags(c, []string{models.Blocked, models.Reserved})
+				nodes, err := rackhdapi.GetNodesWithoutTags(c, []string{models.Blocked, models.Unavailable})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(len(nodes)).To(Equal(1))
 				Expect(nodes[0].ID).To(Equal("57fb9fb03fcc55c807add402"))

@@ -50,8 +50,19 @@ func RetrieveTask(c config.Cpi, taskName string) (models.Task, error) {
 		return models.Task{}, err
 	}
 
-	if len(tasks) != 1 {
-		return models.Task{}, fmt.Errorf("incorrect number of tasks returned: %d", len(tasks))
+	if len(tasks) == 0 {
+		return models.Task{}, fmt.Errorf("could not find %s", taskName)
 	}
 	return tasks[0], nil
+}
+
+func DeleteTask(c config.Cpi, taskName string) error{
+	log.Info(fmt.Sprintf("deleting task %s", taskName))
+	url := fmt.Sprintf("%s/api/2.0/workflows/tasks/%s", c.ApiServer, taskName)
+	_, err := helpers.MakeRequest(url, "DELETE", 204, nil)
+	if err != nil {
+		return fmt.Errorf("error deleting task %s", err)
+	}
+
+	return nil
 }
