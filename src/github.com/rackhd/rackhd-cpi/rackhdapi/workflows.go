@@ -20,8 +20,8 @@ type workflowFetcherFunc func(config.Cpi, string) (models.WorkflowResponse, erro
 
 type workflowPosterFunc func(config.Cpi, string, models.RunWorkflowRequestBody) (models.WorkflowResponse, error)
 
-// PublishWorkflow will publish a workflow defined by graphBytes
-func PublishWorkflow(c config.Cpi, graphBytes []byte) error {
+// PublishGraph will publish a workflow defined by graphBytes
+func PublishGraph(c config.Cpi, graphBytes []byte) error {
 	url := fmt.Sprintf("%s/api/2.0/workflows/graphs", c.ApiServer)
 
 	log.Debug("\nrequest body: %+v\n", string(graphBytes))
@@ -78,10 +78,36 @@ func RetrieveGraph(c config.Cpi, graphName string) (models.Graph, error) {
 		return models.Graph{}, err
 	}
 
-	if len(graphs) != 1 {
-		return models.Graph{}, fmt.Errorf("incorrect number of graphs returned: %d", len(graphs))
+	if len(graphs) == 0 {
+		return models.Graph{}, fmt.Errorf("could not find %s", graphName)
 	}
 	return graphs[0], nil
+}
+
+func DeleteGraph(c config.Cpi, graphName string) error{
+	log.Info(fmt.Sprintf("deleting graph %s", graphName))
+	url := fmt.Sprintf("%s/api/2.0/workflows/graphs/%s", c.ApiServer, graphName)
+	_, err := helpers.MakeRequest(url, "DELETE", 204, nil)
+	if err != nil {
+		return fmt.Errorf("error deleting graph %s", err)
+	}
+
+	return nil
+}
+
+func DeleteGraphAndTasks(c config.Cpi, graphName string, taskNames []string) error{
+	err := DeleteGraph(c, graphName)
+	if err != nil {
+		return err
+	}
+	for _, taskName := range taskNames {
+		err = DeleteTask(c, taskName)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // WorkflowFetcher will fetch a workflow given by workflowIntanceID
@@ -177,33 +203,29 @@ func KillActiveWorkflow(c config.Cpi, nodeID string) error {
 	return err
 }
 
-// GetActiveWorkflow will run a workflow on nodeID
+// GetActiveWorkflow will see if a workflow is running on nodeID
 func GetActiveWorkflow(c config.Cpi, nodeID string) (models.WorkflowResponse, error) {
-	url := fmt.Sprintf("%s/api/2.0/nodes/%s/workflows", c.ApiServer, nodeID)
-	req, err := http.NewRequest("GET", url, nil)
-	params := req.URL.Query()
-	params.Add("active", "true")
-	req.URL.RawQuery = params.Encode()
-
-	respBody, err := helpers.MakeConfigRequest(req, []int{200})
+	workflows, err := getActiveWorkflows(c, nodeID)
 	if err != nil {
 		return models.WorkflowResponse{}, err
 	}
-
-	workflows := []models.WorkflowResponse{}
-	err = json.Unmarshal(respBody, &workflows)
-	if err != nil {
-		return models.WorkflowResponse{}, err
-	}
-
 	if len(workflows) != 1 {
 		return models.WorkflowResponse{}, fmt.Errorf("incorrect number of active workflows returned: %d", len(workflows))
 	}
+
 	return workflows[0], nil
 }
 
 // HasActiveWorkflow will check if a workflow is running on node nodeID
 func HasActiveWorkflow(c config.Cpi, nodeID string) (bool, error) {
+	workflows, err := getActiveWorkflows(c, nodeID)
+	if err != nil {
+		return false, err
+	}
+	return len(workflows) > 0, nil
+}
+
+func getActiveWorkflows(c config.Cpi, nodeID string) ([]models.WorkflowResponse, error){
 	url := fmt.Sprintf("%s/api/2.0/nodes/%s/workflows", c.ApiServer, nodeID)
 	req, err := http.NewRequest("GET", url, nil)
 	params := req.URL.Query()
@@ -212,18 +234,16 @@ func HasActiveWorkflow(c config.Cpi, nodeID string) (bool, error) {
 
 	respBody, err := helpers.MakeConfigRequest(req, []int{200})
 	if err != nil {
-		return false, err
+		return []models.WorkflowResponse{}, fmt.Errorf("error getting active workflows %s", err)
 	}
 
 	workflows := []models.WorkflowResponse{}
 	err = json.Unmarshal(respBody, &workflows)
 	if err != nil {
-		return false, err
+		return []models.WorkflowResponse{}, fmt.Errorf("error unmarshalling active workflows %s", err)
 	}
-	if len(workflows) > 0 {
-		return true, nil
-	}
-	return false, nil
+
+	return workflows, nil
 }
 
 // SelectRandomNodeWithoutWorkflow will return a random node without an active workflow
@@ -235,6 +255,7 @@ func SelectRandomNodeWithoutWorkflow(c config.Cpi, nodes []models.Node) (models.
 	for i := range shuffle {
 		node := nodes[shuffle[i]]
 		log.Info(fmt.Sprintf("Checking workflow on node: %s", node.ID))
+
 		if hasWorkflow, err := HasActiveWorkflow(c, node.ID); err == nil {
 			if !hasWorkflow { // empty
 				log.Info(fmt.Sprintf("node %s is available", node.ID))
