@@ -134,7 +134,7 @@ var _ = Describe("ProvisionNodeWorkflow", func() {
         vmCID := "vmCID"
         stemcellCID := "stemcellCID"
         wipeDisk := "false"
-        ipmiServiceName := models.OBMSettingAMTServiceName
+        ipmiServiceName := models.OBMSettingIPMIServiceName
         expectedOptions := ProvisionNodeWorkflowOptions{
           AgentSettingsFile: &nodeID,
           AgentSettingsPath: &envPath,

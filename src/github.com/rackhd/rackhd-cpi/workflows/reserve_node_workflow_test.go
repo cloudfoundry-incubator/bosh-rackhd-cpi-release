@@ -115,7 +115,7 @@ var _ = Describe("ReserveNodeWorkflow", func() {
 					),
 				)
 
-				ipmiServiceName := models.OBMSettingAMTServiceName
+				ipmiServiceName := models.OBMSettingIPMIServiceName
 				expectedOptions := reserveNodeWorkflowOptions{
 					OBMServiceName: &ipmiServiceName,
 				}

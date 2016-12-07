@@ -73,7 +73,7 @@ func PublishProvisionNodeWorkflow(c config.Cpi) (string, error) {
     return "", err
   }
 
-  err = rackhdapi.PublishWorkflow(c, workflow)
+  err = rackhdapi.PublishGraph(c, workflow)
   if err != nil {
     return "", err
   }
