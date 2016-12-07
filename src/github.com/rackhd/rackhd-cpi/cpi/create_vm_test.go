@@ -99,9 +99,11 @@ var _ = Describe("The VM Creation Workflow", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(agentID).To(Equal("4149ba0f-38d9-4485-476f-1581be36f290"))
 			Expect(vmCID).To(Equal("vm-478585"))
-			Expect(nodeID).To(Equal("nodeid"))
+			Expect(nodeID).To(Equal("nodeid")) //the diskCID == nodeID in this case because we want to know which node we need to pick for the disk
 			Expect(publicKey).To(Equal("1234"))
-			Expect(networks).ToNot(BeEmpty())
+			Expect(networks).To(Equal(map[string]bosh.Network{"private": bosh.Network{
+				NetworkType: bosh.DynamicNetworkType,
+			}}))
 		})
 
 		It("returns an error if passed an unexpected type for network configuration", func() {
@@ -413,7 +415,7 @@ var _ = Describe("The VM Creation Workflow", func() {
 
 				netSpec, err := attachMAC(nodeCatalog.Data.NetworkData.Networks, prevSpec)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(netSpec.MAC).To(Equal("00:1e:67:c4:e1:a0"))
+				Expect(netSpec.MAC).To(Equal("52:54:be:ef:fd:e0"))
 			})
 		})
 	})
@@ -438,6 +440,29 @@ var _ = Describe("The VM Creation Workflow", func() {
 				Expect(node.ID).To(Equal("5665a65a0561790005b77b85"))
 			})
 		})
+
+		Context("When a node has no unavailable or blocked tag and no running workflow", func() {
+			It("selects the node", func() {
+				//Once upon a time, there were 3 nodes from tag_nodes_all.json
+				//The node 583f2dec08a459ab6085a867 was unavailable
+				helpers.AddHandler(server, "GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", models.Unavailable), 200, helpers.LoadJSON("../spec_assets/tag_nodes_reserved.json"))
+				//Node same 583f2dec08a459ab6085a867 was blocked
+				helpers.AddHandler(server, "GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", models.Blocked), 200, helpers.LoadJSON("../spec_assets/tag_nodes_blocked.json"))
+
+				//Among 3 nodes, only node 583f2dec08a459ab6085a867 and 583f2ddd08a459ab6085a85a are computes node
+				helpers.AddHandlerWithParam(server, "GET", "/api/2.0/nodes", "type=compute", 200, helpers.LoadJSON("../spec_assets/tag_nodes_all.json"))
+
+				//So it should return [583f2ddd08a459ab6085a85a] as available nodes because 583f2dec08a459ab6085a867 is blocked and unavailable
+
+				//Now it check if 583f2ddd08a459ab6085a85a has active workflow
+				helpers.AddHandlerWithParam(server, "GET", fmt.Sprintf("/api/2.0/nodes/583f2ddd08a459ab6085a85a/workflows"), "active=true", 200, []byte("[]"))
+
+				//Met all condition for available node, it returns 583f2ddd08a459ab6085a85a
+				node, err := SelectNodeFromRackHD(cpiConfig, "", allowFilter)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(node.ID).To(Equal("583f2ddd08a459ab6085a85a"))
+			})
+		})
 	})
 
 	Describe("randomSelectNodeWithoutWorkflow", func() {
@@ -459,8 +484,8 @@ var _ = Describe("The VM Creation Workflow", func() {
 			})
 		})
 
-		Context("when there is an available node", func() {
-			It("selects a free node for provisioning", func() {
+		Context("two nodes, one has active workflow", func() {
+			It("selects the node that has no active workflow", func() {
 				nodes := helpers.LoadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
 				workflowResponse := helpers.LoadJSON("../spec_assets/dummy_has_workflow_response.json")
 
@@ -541,38 +566,16 @@ var _ = Describe("The VM Creation Workflow", func() {
 			var testNodeID string
 			flakeyReservationFunc := func(c config.Cpi, nodeID string) error {
 				testNodeID = nodeID
-				url := fmt.Sprintf("%s/api/2.0/nodes/%s", c.ApiServer, nodeID)
 
-				reserveFlag := fmt.Sprintf(`{"status" : "%s"}`, models.Reserved)
-				body := ioutil.NopCloser(strings.NewReader(reserveFlag))
-				defer body.Close()
-
-				request, err := http.NewRequest("PATCH", url, body)
+				err = rackhdapi.CreateTag(c, nodeID, models.Unavailable)
 				Expect(err).ToNot(HaveOccurred())
 
-				request.Header.Set("Content-Type", "application/json")
-				request.ContentLength = int64(len(reserveFlag))
-
-				resp, err := http.DefaultClient.Do(request)
+				tags, err := rackhdapi.GetTags(c, nodeID)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(resp.StatusCode).To(Equal(200))
+				Expect(len(tags)).To(Equal(1))
+				Expect(tags[0]).To(Equal(models.Unavailable))
 
-				nodeURL := fmt.Sprintf("%s/api/2.0/nodes/%s/tags", c.ApiServer, testNodeID)
-				nodeResp, err := http.Get(nodeURL)
-				Expect(err).ToNot(HaveOccurred())
-
-				nodeTagsBytes, err := ioutil.ReadAll(nodeResp.Body)
-				Expect(err).ToNot(HaveOccurred())
-				defer nodeResp.Body.Close()
-
-				var expectedTags []string
-				err = json.Unmarshal(nodeTagsBytes, &expectedTags)
-				Expect(err).ToNot(HaveOccurred())
-				for _, v := range expectedTags {
-					Expect(v).ToNot(Equal(models.Reserved))
-				}
-
-				return errors.New("Timed out running workflow: AWorkflow on node: 12345")
+				return fmt.Errorf("Timed out running workflow: AWorkflow on node: %s", testNodeID)
 			}
 
 			_, err = SelectNodeFromRackHD(c, "", allowFilter)
@@ -585,26 +588,10 @@ var _ = Describe("The VM Creation Workflow", func() {
 				flakeyReservationFunc,
 			)
 
-			Expect(err).To(MatchError("unable to reserve node: Timed out running workflow: AWorkflow on node: 12345"))
-			nodeURL := fmt.Sprintf("%s/api/2.0/nodes/%s/tags", c.ApiServer, testNodeID)
-			resp, err := http.Get(nodeURL)
+			Expect(err).To(MatchError(fmt.Sprintf("unable to reserve node: Timed out running workflow: AWorkflow on node: %s", testNodeID)))
+			tags, err := rackhdapi.GetTags(c, testNodeID)
 			Expect(err).ToNot(HaveOccurred())
-
-			nodeBytes, err := ioutil.ReadAll(resp.Body)
-			Expect(err).ToNot(HaveOccurred())
-			defer resp.Body.Close()
-
-			var nodes []string
-			err = json.Unmarshal(nodeBytes, &nodes)
-			Expect(err).ToNot(HaveOccurred())
-
-			isAvailable := true
-			for _, v := range nodes {
-				if v == models.Reserved {
-					isAvailable = false
-				}
-			}
-			Expect(isAvailable).To(Equal(true))
+			Expect(len(tags)).To(Equal(0))
 		})
 	})
 

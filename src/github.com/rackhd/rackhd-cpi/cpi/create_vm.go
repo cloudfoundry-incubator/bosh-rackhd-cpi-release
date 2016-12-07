@@ -43,50 +43,50 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 			return "", err
 		}
 	}
+	//
+	//node, err := rackhdapi.GetNode(c, nodeID)
+	//if err != nil {
+	//	return "", err
+	//}
 
-	node, err := rackhdapi.GetNode(c, nodeID)
-	if err != nil {
-		return "", err
-	}
-
-	var diskCID string
-	if node.PersistentDisk.DiskCID == "" {
-		diskCID = fmt.Sprintf("%s-%s", nodeID, c.RequestID)
-
-		container := models.PersistentDiskSettingsContainer{
-			PersistentDisk: models.PersistentDiskSettings{
-				PregeneratedDiskCID: diskCID,
-			},
-		}
-
-		bodyBytes, err := json.Marshal(container)
-		if err != nil {
-			return "", fmt.Errorf("error marshalling persistent disk information for agent %s", agentID)
-		}
-
-		err = rackhdapi.PatchNode(c, node.ID, bodyBytes)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		diskCID = node.PersistentDisk.DiskCID
-	}
-
-	persistentMetadata := map[string]interface{}{}
-	if _, sdbFound := nodeCatalog.Data.BlockDevices["sdb"]; sdbFound {
-		persistentMetadata = map[string]interface{}{
-			diskCID: map[string]string{
-				"path": "/dev/sdb",
-			},
-		}
-	}
+	//var diskCID string
+	//if node.PersistentDisk.DiskCID == "" {
+	//	diskCID = fmt.Sprintf("%s-%s", nodeID, c.RequestID)
+	//
+	//	container := models.PersistentDiskSettingsContainer{
+	//		PersistentDisk: models.PersistentDiskSettings{
+	//			PregeneratedDiskCID: diskCID,
+	//		},
+	//	}
+	//
+	//	bodyBytes, err := json.Marshal(container)
+	//	if err != nil {
+	//		return "", fmt.Errorf("error marshalling persistent disk information for agent %s", agentID)
+	//	}
+	//	//Remove definitely - use tags instead
+	//	err = rackhdapi.PatchNode(c, node.ID, bodyBytes)
+	//	if err != nil {
+	//		return "", err
+	//	}
+	//} else {
+	//	diskCID = node.PersistentDisk.DiskCID
+	//}
+	//
+	//persistentMetadata := map[string]interface{}{}
+	//if _, sdbFound := nodeCatalog.Data.BlockDevices["sdb"]; sdbFound {
+	//	persistentMetadata = map[string]interface{}{
+	//		diskCID: map[string]string{
+	//			"path": "/dev/sdb",
+	//		},
+	//	}
+	//}
 
 	env := bosh.AgentEnv{
 		AgentID:   agentID,
 		Blobstore: c.Agent.Blobstore,
 		Disks: map[string]interface{}{
-			"system":     "/dev/sda",
-			"persistent": persistentMetadata,
+			"system": "/dev/sda",
+			//"persistent": map[string]interface{}{},
 		},
 		Mbus:     c.Agent.Mbus,
 		Networks: map[string]bosh.Network{netName: netSpec},

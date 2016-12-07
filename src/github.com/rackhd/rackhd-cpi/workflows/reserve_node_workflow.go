@@ -61,7 +61,7 @@ func PublishReserveNodeWorkflow(c config.Cpi) (string, error) {
 		return "", fmt.Errorf("error umarshalling workflow: %s", err)
 	}
 
-	err = rackhdapi.PublishWorkflow(c, workflow)
+	err = rackhdapi.PublishGraph(c, workflow)
 	if err != nil {
 		return "", err
 	}
