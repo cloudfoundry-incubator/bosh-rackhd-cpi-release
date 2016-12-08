@@ -9,11 +9,18 @@
     "name": "c0:3f:d5:63:fe:13",
     "relations": [],
     "tags": [
-      "reserved",
-      "fake-vm-cid"
+      "unavailable",
+      "vm_cid-fake_uuid",
+      "disk_cid-fake_uuid"
     ],
     "type": "compute",
     "updatedAt": "2016-10-24T15:45:28.938Z",
-    "id": "57fb9fb03fcc55c807add41c"
+    "id": "57fb9fb03fcc55c807add41c",
+    "persistent_disk": {
+      "pregenerated_disk_cid": "57fb9fb03fcc55c807add41c-id",
+      "disk_cid": "",
+      "location": "/dev/sdb",
+      "attached": true
+    }
   }
 ]
