@@ -2,16 +2,18 @@ package cpi_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/cpi"
 	"github.com/rackhd/rackhd-cpi/helpers"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("CreateDisk", func() {
@@ -42,14 +44,10 @@ var _ = Describe("CreateDisk", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_two_node_response.json")
-			expectedNodesData, err := json.Marshal(expectedNodes)
-			Expect(err).ToNot(HaveOccurred())
-
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
-					ghttp.RespondWith(http.StatusOK, expectedNodesData),
+					ghttp.VerifyRequest("GET", "/api/2.0/tags/invalid-vm-cid/nodes"),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
 				),
 			)
 
@@ -62,7 +60,7 @@ var _ = Describe("CreateDisk", func() {
 	Context("If there is already a disk on the VM", func() {
 		It("returns error", func() {
 			jsonInput := []byte(`[
-					25000,
+					2500,
 					{
 						"some": "options"
 					},
@@ -78,7 +76,7 @@ var _ = Describe("CreateDisk", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
+					ghttp.VerifyRequest("GET", "/api/2.0/tags/vm-5678/nodes"),
 					ghttp.RespondWith(http.StatusOK, expectedNodesData),
 				),
 			)
@@ -112,7 +110,7 @@ var _ = Describe("CreateDisk", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
+						ghttp.VerifyRequest("GET", "/api/2.0/tags/vm-1234/nodes"),
 						ghttp.RespondWith(http.StatusOK, expectedNodesData),
 					),
 					ghttp.CombineHandlers(
@@ -131,7 +129,7 @@ var _ = Describe("CreateDisk", func() {
 			Context("If VM cid is empty", func() {
 				It("creates the disk and returns the disk cid", func() {
 					jsonInput := []byte(`[
-								25000,
+								2500,
 								{
 									"some": "options"
 								},
@@ -142,25 +140,25 @@ var _ = Describe("CreateDisk", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					expectedPersistentDiskSettings := `{
-						"persistent_disk": {
-							"pregenerated_disk_cid": "",
-							"disk_cid": "55e79ea54e66816f6152fff9-my_id",
-							"location": "/dev/sdb",
-							"attached": false
-						}
-					}`
+             "persistent_disk": {
+               "pregenerated_disk_cid": "",
+               "disk_cid": "57fb9fb03fcc55c807add402-my_id",
+               "location": "/dev/sdb",
+               "attached": false
+             }
+           }`
 
 					server.AppendHandlers(
 						helpers.MakeTryReservationHandlers(
 							"my_id",
-							"55e79ea54e66816f6152fff9",
+							"57fb9fb03fcc55c807add402",
 							"../spec_assets/dummy_create_disk_nodes_response.json",
 							"../spec_assets/dummy_create_disk_catalog_response.json",
 						)...,
 					)
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79ea54e66816f6152fff9"),
+							ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/57fb9fb03fcc55c807add402"),
 							ghttp.VerifyJSON(expectedPersistentDiskSettings),
 						),
 					)
@@ -174,7 +172,7 @@ var _ = Describe("CreateDisk", func() {
 			Context("If VM CID is not empty", func() {
 				It("creates the disk and returns the disk cid", func() {
 					jsonInput := []byte(`[
-								25000,
+								2500,
 								{
 									"some": "options"
 								},
@@ -184,23 +182,21 @@ var _ = Describe("CreateDisk", func() {
 					err := json.Unmarshal(jsonInput, &extInput)
 					Expect(err).NotTo(HaveOccurred())
 
-					expectedNodes := helpers.LoadNodes("../spec_assets/dummy_all_nodes_are_vms.json")
-					expectedNodesData, err := json.Marshal(expectedNodes)
+					expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_node_with_cid.json")
+					expectedNodesBytes, err := json.Marshal(expectedNodes)
 					Expect(err).ToNot(HaveOccurred())
-					expectedNodeCatalog := helpers.LoadNodeCatalog("../spec_assets/dummy_node_catalog_response.json")
-					expectedNodeCatalogData, err := json.Marshal(expectedNodeCatalog)
-					Expect(err).ToNot(HaveOccurred())
+					expectedNodeCatalogBytes := helpers.LoadJSON("../spec_assets/dummy_node_catalog_response.json")
 
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
-							ghttp.RespondWith(http.StatusOK, expectedNodesData),
+							ghttp.VerifyRequest("GET", "/api/2.0/tags/vm-1234/nodes"),
+							ghttp.RespondWith(http.StatusOK, expectedNodesBytes),
 						),
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/api/2.0/nodes/55e79eb14e66816f6152fffb/catalogs/ohai"),
-							ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
+							ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s/catalogs/ohai", expectedNodes[0].ID)),
+							ghttp.RespondWith(http.StatusOK, expectedNodeCatalogBytes),
 						),
-						ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/55e79eb14e66816f6152fffb"),
+						ghttp.VerifyRequest("PATCH", fmt.Sprintf("/api/2.0/nodes/%s", expectedNodes[0].ID)),
 					)
 
 					diskCID, err := cpi.CreateDisk(cpiConfig, extInput)
