@@ -1,25 +1,42 @@
 [
- {
-     "sku": null,
-     "autoDiscover": false,
-     "createdAt": "2016-11-30T19:52:12.356Z",
-     "identifiers": [
-       "52:54:be:ef:fd:e0"
-     ],
-     "name": "string",
-     "relations": [
-       {
-         "relationType": "enclosedBy",
-         "targets": [
-           "583f2e33cb9019f9605e1716"
-         ]
-       }
-     ],
-     "tags": [
-       "unavailable"
-     ],
-     "type": "compute",
-     "updatedAt": "2016-12-02T16:49:35.495Z",
-     "id": "583f2dec08a459ab6085a867"
-   }
+  {
+    "sku": null,
+    "autoDiscover": false,
+    "createdAt": "2016-11-30T19:52:12.356Z",
+    "identifiers": [
+      "52:54:be:ef:fd:e0"
+    ],
+    "name": "string",
+    "relations": [
+      {
+        "relationType": "enclosedBy",
+        "targets": [
+          "583f2e33cb9019f9605e1716"
+        ]
+      }
+    ],
+    "tags": [
+      "unavailable"
+    ],
+    "type": "compute",
+    "updatedAt": "2016-12-02T16:49:35.495Z",
+    "id": "583f2dec08a459ab6085a867"
+  },
+  {
+    "sku": null,
+    "autoDiscover": false,
+    "createdAt": "2016-10-10T14:03:28.799Z",
+    "identifiers": [
+      "c0:3f:d5:63:fe:13"
+    ],
+    "name": "c0:3f:d5:63:fe:13",
+    "relations": [],
+    "tags": [
+      "unavailable",
+      "fake-vm-cid"
+    ],
+    "type": "compute",
+    "updatedAt": "2016-10-24T15:45:28.938Z",
+    "id": "57fb9fb03fcc55c807add41c"
+  }
 ]
