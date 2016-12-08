@@ -7,6 +7,7 @@ import (
 
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
+	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
@@ -21,7 +22,7 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		method: FilterBasedOnSizeMethod,
 	}
 	var diskCID string
-	var node models.Node
+	var node models.TagNode
 	if vmCID != "" {
 		node, err = rackhdapi.GetNodeByVMCID(c, vmCID)
 		if err != nil {
@@ -50,10 +51,10 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		diskCID = fmt.Sprintf("%s-%s", node.ID, c.RequestID)
 	}
 
-	container := rackhdapi.PersistentDiskSettingsContainer{
-		PersistentDisk: rackhdapi.PersistentDiskSettings{
+	container := models.PersistentDiskSettingsContainer{
+		PersistentDisk: models.PersistentDiskSettings{
 			DiskCID:    diskCID,
-			Location:   fmt.Sprintf("/dev/%s", rackhdapi.PersistentDiskLocation),
+			Location:   fmt.Sprintf("/dev/%s", models.PersistentDiskLocation),
 			IsAttached: false,
 		},
 	}
