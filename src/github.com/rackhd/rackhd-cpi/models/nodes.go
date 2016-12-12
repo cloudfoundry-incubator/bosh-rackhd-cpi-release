@@ -64,21 +64,9 @@ type OBMConfig struct {
 	User     string `json:"user"`
 }
 
-type PersistentDiskSettingsContainer struct {
-	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
-}
-
-type PersistentDiskSettings struct {
-	PregeneratedDiskCID string `json:"pregenerated_disk_cid"`
-	DiskCID             string `json:"disk_cid"`
-	Location            string `json:"location"`
-	IsAttached          bool   `json:"attached"`
-}
-
 type Node struct {
 	ID             string                 `json:"id"`
 	Name           string                 `json:"name"`
 	Workflows      string                 `json:"workflows"`
 	OBMS           []OBM                  `json:"obms"`
-	PersistentDisk PersistentDiskSettings `json:"persistent_disk"`
 }
