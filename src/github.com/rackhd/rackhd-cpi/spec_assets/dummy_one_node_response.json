@@ -1,19 +1,29 @@
 {
-  "workflows": "/api/2.0/nodes/5665a65a0561790005b77b85/workflows",
-  "catalogs": "/api/2.0/nodes/5665a65a0561790005b77b85/catalogs",
   "autoDiscover": "false",
+  "catalogs": "/api/2.0/nodes/583f2dec08a459ab6085a867/catalogs",
+  "id": "583f2dec08a459ab6085a867",
   "identifiers": [
-    "00:1e:67:c2:67:06",
-    "00:1e:67:c2:67:07"
+    "52:54:be:ef:fd:e0"
   ],
-  "name": "00:1e:67:c2:67:06,00:1e:67:c2:67:07",
+  "name": "52:54:be:ef:fd:e0",
   "obms": [
     {
-      "service": "amt-obm-service",
-      "ref": "/api/2.0/obms/5665a65a0561790005b77b85"
+      "service": "ipmi-obm-service",
+      "ref": "/api/2.0/obms/583f332d08a459ab6085a872"
     }
   ],
-  "sku": "55e79e0e4e66816f6152ffe6",
+  "tags": "/api/2.0/nodes/583f2dec08a459ab6085a867/tags",
+  "pollers": "/api/2.0/nodes/583f2dec08a459ab6085a867/pollers",
+  "relations": [
+    {
+      "relationType": "enclosedBy",
+      "info": null,
+      "targets": [
+        "583f2e33cb9019f9605e1716"
+      ]
+    }
+  ],
+  "sku": null,
   "type": "compute",
-  "id": "5665a65a0561790005b77b85"
+  "workflows": "/api/2.0/nodes/583f2dec08a459ab6085a867/workflows"
 }
