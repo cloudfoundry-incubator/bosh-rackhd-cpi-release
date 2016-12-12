@@ -5,10 +5,7 @@
   "options": {
     "commands": [
       {
-        "command": "curl -X DELETE {{ api.base }}/nodes/{{ task.nodeId }}/unavailable"
-      },
-      {
-        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"tags\": [\"available\"]}'"
+        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }}/tags -H \"Content-Type: application/json\" -d '{\"tags\": [\"unavailable\", \"{{ task.nodeId }}\"]}'"
       }
     ]
   },
