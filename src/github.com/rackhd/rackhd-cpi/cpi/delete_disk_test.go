@@ -17,7 +17,7 @@ import (
   "github.com/onsi/gomega/ghttp"
 )
 
-var _ = FDescribe("DeleteDisk", func() {
+var _ = Describe("DeleteDisk", func() {
   var server *ghttp.Server
   var jsonReader *strings.Reader
   var cpiConfig config.Cpi

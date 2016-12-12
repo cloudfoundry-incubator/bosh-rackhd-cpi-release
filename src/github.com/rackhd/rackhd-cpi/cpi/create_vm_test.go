@@ -443,24 +443,15 @@ var _ = Describe("The VM Creation Workflow", func() {
 
     Context("When a node has no unavailable or blocked tag and no running workflow", func() {
       It("selects the node", func() {
-        //Once upon a time, there were 3 nodes from tag_nodes_all.json
-        //The node 583f2dec08a459ab6085a867 was unavailable
+        availableNodeID := "57fb9fb03fcc55c807add402"
         helpers.AddHandler(server, "GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", models.Unavailable), 200, helpers.LoadJSON("../spec_assets/tag_nodes_reserved.json"))
-        //Node same 583f2dec08a459ab6085a867 was blocked
         helpers.AddHandler(server, "GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", models.Blocked), 200, helpers.LoadJSON("../spec_assets/tag_nodes_blocked.json"))
+        helpers.AddHandlerWithParam(server, "GET", "/api/2.0/nodes", "type=compute", 200, helpers.LoadJSON("../spec_assets/nodes_all.json"))
+        helpers.AddHandlerWithParam(server, "GET", fmt.Sprintf("/api/2.0/nodes/%s/workflows", availableNodeID), "active=true", 200, []byte("[]"))
 
-        //Among 3 nodes, only node 583f2dec08a459ab6085a867 and 583f2ddd08a459ab6085a85a are computes node
-        helpers.AddHandlerWithParam(server, "GET", "/api/2.0/nodes", "type=compute", 200, helpers.LoadJSON("../spec_assets/tag_nodes_all.json"))
-
-        //So it should return [583f2ddd08a459ab6085a85a] as available nodes because 583f2dec08a459ab6085a867 is blocked and unavailable
-
-        //Now it check if 583f2ddd08a459ab6085a85a has active workflow
-        helpers.AddHandlerWithParam(server, "GET", fmt.Sprintf("/api/2.0/nodes/583f2ddd08a459ab6085a85a/workflows"), "active=true", 200, []byte("[]"))
-
-        //Met all condition for available node, it returns 583f2ddd08a459ab6085a85a
         node, err := SelectNodeFromRackHD(cpiConfig, "", allowFilter)
         Expect(err).ToNot(HaveOccurred())
-        Expect(node.ID).To(Equal("583f2ddd08a459ab6085a85a"))
+        Expect(node.ID).To(Equal(availableNodeID))
       })
     })
   })
