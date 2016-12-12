@@ -186,7 +186,7 @@ var _ = Describe("CreateDisk", func() {
           err := json.Unmarshal(jsonInput, &extInput)
           Expect(err).NotTo(HaveOccurred())
 
-          expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_node_with_cid.json")
+          expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_nodes_with_vm_cid.json")
           expectedNodesBytes, err := json.Marshal(expectedNodes)
           Expect(err).ToNot(HaveOccurred())
           expectedNodeCatalogBytes := helpers.LoadJSON("../spec_assets/dummy_node_catalog_response.json")
