@@ -40,7 +40,6 @@ var _ = Describe("Nodes", func() {
 			tags, err := rackhdapi.GetTags(c, targetNodeID)
 			Expect(tags).To(Equal([]string{"unavailable"}))
 
-
 			err = rackhdapi.ReleaseNode(c, targetNodeID)
 			Expect(err).ToNot(HaveOccurred())
 
