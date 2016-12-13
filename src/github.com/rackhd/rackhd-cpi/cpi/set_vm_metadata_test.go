@@ -41,7 +41,7 @@ var _ = Describe("Setting VM Metadata", func() {
      var metadataInput bosh.MethodArguments
      metadataInput = append(metadataInput, cid)
      metadataInput = append(metadataInput, metadata)
-     expectedNodesBytes := helpers.LoadJSON("../spec_assets/tag_node_with_cid.json")
+     expectedNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_with_vm_cid.json")
 
      server.AppendHandlers(
        ghttp.CombineHandlers(
