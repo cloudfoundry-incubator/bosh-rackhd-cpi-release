@@ -29,6 +29,15 @@ func AddHandler(server *ghttp.Server, method, url string, statusCode int, respBo
   )
 }
 
+func AddHandlerWithParam(server *ghttp.Server, method, url, param string, statusCode int, respBody []byte) {
+  server.AppendHandlers(
+    ghttp.CombineHandlers(
+      ghttp.VerifyRequest(method, url, param),
+      ghttp.RespondWith(statusCode, respBody),
+    ),
+  )
+}
+
 func SetUp(cpiRequestType string) (*ghttp.Server, *strings.Reader, config.Cpi, bosh.CpiRequest) {
   var err error
   server := ghttp.NewServer()
@@ -113,39 +122,27 @@ func LoadNodeCatalog(nodeCatalogPath string) models.NodeCatalog {
   return *LoadStruct(nodeCatalogPath, &nodeCatalog).(*models.NodeCatalog)
 }
 
-func MakeTryReservationHandlers(requestID string, nodeID string, expectedNodesPath string, expectedNodeCatalogPath string) []http.HandlerFunc {
-  expectedNodes := LoadNodes(expectedNodesPath)
-  expectedNodesData, err := json.Marshal(expectedNodes)
-  Expect(err).ToNot(HaveOccurred())
-  var expectedNode models.Node
-  for n := range expectedNodes {
-    if expectedNodes[n].ID == nodeID {
-      expectedNode = expectedNodes[n]
-    }
-  }
-  Expect(expectedNode).ToNot(BeNil())
-  expectedNodeData, err := json.Marshal(expectedNode)
-  Expect(err).ToNot(HaveOccurred())
-  expectedNodeCatalog := LoadNodeCatalog(expectedNodeCatalogPath)
-  expectedNodeCatalogData, err := json.Marshal(expectedNodeCatalog)
-  Expect(err).ToNot(HaveOccurred())
+func MakeTryReservationHandlers(requestID string, nodeID string) []http.HandlerFunc {
+  allNodesBytes := LoadJSON("../spec_assets/nodes_all.json")
+  unavailableNodesBytes := LoadJSON("../spec_assets/tag_nodes_reserved.json")
+  blockedNodesBytes := LoadJSON("../spec_assets/tag_nodes_blocked.json")
 
   reservationHandlers := []http.HandlerFunc{
     ghttp.CombineHandlers(
-      ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
-      ghttp.RespondWith(http.StatusOK, expectedNodesData),
+      ghttp.VerifyRequest("GET", "/api/2.0/tags/unavailable/nodes"),
+      ghttp.RespondWith(http.StatusOK, unavailableNodesBytes),
     ),
     ghttp.CombineHandlers(
-      ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s/catalogs/ohai", nodeID)),
-      ghttp.RespondWith(http.StatusOK, expectedNodeCatalogData),
+      ghttp.VerifyRequest("GET", "/api/2.0/tags/blocked/nodes"),
+      ghttp.RespondWith(http.StatusOK, blockedNodesBytes),
     ),
     ghttp.CombineHandlers(
-      ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s/workflows?active=true", nodeID)),
-      ghttp.RespondWith(http.StatusOK, nil),
+      ghttp.VerifyRequest("GET", "/api/2.0/nodes", "type=compute"),
+      ghttp.RespondWith(http.StatusOK, allNodesBytes),
     ),
     ghttp.CombineHandlers(
-      ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s", nodeID)),
-      ghttp.RespondWith(http.StatusOK, expectedNodeData),
+      ghttp.VerifyRequest("GET", "/api/2.0/nodes/" + nodeID + "/workflows", "active=true"),
+      ghttp.RespondWith(http.StatusOK, []byte("[]")),
     ),
   }
 
@@ -153,28 +150,42 @@ func MakeTryReservationHandlers(requestID string, nodeID string, expectedNodesPa
 }
 
 func MakeWorkflowHandlers(workflow string, requestID string, nodeID string) []http.HandlerFunc {
-  taskStubData := []byte(fmt.Sprintf("[{\"injectableName\": \"Task.BOSH.%s.Node.%s\"}]", workflow, requestID))
-  workflowStubData := []byte(fmt.Sprintf("[{\"injectableName\": \"Graph.BOSH.%sNode.%s\"}]", workflow, requestID))
-  nodeStubData := []byte(`{"obmSettings": [{"service": "fake-obm-service"}]}`)
-  completedWorkflowResponse := []byte(fmt.Sprintf("{\"id\": \"%s\", \"_status\": \"succeeded\"}", requestID))
+  taskName := fmt.Sprintf("Task.BOSH.%s.Node.%s", workflow, requestID)
+  taskBytes := []byte(fmt.Sprintf("{\"injectableName\": \"%s\"}", taskName))
+  taskArrayBytes := []byte("[" + string(taskBytes) + "]")
+
+  graphName := fmt.Sprintf("Graph.BOSH.%sNode.%s", workflow, requestID)
+  graphBytes := []byte(fmt.Sprintf("{\"injectableName\": \"%s\"}", graphName))
+  graphArrayBytes := []byte("[" + string(graphBytes) + "]")
+
+  nodeOBMBytes := []byte(`{"obms": [{"service": "fake-obm-service"}]}`)
+  completedWorkflowResponse := []byte(fmt.Sprintf("{\"instanceId\": \"%s\", \"status\": \"succeeded\"}", requestID))
 
   return []http.HandlerFunc{
-    ghttp.VerifyRequest("PUT", "/api/2.0/workflows/tasks"),
     ghttp.CombineHandlers(
-      ghttp.VerifyRequest("GET", "/api/2.0/workflows/tasks/library"),
-      ghttp.RespondWith(http.StatusOK, taskStubData),
+      ghttp.VerifyRequest("PUT", "/api/2.0/workflows/tasks"),
+      ghttp.RespondWith(http.StatusCreated, taskBytes),
     ),
-    ghttp.VerifyRequest("PUT", "/api/2.0/workflows"),
     ghttp.CombineHandlers(
-      ghttp.VerifyRequest("GET", "/api/2.0/workflows/library"),
-      ghttp.RespondWith(http.StatusOK, workflowStubData),
+      ghttp.VerifyRequest("GET", "/api/2.0/workflows/tasks/" + taskName),
+      ghttp.RespondWith(http.StatusOK, taskArrayBytes),
     ),
+
+    ghttp.CombineHandlers(
+      ghttp.VerifyRequest("PUT", "/api/2.0/workflows/graphs"),
+      ghttp.RespondWith(http.StatusCreated, graphBytes),
+    ),
+    ghttp.CombineHandlers(
+      ghttp.VerifyRequest("GET", "/api/2.0/workflows/graphs/" + graphName),
+      ghttp.RespondWith(http.StatusOK, graphArrayBytes),
+    ),
+
     ghttp.CombineHandlers(
       ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/nodes/%s", nodeID)),
-      ghttp.RespondWith(http.StatusOK, nodeStubData),
+      ghttp.RespondWith(http.StatusOK, nodeOBMBytes),
     ),
     ghttp.CombineHandlers(
-      ghttp.VerifyRequest("POST", fmt.Sprintf("/api/2.0/nodes/%s/workflows/", nodeID)),
+      ghttp.VerifyRequest("POST", fmt.Sprintf("/api/2.0/nodes/%s/workflows", nodeID)),
       ghttp.RespondWith(http.StatusCreated, completedWorkflowResponse),
     ),
     ghttp.CombineHandlers(
