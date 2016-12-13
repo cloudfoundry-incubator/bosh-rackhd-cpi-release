@@ -75,7 +75,7 @@ func (f Filter) AllowAnyNode() (bool, error) {
 }
 
 // Run will run a filter against a node
-func (f Filter) Run(c config.Cpi, node models.Node) (bool, error) {
+func (f Filter) Run(c config.Cpi, node models.TagNode) (bool, error) {
 	if f.method == AllowAnyNodeMethod {
 		return f.AllowAnyNode()
 	}
@@ -86,7 +86,7 @@ func (f Filter) Run(c config.Cpi, node models.Node) (bool, error) {
 }
 
 // FilterBasedOnSize will generate a filter based on the size on the node
-func (f Filter) FilterBasedOnSize(c config.Cpi, node models.Node) (bool, error) {
+func (f Filter) FilterBasedOnSize(c config.Cpi, node models.TagNode) (bool, error) {
 	size, ok := f.data.(int)
 	if !ok {
 		return false, fmt.Errorf("error converting disk size: disk size must be convertible to int")
@@ -115,7 +115,6 @@ func (f Filter) FilterBasedOnSize(c config.Cpi, node models.Node) (bool, error) 
 
 // ReserveNodeFromRackHD will reserve a given node node from rackHD
 func ReserveNodeFromRackHD(c config.Cpi, nodeID string) error {
-
 	workflowName, err := workflows.PublishReserveNodeWorkflow(c)
 	if err != nil {
 		return fmt.Errorf("error publishing reserve workflow: %s", err)
@@ -134,7 +133,6 @@ func ReserveNodeFromRackHD(c config.Cpi, nodeID string) error {
 func SelectNodeFromRackHD(c config.Cpi, nodeID string, filter Filter) (models.Node, error) {
 	if nodeID != "" {
 		node, err := rackhdapi.GetNode(c, nodeID)
-
 		if err != nil {
 			return models.Node{}, err
 		}
@@ -143,7 +141,7 @@ func SelectNodeFromRackHD(c config.Cpi, nodeID string, filter Filter) (models.No
 		return node, nil
 	}
 
-	nodes, err := rackhdapi.GetComputeNodesWithoutTags(c, []string{models.Reserved, models.Blocked, models.PersistentDisk})
+	nodes, err := rackhdapi.GetComputeNodesWithoutTags(c, []string{models.Unavailable, models.Blocked})
 	if err != nil {
 		return models.Node{}, err
 	}
@@ -166,15 +164,16 @@ func randomSelectNodeWithoutWorkflow(c config.Cpi, nodes []models.Node, filter F
 		node := nodes[shuffle[i]]
 		log.Debug(fmt.Sprintf("Trying node: %v", node.ID))
 
-		if hasWorkflow, err := rackhdapi.HasActiveWorkflow(c, node.ID); err == nil {
-			if !hasWorkflow {
-				log.Debug(fmt.Sprintf("node %s is available", node.ID))
-				return node, nil
-			}
-			continue
-		} else {
+		hasWorkflow, err := rackhdapi.HasActiveWorkflow(c, node.ID)
+		if err != nil {
 			return models.Node{}, err
 		}
+
+		if !hasWorkflow {
+			log.Debug(fmt.Sprintf("node %s is available", node.ID))
+			return node, nil
+		}
+		continue
 	}
 
 	return models.Node{}, errors.New("all nodes have been reserved")
