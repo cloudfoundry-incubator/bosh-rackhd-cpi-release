@@ -50,7 +50,7 @@ var _ = Describe("ReserveNodeWorkflow", func() {
       tasksBytes, wBytes, err := generateReserveNodeWorkflow(uID)
       Expect(err).ToNot(HaveOccurred())
 
-      r := reserveNodeTask{}
+      r := models.Task{}
       err = json.Unmarshal(tasksBytes[0], &r)
       Expect(err).ToNot(HaveOccurred())
       Expect(r.Name).To(ContainSubstring(uID))

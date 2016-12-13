@@ -75,7 +75,7 @@ func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
     return nil, nil, err
   }
 
-  reserve := reserveNodeTask{}
+  reserve := models.Task{}
   err = json.Unmarshal(reserveNodeTaskBytes, &reserve)
   if err != nil {
     return nil, nil, fmt.Errorf("error unmarshalling reserve node task template: %s", err)

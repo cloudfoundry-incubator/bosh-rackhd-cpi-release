@@ -82,7 +82,7 @@ func PublishProvisionNodeWorkflow(c config.Cpi) (string, error) {
 }
 
 func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
-  p := provisionNodeTask{}
+  p := models.Task{}
   provisionNodeTaskBytes, err := helpers.ReadFile("../templates/provision_node_task.json")
   err = json.Unmarshal(provisionNodeTaskBytes, &p)
   if err != nil {
