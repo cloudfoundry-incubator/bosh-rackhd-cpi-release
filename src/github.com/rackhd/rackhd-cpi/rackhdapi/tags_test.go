@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-	"os"
 )
 
 var _ = Describe("Tags", func() {
@@ -95,7 +96,7 @@ var _ = Describe("Tags", func() {
 		Context("when searching for an node with existing tag", func() {
 			It("should find nodes with the tag", func() {
 				fakeTag := "fake-vm-cid"
-				expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_node_with_cid.json")
+				expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_nodes_with_vm_cid.json")
 				expectedNodesData, err := json.Marshal(expectedNodes)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -135,7 +136,7 @@ var _ = Describe("Tags", func() {
 		})
 	})
 
-	Describe("GetNodesWithoutTags", func() {
+	Describe("GetComputeNodesWithoutTags", func() {
 		Context("when there are nodes without given tags", func() {
 			It("should return nodes without error", func() {
 				blockedNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_blocked.json")
@@ -146,13 +147,14 @@ var _ = Describe("Tags", func() {
 				url = fmt.Sprintf("/api/2.0/tags/%s/nodes", models.Unavailable)
 				helpers.AddHandler(server, "GET", url, 200, reservedNodesBytes)
 
-				allNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_all.json")
-				helpers.AddHandler(server, "GET", "/api/2.0/nodes", 200, allNodesBytes)
+				computeNodes := helpers.LoadJSON("../spec_assets/nodes_all.json")
+				helpers.AddHandlerWithParam(server, "GET", "/api/2.0/nodes", "type=compute", 200, computeNodes)
 
-				nodes, err := rackhdapi.GetNodesWithoutTags(c, []string{models.Blocked, models.Unavailable})
+				nodes, err := rackhdapi.GetComputeNodesWithoutTags(c, []string{models.Blocked, models.Unavailable})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(len(nodes)).To(Equal(1))
-				Expect(nodes[0].ID).To(Equal("57fb9fb03fcc55c807add402"))
+				availableNodeID := "57fb9fb03fcc55c807add402"
+				Expect(nodes[0].ID).To(Equal(availableNodeID))
 			})
 		})
 	})
