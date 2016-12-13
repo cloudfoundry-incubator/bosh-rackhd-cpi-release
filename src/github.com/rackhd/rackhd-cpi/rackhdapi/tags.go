@@ -18,7 +18,13 @@ func GetTags(c config.Cpi, nodeID string) ([]string, error) {
 		return nil, err
 	}
 
-	return helpers.BytesToArray(body), nil
+	var tags []string
+	err = json.Unmarshal(body, &tags)
+	if err != nil {
+		return nil, err
+	}
+
+	return tags, nil
 }
 
 // DeleteTag deletes the given tag on the given node
@@ -77,43 +83,11 @@ func GetNodeByVMCID(c config.Cpi, cid string) (models.TagNode, error) {
 	return GetNodeByTag(c, cid)
 }
 
-// GetNodesWithoutTags returns all available nodes that are not blocked or reserved
-func GetNodesWithoutTags(c config.Cpi, tags []string) ([]models.Node, error) {
-	dontReturnNodes := map[string]bool{}
-
-	// for each tag, eliminate all nodes using that tag with unavailableNodes hashmap
-	for _, tag := range tags {
-		notTheseNodes, err := GetNodesByTag(c, tag)
-		if err != nil {
-			return nil, err
-		}
-		for _, node := range notTheseNodes {
-			dontReturnNodes[node.ID] = true
-		}
-	}
-
-	// Get all the nodes, then mark which ones are usable
-	nodes, err := GetNodes(c)
-	if err != nil {
-		return nil, err
-	}
-
-	returnNodes := make([]models.Node, len(nodes))
-	counter := 0
-	for _, node := range nodes {
-		if dontReturnNodes[node.ID] == false {
-			returnNodes[counter] = node
-			counter++
-		}
-	}
-	return returnNodes[:counter], nil
-}
-
 // GetComputeNodesWithoutTags returns all available nodes that are not blocked or reserved
 func GetComputeNodesWithoutTags(c config.Cpi, tags []string) ([]models.Node, error) {
-	dontReturnNodes := map[string]bool{}
+	var result []models.Node
 
-	// for each tag, eliminate all nodes using that tag with unavailableNodes hashmap
+	dontReturnNodes := map[string]bool{}
 	for _, tag := range tags {
 		notTheseNodes, err := GetNodesByTag(c, tag)
 		if err != nil {
@@ -124,24 +98,21 @@ func GetComputeNodesWithoutTags(c config.Cpi, tags []string) ([]models.Node, err
 		}
 	}
 
-	// Get all the compute nodes, then mark which ones are usable
-	nodes, err := GetNodesWithType(c, "compute")
+	allNodes, err := GetNodesWithType(c, "compute")
 	if err != nil {
 		return nil, err
 	}
 
-	returnNodes := make([]models.Node, len(nodes))
-	counter := 0
-	for _, node := range nodes {
-		if dontReturnNodes[node.ID] == false {
-			returnNodes[counter] = node
-			counter++
+	for _, n := range allNodes {
+		if !dontReturnNodes[n.ID] {
+			result = append(result, n)
 		}
 	}
-	return returnNodes[:counter], nil
+
+	return result, nil
 }
 
-// ReleaseNode delete unavailable tag on the node and create available tag
+// ReleaseNode delete unavailable tag on the node
 func ReleaseNode(c config.Cpi, nodeID string) error {
 	return DeleteTag(c, nodeID, models.Unavailable)
 }
