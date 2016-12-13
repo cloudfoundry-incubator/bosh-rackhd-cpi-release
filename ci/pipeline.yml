@@ -19,9 +19,8 @@ jobs:
     params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/integration.yml
-    config:
-      params:
-        RACKHD_API_URL:              {{rackhd_server_url}}
+    params:
+      RACKHD_API_URL:              {{rackhd_server_url}}
     on_failure:
       put: emccmd-env-ci
       params: {release: emccmd-env-ci}
@@ -35,15 +34,14 @@ jobs:
   - get: emccmd-env-ci
   - task: test
     file: bosh-cpi-release/ci/tasks/lifecycle.yml
-    config:
-      params:
-        CUSTOMIZED_STEMCELL_NAME:     {{customized_ubuntu_stemcell_name}}
-        RACKHD_API_URL:               {{rackhd_server_url}}
-        AGENT_PUBLIC_KEY:             {{agent_public_key}}
-        AGENT_STATIC_IP1:             {{agent_static_ip1}}
-        AGENT_STATIC_IP2:             {{agent_static_ip2}}
-        AGENT_STATIC_IP3:             {{agent_static_ip3}}
-        GATEWAY:                      {{gateway}}
+    params:
+      CUSTOMIZED_STEMCELL_NAME:     {{customized_ubuntu_stemcell_name}}
+      RACKHD_API_URL:               {{rackhd_server_url}}
+      AGENT_PUBLIC_KEY:             {{agent_public_key}}
+      AGENT_STATIC_IP1:             {{agent_static_ip1}}
+      AGENT_STATIC_IP2:             {{agent_static_ip2}}
+      AGENT_STATIC_IP3:             {{agent_static_ip3}}
+      GATEWAY:                      {{gateway}}
     on_failure:
       put: emccmd-env-ci
       params: {release: emccmd-env-ci}
@@ -57,16 +55,15 @@ jobs:
   - get: emccmd-env-ci
   - task: setup-director
     file: bosh-cpi-release/ci/tasks/setup-director.yml
-    config:
-      params:
-        BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
-        BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
-        BOSH_DIRECTOR_PRIVATE_IP:           {{bosh_director_private_ip}}
-        BOSH_DIRECTOR_PUBLIC_KEY:           {{director_public_key}}
-        RACKHD_API_URL:                     {{rackhd_server_url}}
-        RACKHD_NETWORK:                     {{rackhd_network}}
-        CPI_RELEASE_NAME:                   {{cpi_release_name}}
-        DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}
+    params:
+      BOSH_VSPHERE_DIRECTOR:              {{bosh_vsphere_director}}
+      BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
+      BOSH_DIRECTOR_PRIVATE_IP:           {{bosh_director_private_ip}}
+      BOSH_DIRECTOR_PUBLIC_KEY:           {{director_public_key}}
+      RACKHD_API_URL:                     {{rackhd_server_url}}
+      RACKHD_NETWORK:                     {{rackhd_network}}
+      CPI_RELEASE_NAME:                   {{cpi_release_name}}
+      DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}
     on_failure:
       put: emccmd-env-ci
       params: {release: emccmd-env-ci}
@@ -83,21 +80,20 @@ jobs:
     params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/bats.yml
-    config:
-      params:
-        CUSTOMIZED_STEMCELL_NAME:           {{customized_centos_stemcell_name}}
-        AGENT_PUBLIC_KEY:                   {{agent_public_key}}
-        DIRECTOR_PRIVATE_KEY_DATA:          {{director_private_key}}
-        BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
-        BOSH_DIRECTOR_PRIVATE_IP:           {{bosh_director_private_ip}}
-        PRIMARY_NETWORK_CIDR:               {{centos_primary_network_cidr}}
-        PRIMARY_NETWORK_GATEWAY:            {{centos_primary_network_gateway}}
-        PRIMARY_NETWORK_RANGE:              {{centos_primary_network_range}}
-        PRIMARY_NETWORK_MANUAL_IP:          {{centos_primary_network_manual_ip}}
-        SECONDARY_STATIC_IP:                {{centos_secondary_static_ip}}
-        BAT_SPEC:                           {{bat_spec}}
-        BAT_STEMCELL_NAME:                  bosh-openstack-kvm-centos-7-go_agent-raw
-        BAT_DEPLOYMENT_NAME:                bat-centos
+    params:
+      CUSTOMIZED_STEMCELL_NAME:           {{customized_centos_stemcell_name}}
+      AGENT_PUBLIC_KEY:                   {{agent_public_key}}
+      DIRECTOR_PRIVATE_KEY_DATA:          {{director_private_key}}
+      BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
+      BOSH_DIRECTOR_PRIVATE_IP:           {{bosh_director_private_ip}}
+      PRIMARY_NETWORK_CIDR:               {{centos_primary_network_cidr}}
+      PRIMARY_NETWORK_GATEWAY:            {{centos_primary_network_gateway}}
+      PRIMARY_NETWORK_RANGE:              {{centos_primary_network_range}}
+      PRIMARY_NETWORK_MANUAL_IP:          {{centos_primary_network_manual_ip}}
+      SECONDARY_STATIC_IP:                {{centos_secondary_static_ip}}
+      BAT_SPEC:                           {{bat_spec}}
+      BAT_STEMCELL_NAME:                  bosh-openstack-kvm-centos-7-go_agent-raw
+      BAT_DEPLOYMENT_NAME:                bat-centos
     ensure:
       put: emccmd-env-bats
       params: {release: emccmd-env-bats}
@@ -114,21 +110,20 @@ jobs:
     params: {acquire: true}
   - task: test
     file: bosh-cpi-release/ci/tasks/bats.yml
-    config:
-      params:
-        CUSTOMIZED_STEMCELL_NAME:           {{customized_ubuntu_stemcell_name}}
-        AGENT_PUBLIC_KEY:                   {{agent_public_key}}
-        DIRECTOR_PRIVATE_KEY_DATA:          {{director_private_key}}
-        BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
-        BOSH_DIRECTOR_PRIVATE_IP:           {{bosh_director_private_ip}}
-        PRIMARY_NETWORK_CIDR:               {{ubuntu_primary_network_cidr}}
-        PRIMARY_NETWORK_GATEWAY:            {{ubuntu_primary_network_gateway}}
-        PRIMARY_NETWORK_RANGE:              {{ubuntu_primary_network_range}}
-        PRIMARY_NETWORK_MANUAL_IP:          {{ubuntu_primary_network_manual_ip}}
-        SECONDARY_STATIC_IP:                {{ubuntu_secondary_static_ip}}
-        BAT_SPEC:                           {{bat_spec}}
-        BAT_STEMCELL_NAME:                  bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
-        BAT_DEPLOYMENT_NAME:                bat-ubuntu
+    params:
+      CUSTOMIZED_STEMCELL_NAME:           {{customized_ubuntu_stemcell_name}}
+      AGENT_PUBLIC_KEY:                   {{agent_public_key}}
+      DIRECTOR_PRIVATE_KEY_DATA:          {{director_private_key}}
+      BOSH_DIRECTOR_PUBLIC_IP:            {{bosh_director_public_ip}}
+      BOSH_DIRECTOR_PRIVATE_IP:           {{bosh_director_private_ip}}
+      PRIMARY_NETWORK_CIDR:               {{ubuntu_primary_network_cidr}}
+      PRIMARY_NETWORK_GATEWAY:            {{ubuntu_primary_network_gateway}}
+      PRIMARY_NETWORK_RANGE:              {{ubuntu_primary_network_range}}
+      PRIMARY_NETWORK_MANUAL_IP:          {{ubuntu_primary_network_manual_ip}}
+      SECONDARY_STATIC_IP:                {{ubuntu_secondary_static_ip}}
+      BAT_SPEC:                           {{bat_spec}}
+      BAT_STEMCELL_NAME:                  bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
+      BAT_DEPLOYMENT_NAME:                bat-ubuntu
     ensure:
       put: emccmd-env-bats
       params: {release: emccmd-env-bats}
@@ -145,23 +140,25 @@ jobs:
 
   - task: promote
     file: bosh-cpi-release/ci/tasks/promote-candidate.yml
-    config:
-      params:
-        S3_ACCESS_KEY_ID:     {{s3_access_key_id}}
-        S3_SECRET_ACCESS_KEY: {{s3_secret_access_key}}
+    params:
+      S3_ACCESS_KEY_ID:     {{s3_access_key_id}}
+      S3_SECRET_ACCESS_KEY: {{s3_secret_access_key}}
   - put: bosh-cpi-release-out
     params: {repository: promote/bosh-cpi-release, rebase: true, tag_prefix: "v", tag: promote/integer_version}
-
   - put: release-version-semver
     params: {file: release-version-semver/number}
 
 resources:
   - name: bosh-rackhd-cpi-release
     type: git
+    github-secrets: &github
+      skip_ssl_verification: true
+      username: {{github_username}}
+      password: {{github_password}}
     source:
-      uri: git@github.com:cloudfoundry-incubator/bosh-rackhd-cpi-release.git
+      uri: https://github.com/cloudfoundry-incubator/bosh-rackhd-cpi-release.git
       branch: master
-      private_key: {{github_key__bosh-rackhd-cpi-release}}
+      <<: *github
       ignore_paths:
         - .final_builds/**/*.yml
         - releases/**/*.yml
@@ -199,18 +196,18 @@ resources:
   - name: emccmd-env-ci
     type: pool
     source:
-      uri: git@github.com:EMC-CMD/emccmd-environments.git
+      uri: https://github.com/EMC-CMD/emccmd-environments.git
       branch: master
       pool: lifecycle
-      private_key: {{github_key__emccmd-environments}}
+      <<: *github
 
   - name: emccmd-env-bats
     type: pool
     source:
-      uri: git@github.com:EMC-CMD/emccmd-environments.git
+      uri: https://github.com/EMC-CMD/emccmd-environments.git
       branch: master
       pool: bats
-      private_key: {{github_key__emccmd-environments}}
+      <<: *github
 
   - name: release-version-semver
     type: semver
