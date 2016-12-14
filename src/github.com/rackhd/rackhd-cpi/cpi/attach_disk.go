@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
+// AttachDisk attack a disk to a machine
 func AttachDisk(c config.Cpi, extInput bosh.MethodArguments) error {
 	var vmCID string
 	var diskCID string
@@ -27,31 +29,30 @@ func AttachDisk(c config.Cpi, extInput bosh.MethodArguments) error {
 
 	node, err := rackhdapi.GetNodeByVMCID(c, vmCID)
 	if err != nil {
-		return fmt.Errorf("VM: %s not found\n", vmCID)
+		return fmt.Errorf("VM: %s not found", vmCID)
 	}
 
-	if node.PersistentDisk.DiskCID == "" {
-		return fmt.Errorf("Disk: %s not found on VM: %s", diskCID, vmCID)
+	var attachedDiskCID string
+	for _, tag := range node.Tags {
+		if strings.HasPrefix(tag, DiskCIDTagPrefix) {
+			if tag == diskCID && node.PersistentDisk.IsAttached {
+				return nil
+			}
+			attachedDiskCID = tag
+		}
 	}
 
-	if node.PersistentDisk.DiskCID != diskCID {
+	if attachedDiskCID == "" {
+		return fmt.Errorf("disk: %s not found on VM: %s", diskCID, vmCID)
+	}
+
+	if attachedDiskCID != diskCID {
 		if node.PersistentDisk.IsAttached {
-			return fmt.Errorf("Node %s has persistent disk %s attached. Cannot attach additional disk %s.", vmCID, node.PersistentDisk.DiskCID, diskCID)
-		} else {
-			return fmt.Errorf("Node %s has persistent disk %s, but detached. Cannot attach disk %s.", vmCID, node.PersistentDisk.DiskCID, diskCID)
+			return fmt.Errorf("node %s has persistent disk %s attached. Cannot attach additional disk %s", vmCID, attachedDiskCID, diskCID)
 		}
+		return fmt.Errorf("node %s has persistent disk %s, but detached. Cannot attach disk %s", vmCID, attachedDiskCID, diskCID)
 	}
 
-	if node.CID != vmCID {
-		return fmt.Errorf("Disk: %s does not belong to VM: %s\n", diskCID, vmCID)
-	}
-
-	if !node.PersistentDisk.IsAttached {
-		err = rackhdapi.MakeDiskRequest(c, node, true)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	err = rackhdapi.MakeDiskRequest(c, node, true)
+	return err
 }
