@@ -10,10 +10,17 @@
     "relations": [],
     "tags": [
       "unavailable",
-      "vm_cid-fake_uuid"
+      "vm_cid-fake_uuid",
+      "disk_cid-fake_uuid"
     ],
     "type": "compute",
     "updatedAt": "2016-10-24T15:45:28.938Z",
-    "id": "57fb9fb03fcc55c807add41c"
+    "id": "57fb9fb03fcc55c807add41c",
+    "persistent_disk": {
+      "pregenerated_disk_cid": "57fb9fb03fcc55c807add41c-id",
+      "disk_cid": "",
+      "location": "/dev/sdb",
+      "attached": true
+    }
   }
 ]
