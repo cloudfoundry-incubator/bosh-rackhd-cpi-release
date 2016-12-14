@@ -11,6 +11,7 @@ import (
   "github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
+// CreateDisk patches disk info to node
 func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
   diskSizeInMB, vmCID, err := parseCreateDiskInput(extInput)
   if err != nil {
@@ -48,7 +49,7 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
     if err != nil {
       return "", err
     }
-    diskCID = fmt.Sprintf("%s-%s", node.ID, c.RequestID)
+    diskCID = fmt.Sprintf("%s%s-%s", DiskCIDTagPrefix, node.ID, c.RequestID)
   }
 
   container := models.PersistentDiskSettingsContainer{

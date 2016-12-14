@@ -141,7 +141,7 @@ var _ = Describe("DeleteDisk", func() {
       err := json.Unmarshal(jsonInput, &extInput)
       Expect(err).ToNot(HaveOccurred())
 
-      expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_nodes_with_vm_cid.json")
+      expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_nodes_with_vm_disk_attached.json")
       expectedNodesData, err := json.Marshal(expectedNodes)
       Expect(err).ToNot(HaveOccurred())
       server.AppendHandlers(

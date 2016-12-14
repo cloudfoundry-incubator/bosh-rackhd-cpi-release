@@ -53,7 +53,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
   var diskCID string
   // We need PregeneratedDiskCID for persistentMetadata for bosh agent
   if node.PersistentDisk.DiskCID == "" {
-    diskCID = fmt.Sprintf("%s-%s", nodeID, c.RequestID)
+    diskCID = fmt.Sprintf("%s%s-%s", DiskCIDTagPrefix, nodeID, c.RequestID)
 
     container := models.PersistentDiskSettingsContainer{
       PersistentDisk: models.PersistentDiskSettings{
@@ -87,7 +87,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
     AgentID:   agentID,
     Blobstore: c.Agent.Blobstore,
     Disks: map[string]interface{}{
-      "system": "/dev/sda",
+      "system":     "/dev/sda",
       "persistent": persistentMetadata,
     },
     Mbus:     c.Agent.Mbus,

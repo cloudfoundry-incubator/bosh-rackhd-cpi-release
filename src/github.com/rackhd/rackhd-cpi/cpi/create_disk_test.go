@@ -143,7 +143,7 @@ var _ = Describe("CreateDisk", func() {
           expectedPersistentDiskSettings := `{
              "persistent_disk": {
                "pregenerated_disk_cid": "",
-               "disk_cid": "` + nodeID + `-my_id",
+               "disk_cid": "` + cpi.DiskCIDTagPrefix + nodeID + `-my_id",
                "location": "/dev/sdb",
                "attached": false
              }
@@ -158,7 +158,7 @@ var _ = Describe("CreateDisk", func() {
 
           server.AppendHandlers(
             ghttp.CombineHandlers(
-              ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/" + nodeID),
+              ghttp.VerifyRequest("PATCH", "/api/2.0/nodes/"+nodeID),
               ghttp.VerifyJSON(expectedPersistentDiskSettings),
             ),
             ghttp.CombineHandlers(
@@ -186,7 +186,7 @@ var _ = Describe("CreateDisk", func() {
           err := json.Unmarshal(jsonInput, &extInput)
           Expect(err).NotTo(HaveOccurred())
 
-          expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_nodes_with_vm_cid.json")
+          expectedNodes := helpers.LoadTagNodes("../spec_assets/tag_nodes_with_vm_disk_detached.json")
           expectedNodesBytes, err := json.Marshal(expectedNodes)
           Expect(err).ToNot(HaveOccurred())
           expectedNodeCatalogBytes := helpers.LoadJSON("../spec_assets/dummy_node_catalog_response.json")
