@@ -3,12 +3,14 @@ package cpi
 import (
 	"errors"
 	"reflect"
+	"strings"
 
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
+// GetDisks returns the persistent disk
 func GetDisks(c config.Cpi, extInput bosh.MethodArguments) ([]string, error) {
 	var vmCID string
 
@@ -23,11 +25,11 @@ func GetDisks(c config.Cpi, extInput bosh.MethodArguments) ([]string, error) {
 		return nil, err
 	}
 
-	if node.PersistentDisk.DiskCID != "" {
-		result := make([]string, 1)
-		result[0] = node.PersistentDisk.DiskCID
-		return result, nil
-	} else {
-		return make([]string, 0), nil
+	for _, tag := range node.Tags {
+		if strings.HasPrefix(tag, DiskCIDTagPrefix) {
+			return []string{tag}, nil
+		}
 	}
+
+	return []string{}, nil
 }
