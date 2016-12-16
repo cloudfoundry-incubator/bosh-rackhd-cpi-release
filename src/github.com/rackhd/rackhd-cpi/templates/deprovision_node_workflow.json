@@ -1,6 +1,6 @@
 {
   "friendlyName": "BOSH Deprovision Node",
-  "injectableName": "Graph.BOSH.DeprovisionNode",
+  "injectableName": "Graph.BOSH.Node.Deprovision",
   "options": {
     "defaults": {
       "obmServiceName": null
@@ -28,7 +28,7 @@
     },
     {
       "label": "wipe-machine",
-      "taskName": "Task.BOSH.Deprovision.Node",
+      "taskName": "Task.BOSH.Node.Deprovision",
       "waitOn": {
         "bootstrap-ubuntu": "succeeded"
       }

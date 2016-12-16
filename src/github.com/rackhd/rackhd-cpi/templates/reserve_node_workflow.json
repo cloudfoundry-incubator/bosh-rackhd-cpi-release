@@ -1,6 +1,6 @@
 {
   "friendlyName": "BOSH Reserve Node",
-  "injectableName": "Graph.BOSH.ReserveNode",
+  "injectableName": "Graph.BOSH.Node.Reserve",
   "options": {
     "defaults": {
       "obmServiceName": null
@@ -28,7 +28,7 @@
     },
     {
       "label": "reserve-node",
-      "taskName": "Task.BOSH.Reserve.Node",
+      "taskName": "Task.BOSH.Node.Reserve",
       "waitOn": {
         "bootstrap-ubuntu": "succeeded"
       }
