@@ -16,7 +16,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 )
 
-var _ = FDescribe("GetDisks", func() {
+var _ = Describe("GetDisks", func() {
 	var server *ghttp.Server
 	var jsonReader *strings.Reader
 	var cpiConfig config.Cpi
