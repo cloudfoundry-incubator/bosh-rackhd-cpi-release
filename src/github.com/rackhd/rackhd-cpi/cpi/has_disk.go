@@ -9,6 +9,7 @@ import (
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
+// HasDisk checks whether the persistent disk with disk cid exists
 func HasDisk(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 	var diskCID string
 
@@ -22,16 +23,15 @@ func HasDisk(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 		return false, nil
 	}
 
-	nodes, err := rackhdapi.GetNodes(c)
+	node, err := rackhdapi.GetNodeByTag(c, diskCID)
 	if err != nil {
 		return false, err
 	}
 
-	for _, node := range nodes {
-		if node.PersistentDisk.DiskCID == diskCID {
+	for _, tag := range node.Tags {
+		if tag == diskCID {
 			return true, nil
 		}
 	}
-
 	return false, nil
 }
