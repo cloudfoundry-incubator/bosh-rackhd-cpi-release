@@ -2,20 +2,21 @@ package cpi_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
-	. "github.com/rackhd/rackhd-cpi/cpi"
+	"github.com/rackhd/rackhd-cpi/cpi"
+	"github.com/rackhd/rackhd-cpi/helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-	"github.com/rackhd/rackhd-cpi/helpers"
 )
 
-var _ = Describe("GetDisks", func() {
+var _ = FDescribe("GetDisks", func() {
 	var server *ghttp.Server
 	var jsonReader *strings.Reader
 	var cpiConfig config.Cpi
@@ -32,54 +33,50 @@ var _ = Describe("GetDisks", func() {
 	Context("given a vm CID that exists", func() {
 		Context("the vm has persistent disk", func() {
 			It("returns disk CID", func() {
+				vmCID := "vm_cid-fake_uuid"
 				jsonInput := []byte(`[
-						"valid_vm_cid_1"
-					]`)
+            "` + vmCID + `"
+          ]`)
 				var extInput bosh.MethodArguments
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
-				expectedNodesData, err := json.Marshal(expectedNodes)
-				Expect(err).ToNot(HaveOccurred())
+				expectedNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_with_vm_disk_attached.json")
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
-						ghttp.RespondWith(http.StatusOK, expectedNodesData),
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", vmCID)),
+						ghttp.RespondWith(http.StatusOK, expectedNodesBytes),
 					),
 				)
 
-				result, err := GetDisks(cpiConfig, extInput)
-				Expect(err).To(BeNil())
-				expectedResult := []string{"valid_disk_cid_1"}
-				Expect(result).To(Equal(expectedResult))
+				result, err := cpi.GetDisks(cpiConfig, extInput)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(result).To(Equal([]string{"disk_cid-fake_uuid"}))
 				Expect(len(server.ReceivedRequests())).To(Equal(1))
 			})
 		})
 
 		Context("the vm does not have persistent disk", func() {
 			It("returns empty array", func() {
+				vmCID := "vm_cid-fake_uuid"
 				jsonInput := []byte(`[
-						"valid_vm_cid_3"
-					]`)
+            "` + vmCID + `"
+          ]`)
 				var extInput bosh.MethodArguments
 				err := json.Unmarshal(jsonInput, &extInput)
 				Expect(err).ToNot(HaveOccurred())
 
-				expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
-				expectedNodesData, err := json.Marshal(expectedNodes)
-				Expect(err).ToNot(HaveOccurred())
+				expectedNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_with_vm_cid.json")
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
-						ghttp.RespondWith(http.StatusOK, expectedNodesData),
+						ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", vmCID)),
+						ghttp.RespondWith(http.StatusOK, expectedNodesBytes),
 					),
 				)
 
-				result, err := GetDisks(cpiConfig, extInput)
-				Expect(err).To(BeNil())
-				expectedResult := make([]string, 0)
-				Expect(result).To(Equal(expectedResult))
+				result, err := cpi.GetDisks(cpiConfig, extInput)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(result).To(Equal([]string{}))
 				Expect(len(server.ReceivedRequests())).To(Equal(1))
 			})
 		})
@@ -87,26 +84,23 @@ var _ = Describe("GetDisks", func() {
 
 	Context("given a vm CID that not exists", func() {
 		It("returns an error", func() {
+			vmCID := "vm_cid-not_exist"
 			jsonInput := []byte(`[
-					"invalid_vm_cid_3"
-				]`)
+          "` + vmCID + `"
+        ]`)
 			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedNodes := helpers.LoadNodes("../spec_assets/dummy_attached_disk_response.json")
-			expectedNodesData, err := json.Marshal(expectedNodes)
-			Expect(err).ToNot(HaveOccurred())
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/api/2.0/nodes"),
-					ghttp.RespondWith(http.StatusOK, expectedNodesData),
+					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", vmCID)),
+					ghttp.RespondWith(http.StatusOK, []byte("[]")),
 				),
 			)
 
-			_, err = GetDisks(cpiConfig, extInput)
-			Expect(err).ToNot(BeNil())
-			Expect(err).To(MatchError("vm with cid: invalid_vm_cid_3 was not found"))
+			_, err = cpi.GetDisks(cpiConfig, extInput)
+			Expect(err).To(HaveOccurred())
 			Expect(len(server.ReceivedRequests())).To(Equal(1))
 		})
 	})
