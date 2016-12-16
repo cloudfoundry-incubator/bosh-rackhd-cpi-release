@@ -154,7 +154,7 @@ func MakeWorkflowHandlers(workflow string, requestID string, nodeID string) []ht
 	taskBytes := []byte(fmt.Sprintf("{\"injectableName\": \"%s\"}", taskName))
 	taskArrayBytes := []byte("[" + string(taskBytes) + "]")
 
-	graphName := fmt.Sprintf("Graph.BOSH.%sNode.%s", workflow, requestID)
+	graphName := fmt.Sprintf("Graph.BOSH.Node.%s.%s", workflow, requestID)
 	graphBytes := []byte(fmt.Sprintf("{\"injectableName\": \"%s\"}", graphName))
 	graphArrayBytes := []byte("[" + string(graphBytes) + "]")
 

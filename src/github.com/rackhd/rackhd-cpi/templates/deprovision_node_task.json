@@ -1,7 +1,7 @@
 {
   "friendlyName": "Deprovision Node",
   "implementsTask": "Task.Base.Linux.Commands",
-  "injectableName": "Task.BOSH.Deprovision.Node",
+  "injectableName": "Task.BOSH.Node.Deprovision",
   "options": {
     "type": "quick",
     "commands": [

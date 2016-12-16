@@ -1,6 +1,6 @@
 {
   "friendlyName": "BOSH Provision Node",
-  "injectableName": "Graph.BOSH.ProvisionNode",
+  "injectableName": "Graph.BOSH.Node.Provision",
   "options": {
     "defaults": {
       "agentSettingsFile": null,
@@ -22,7 +22,7 @@
     },
     {
       "label": "provision-node",
-      "taskName": "Task.BOSH.Provision.Node",
+      "taskName": "Task.BOSH.Node.Provision",
       "waitOn": {
         "bootstrap-ubuntu": "finished"
       }

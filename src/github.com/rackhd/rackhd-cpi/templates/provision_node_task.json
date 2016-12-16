@@ -1,5 +1,5 @@
 {
-  "injectableName": "Task.BOSH.Provision.Node",
+  "injectableName": "Task.BOSH.Node.Provision",
   "friendlyName": "Provision Node",
   "implementsTask": "Task.Base.Linux.Commands",
   "options": {

@@ -1,6 +1,6 @@
 {
   "friendlyName": "Reserve Node",
-  "injectableName": "Task.BOSH.Reserve.Node",
+  "injectableName": "Task.BOSH.Node.Reserve",
   "implementsTask": "Task.Base.Linux.Commands",
   "options": {
     "commands": [
