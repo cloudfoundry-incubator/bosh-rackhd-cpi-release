@@ -1,0 +1,12 @@
+{
+  "friendlyName": "Set Node Pxeboot",
+  "injectableName": "Task.Obm.Node.PxeBoot",
+  "implementsTask": "Task.Base.Obm.Node",
+  "schemaRef": "obm-control.json",
+  "options": {
+    "action": "setBootPxe"
+  },
+  "properties": {
+    "power": {}
+  }
+}

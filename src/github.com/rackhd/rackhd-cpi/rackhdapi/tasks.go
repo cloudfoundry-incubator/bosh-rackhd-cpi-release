@@ -63,6 +63,10 @@ func DeleteTask(c config.Cpi, taskName string) error{
   if err != nil {
     return fmt.Errorf("error deleting task %s", err)
   }
+func GetTaskBytes(c config.Cpi, taskName string) ([]byte, error) {
+	url := fmt.Sprintf("%s/api/2.0/workflows/tasks/%s", c.ApiServer, taskName)
+	return helpers.MakeRequest(url, "GET", 200, nil)
+}
 
   return nil
 }

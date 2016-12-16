@@ -1,0 +1,14 @@
+{
+  "friendlyName": "Reboot Node",
+  "injectableName": "Task.Obm.Node.Reboot",
+  "implementsTask": "Task.Base.Obm.Node",
+  "schemaRef": "obm-control.json",
+  "options": {
+    "action": "reboot"
+  },
+  "properties": {
+    "power": {
+      "state": "reboot"
+    }
+  }
+}
