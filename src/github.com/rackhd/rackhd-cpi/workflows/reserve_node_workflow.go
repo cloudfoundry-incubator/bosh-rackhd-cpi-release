@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/rackhd/rackhd-cpi/config"
-	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
@@ -28,6 +27,7 @@ type reserveNodeWorkflow struct {
 	Tasks []models.WorkflowTask `json:"tasks"`
 }
 
+// RunReserveNodeWorkflow does what the name implies
 func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
 	options, err := buildReserveNodeWorkflowOptions(c, nodeID)
 	if err != nil {
@@ -42,6 +42,7 @@ func RunReserveNodeWorkflow(c config.Cpi, nodeID string, workflowName string) er
 	return rackhdapi.RunWorkflow(rackhdapi.WorkflowPoster, rackhdapi.WorkflowFetcher, c, nodeID, req)
 }
 
+// PublishReserveNodeWorkflow does what the name implies
 func PublishReserveNodeWorkflow(c config.Cpi) (string, error) {
 	tasks, workflow, err := generateReserveNodeWorkflow(c.RequestID)
 	if err != nil {
@@ -69,14 +70,65 @@ func PublishReserveNodeWorkflow(c config.Cpi) (string, error) {
 	return w.Name, nil
 }
 
-func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
-	reserveNodeTaskBytes, err := helpers.ReadFile("../templates/reserve_node_task.json")
-	if err != nil {
-		return nil, nil, err
-	}
+var reserveNodeTaskBytes = []byte(`
+{
+  "friendlyName": "Reserve Node",
+  "injectableName": "Task.BOSH.Node.Reserve",
+  "implementsTask": "Task.Base.Linux.Commands",
+  "options": {
+    "commands": [
+      {
+        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }}/tags -H \"Content-Type: application/json\" -d '{\"tags\": [\"unavailable\", \"{{ task.nodeId }}\"]}'"
+      }
+    ]
+  },
+  "properties": {}
+}
+`)
 
+var reserveNodeWorkflowBytes = []byte(`
+{
+  "friendlyName": "BOSH Reserve Node",
+  "injectableName": "Graph.BOSH.Node.Reserve",
+  "options": {
+    "defaults": {
+      "obmServiceName": null
+    }
+  },
+  "tasks": [
+    {
+      "label": "set-boot-pxe",
+      "taskName": "Task.Obm.Node.PxeBoot",
+      "ignoreFailure": true
+    },
+    {
+      "label": "reboot",
+      "taskName": "Task.Obm.Node.Reboot",
+      "waitOn": {
+        "set-boot-pxe": "finished"
+      }
+    },
+    {
+      "label": "bootstrap-ubuntu",
+      "taskName": "Task.Linux.Bootstrap.Ubuntu",
+      "waitOn": {
+        "reboot": "succeeded"
+      }
+    },
+    {
+      "label": "reserve-node",
+      "taskName": "Task.BOSH.Node.Reserve",
+      "waitOn": {
+        "bootstrap-ubuntu": "succeeded"
+      }
+    }
+  ]
+}
+`)
+
+func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	reserve := models.Task{}
-	err = json.Unmarshal(reserveNodeTaskBytes, &reserve)
+	err := json.Unmarshal(reserveNodeTaskBytes, &reserve)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error unmarshalling reserve node task template: %s", err)
 	}
@@ -87,11 +139,6 @@ func generateReserveNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	reserveBytes, err := json.Marshal(reserve)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error reserve provision node task template: %s", err)
-	}
-
-	reserveNodeWorkflowBytes, err := helpers.ReadFile("../templates/reserve_node_workflow.json")
-	if err != nil {
-		return nil, nil, err
 	}
 
 	w := reserveNodeWorkflow{}
