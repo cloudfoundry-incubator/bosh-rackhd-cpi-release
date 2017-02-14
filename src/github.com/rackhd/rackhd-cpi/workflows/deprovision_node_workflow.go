@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/rackhd/rackhd-cpi/config"
-	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
@@ -74,13 +73,8 @@ func PublishDeprovisionNodeWorkflow(c config.Cpi) (string, error) {
 }
 
 func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
-	deprovisionNodeTaskBytes, err := helpers.ReadFile("../templates/deprovision_node_task.json")
-	if err != nil {
-		return nil, nil, fmt.Errorf("error reading Deprovision node task from template: %s", err)
-	}
-
 	deprovisionTask := models.Task{}
-	err = json.Unmarshal(deprovisionNodeTaskBytes, &deprovisionTask)
+	err := json.Unmarshal(deprovisionNodeTaskBytes, &deprovisionTask)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error unmarshalling Deprovision node task template: %s", err)
 	}
@@ -91,11 +85,6 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	deprovisionTaskBytes, err := json.Marshal(deprovisionTask)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error Deprovision provision node task template: %s", err)
-	}
-
-	deprovisionNodeWorkflowBytes, err := helpers.ReadFile("../templates/deprovision_node_workflow.json")
-	if err != nil {
-		return nil, nil, fmt.Errorf("error reading Deprovision node workflow from template: %s", err)
 	}
 
 	w := deprovisionNodeWorkflow{}
@@ -127,3 +116,70 @@ func buildDeprovisionNodeWorkflowOptions(c config.Cpi, nodeID string) (deprovisi
 
 	return options, nil
 }
+
+var deprovisionNodeTaskBytes = []byte(`
+{
+  "friendlyName": "Deprovision Node",
+  "implementsTask": "Task.Base.Linux.Commands",
+  "injectableName": "Task.BOSH.Node.Deprovision",
+  "options": {
+    "type": "quick",
+    "commands": [
+      {
+        "command": "sudo dd if=/dev/zero of=/dev/sda bs=1M count=100"
+      },
+      {
+        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"\", \"metadata\": \"\"}'"
+      }
+    ]
+  },
+  "properties": {}
+}
+`)
+
+var deprovisionNodeWorkflowBytes = []byte(`
+{
+  "friendlyName": "BOSH Deprovision Node",
+  "injectableName": "Graph.BOSH.Node.Deprovision",
+  "options": {
+    "defaults": {
+      "obmServiceName": null
+    }
+  },
+  "tasks": [
+    {
+      "label": "set-boot-pxe",
+      "taskName": "Task.Obm.Node.PxeBoot",
+      "ignoreFailure": true
+    },
+    {
+      "label": "reboot",
+      "taskName": "Task.Obm.Node.Reboot",
+      "waitOn": {
+        "set-boot-pxe": "finished"
+      }
+    },
+    {
+      "label": "bootstrap-ubuntu",
+      "taskName": "Task.Linux.Bootstrap.Ubuntu",
+      "waitOn": {
+        "reboot": "succeeded"
+      }
+    },
+    {
+      "label": "wipe-machine",
+      "taskName": "Task.BOSH.Node.Deprovision",
+      "waitOn": {
+        "bootstrap-ubuntu": "succeeded"
+      }
+    },
+    {
+      "label": "shell-reboot",
+      "taskName": "Task.ProcShellReboot",
+      "waitOn": {
+        "wipe-machine": "finished"
+      }
+    }
+  ]
+}
+`)

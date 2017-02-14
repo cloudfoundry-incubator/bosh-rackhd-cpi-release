@@ -8,7 +8,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/rackhd/rackhd-cpi/config"
-	"github.com/rackhd/rackhd-cpi/helpers"
 	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
@@ -83,8 +82,7 @@ func PublishProvisionNodeWorkflow(c config.Cpi) (string, error) {
 
 func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	p := models.Task{}
-	provisionNodeTaskBytes, err := helpers.ReadFile("../templates/provision_node_task.json")
-	err = json.Unmarshal(provisionNodeTaskBytes, &p)
+	err := json.Unmarshal(provisionNodeTaskBytes, &p)
 	if err != nil {
 		log.Error(fmt.Sprintf("error unmarshalling provision node task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling provision node task template: %s\n", err)
@@ -100,8 +98,7 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	}
 
 	s := models.Task{}
-	setNodeIDTask, err := helpers.ReadFile("../templates/set_id_task.json")
-	err = json.Unmarshal(setNodeIDTask, &s)
+	err = json.Unmarshal(setNodeIDTaskBytes, &s)
 	if err != nil {
 		log.Error(fmt.Sprintf("error unmarshalling set node id task template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling set node id task template: %s\n", err)
@@ -117,8 +114,7 @@ func generateProvisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	}
 
 	w := provisionNodeWorkflow{}
-	provisionWorkflow, err := helpers.ReadFile("../templates/provision_node_workflow.json")
-	err = json.Unmarshal(provisionWorkflow, &w)
+	err = json.Unmarshal(provisionNodeWorkflowBytes, &w)
 	if err != nil {
 		log.Error(fmt.Sprintf("error unmarshalling provision node workflow template: %s\n", err))
 		return nil, nil, fmt.Errorf("error unmarshalling provision node workflow template: %s\n", err)
@@ -156,3 +152,143 @@ func buildProvisionWorkflowOptions(c config.Cpi, nodeID string, vmCID string, st
 
 	return options, nil
 }
+
+var provisionNodeTaskBytes = []byte(`
+{
+  "injectableName": "Task.BOSH.Node.Provision",
+  "friendlyName": "Provision Node",
+  "implementsTask": "Task.Base.Linux.Commands",
+  "options": {
+    "agentSettingsFile": null,
+    "agentSettingsMd5Uri": "{{ api.files }}/md5/{{ options.agentSettingsFile }}/latest",
+    "agentSettingsPath": null,
+    "agentSettingsUri": "{{ api.files }}/{{ options.agentSettingsFile }}/latest",
+    "commands": [
+      {
+        "command": "if {{ options.wipeDisk }}; then sudo dd if=/dev/zero of={{ options.persistent }} bs=1M count=100; fi"
+      },
+      {
+        "command": "curl --retry 3 {{ options.stemcellUri }} -o {{ options.downloadDir }}/{{ options.stemcellFile }}"
+      },
+      {
+        "command": "curl --retry 3 {{ options.agentSettingsUri }} -o {{ options.downloadDir }}/{{ options.agentSettingsFile }}"
+      },
+      {
+        "command": "curl {{ options.stemcellFileMd5Uri }} | tr -d '\"' > /opt/downloads/stemcellFileExpectedMd5"
+      },
+      {
+        "command": "curl {{ options.agentSettingsMd5Uri }} | tr -d '\"' > /opt/downloads/agentSettingsExpectedMd5"
+      },
+      {
+        "command": "md5sum {{ options.downloadDir }}/{{ options.stemcellFile }} | cut -d' ' -f1 > /opt/downloads/stemcellFileCalculatedMd5"
+      },
+      {
+        "command": "md5sum {{ options.downloadDir }}/{{ options.agentSettingsFile }} | cut -d' ' -f1 > /opt/downloads/agentSettingsCalculatedMd5"
+      },
+      {
+        "command": "test $(cat /opt/downloads/stemcellFileCalculatedMd5) = $(cat /opt/downloads/stemcellFileExpectedMd5)"
+      },
+      {
+        "command": "test $(cat /opt/downloads/agentSettingsCalculatedMd5) = $(cat /opt/downloads/agentSettingsExpectedMd5)"
+      },
+      {
+        "command": "sudo umount {{ options.device }} || true"
+      },
+      {
+        "command": "sudo tar --to-stdout -xvf {{ options.downloadDir }}/{{ options.stemcellFile }} | sudo dd of={{ options.device }}"
+      },
+      {
+        "command": "sudo sfdisk -R {{ options.device }}"
+      },
+      {
+        "command": "sudo mount {{ options.device }}1 /mnt"
+      },
+      {
+        "command": "sudo dd if=/dev/zero of={{ options.device }}2 bs=1M count=100"
+      },
+      {
+        "command": "sudo dd if=/dev/zero of={{ options.device }}3 bs=1M count=100"
+      },
+      {
+        "command": "sudo cp {{ options.downloadDir }}/{{ options.agentSettingsFile }} /mnt/{{ options.agentSettingsPath }}"
+      },
+      {
+        "command": "sudo sync"
+      }
+    ],
+    "device": "/dev/sda",
+    "downloadDir": "/opt/downloads",
+    "persistent": "/dev/sdb",
+    "stemcellFile": null,
+    "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
+    "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest",
+    "wipeDisk": "true"
+  },
+  "properties": {}
+}
+`)
+
+var provisionNodeWorkflowBytes = []byte(`
+{
+  "friendlyName": "BOSH Provision Node",
+  "injectableName": "Graph.BOSH.Node.Provision",
+  "options": {
+    "defaults": {
+      "agentSettingsFile": null,
+      "agentSettingsPath": null,
+      "cid": null,
+      "downloadDir": "/opt/downloads",
+      "obmServiceName": null,
+      "registrySettingsFile": null,
+      "registrySettingsPath": null,
+      "stemcellFile": null,
+      "wipeDisk": "true"
+    }
+  },
+  "tasks": [
+    {
+      "label": "bootstrap-ubuntu",
+      "taskName": "Task.Linux.Bootstrap.Ubuntu",
+      "ignoreFailure": true
+    },
+    {
+      "label": "provision-node",
+      "taskName": "Task.BOSH.Node.Provision",
+      "waitOn": {
+        "bootstrap-ubuntu": "finished"
+      }
+    },
+    {
+      "label": "set-id",
+      "taskName": "Task.BOSH.SetNodeId",
+      "waitOn": {
+        "provision-node": "succeeded"
+      }
+    },
+    {
+      "label": "reboot",
+      "taskName": "Task.ProcShellReboot",
+      "waitOn": {
+        "set-id": "succeeded"
+      }
+    }
+  ]
+}
+`)
+
+var setNodeIDTaskBytes = []byte(`
+{
+  "friendlyName": "Set Id and Reboot VM",
+  "injectableName": "Task.BOSH.SetNodeId",
+  "implementsTask": "Task.Base.Linux.Commands",
+  "options": {
+    "cid": null,
+    "commands": [
+      {
+        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }}/tags -H \"Content-Type: application/json\" -d '{\"tags\": [\"{{ options.cid }}\"]}'"
+      }
+    ]
+  },
+  "properties": {}
+}
+`)
