@@ -1,8 +1,11 @@
 package workflows_test
 
 import (
+	"encoding/json"
+
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
+	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 	"github.com/rackhd/rackhd-cpi/workflows"
 
@@ -21,12 +24,17 @@ var _ = Describe("CheckEnvironment", func() {
 		for taskName, templatePath := range requiredTasks {
 			taskBytes, err := rackhdapi.GetTaskBytes(c, taskName)
 			Expect(err).ToNot(HaveOccurred())
+			actualTask := []models.Task{}
+			err = json.Unmarshal(taskBytes, &actualTask)
+			Expect(err).ToNot(HaveOccurred())
 
 			expectedTaskBytes, err := helpers.ReadFile(templatePath)
 			Expect(err).ToNot(HaveOccurred())
+			expectedTask := models.Task{}
+			err = json.Unmarshal(expectedTaskBytes, &expectedTask)
+			Expect(err).ToNot(HaveOccurred())
 
-			expectedTaskBytes = []byte(`[` + string(expectedTaskBytes) + `]`)
-			Expect(taskBytes).To(MatchJSON(expectedTaskBytes))
+			Expect(actualTask).To(Equal([]models.Task{expectedTask}))
 		}
 	})
 })
