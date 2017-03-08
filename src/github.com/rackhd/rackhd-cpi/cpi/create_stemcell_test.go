@@ -1,16 +1,10 @@
 package cpi_test
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/cpi"
 	"github.com/rackhd/rackhd-cpi/helpers"
-	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
@@ -19,33 +13,29 @@ import (
 
 var _ = Describe("CreateStemcell", func() {
 	Context("With valid CPI v1 input", func() {
-		It("Uploads the image from an OpenStack stemcell", func() {
+		var fileUUID string
+		var c config.Cpi
+		var input bosh.MethodArguments
+		var err error
+
+		BeforeEach(func() {
 			apiServer, err := helpers.GetRackHDHost()
 			Expect(err).ToNot(HaveOccurred())
-
-			config := config.Cpi{ApiServer: apiServer}
-			var input bosh.MethodArguments
+			c = config.Cpi{ApiServer: apiServer}
 			input = append(input, "../spec_assets/image")
+		})
 
-			uuid, err := cpi.CreateStemcell(config, input)
+		AfterEach(func() {
+			err := rackhdapi.DeleteFile(c, fileUUID)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(uuid).ToNot(BeEmpty())
+		})
 
-			url := fmt.Sprintf("%s/api/2.0/files/%s/metadata", config.ApiServer, uuid)
-			resp, err := http.Get(url)
+		It("Uploads the image from an OpenStack stemcell", func() {
+			fileUUID, err = cpi.CreateStemcell(c, input)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(resp.StatusCode).To(Equal(200))
+			Expect(fileUUID).ToNot(BeEmpty())
 
-			respBytes, err := ioutil.ReadAll(resp.Body)
-			Expect(err).ToNot(HaveOccurred())
-			defer resp.Body.Close()
-
-			fileMetadataResp := models.FileMetadataResponse{}
-			err = json.Unmarshal(respBytes, &fileMetadataResp)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fileMetadataResp.Basename).To(Equal(uuid))
-
-			err = rackhdapi.DeleteFile(config, fileMetadataResp.Basename)
+			_, err = rackhdapi.GetFile(c, fileUUID)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
@@ -56,9 +46,9 @@ var _ = Describe("CreateStemcell", func() {
 			var input bosh.MethodArguments
 			input = append(input, map[string]string{"foo": "bar"})
 
-			uuid, err := cpi.CreateStemcell(config, input)
+			fileUUID, err := cpi.CreateStemcell(config, input)
 			Expect(err).To(MatchError("received unexpected type for stemcell image path"))
-			Expect(uuid).To(BeEmpty())
+			Expect(fileUUID).To(BeEmpty())
 		})
 	})
 })

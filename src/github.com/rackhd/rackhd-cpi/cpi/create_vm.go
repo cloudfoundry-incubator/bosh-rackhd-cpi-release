@@ -105,11 +105,11 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", fmt.Errorf("error marshalling agent env %s", err)
 	}
 	envReader := bytes.NewReader(envBytes)
-	fileUUID, err := rackhdapi.UploadFile(c, nodeID, envReader, int64(len(envBytes)))
+	uploadAgentEnv, err := rackhdapi.UploadFile(c, nodeID, envReader, int64(len(envBytes)))
 	if err != nil {
 		return "", err
 	}
-	defer rackhdapi.DeleteFile(c, nodeID)
+	defer rackhdapi.DeleteFile(c, uploadAgentEnv.UUID)
 
 	workflowName, err := workflows.PublishProvisionNodeWorkflow(c)
 	if err != nil {
@@ -118,7 +118,7 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 
 	wipeDisk := (nodeID == "")
 
-	vmCID := VMCIDTagPrefix + fileUUID
+	vmCID := VMCIDTagPrefix + uploadAgentEnv.Name
 	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, vmCID, stemcellCID, wipeDisk)
 	if err != nil {
 		return "", fmt.Errorf("error running provision workflow: %s", err)

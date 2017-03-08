@@ -1,16 +1,11 @@
 package rackhdapi_test
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strings"
 
 	"github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
-	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
@@ -19,56 +14,42 @@ import (
 
 var _ = Describe("Files", func() {
 	Describe("uploading to then deleting from the RackHD API", func() {
-		It("allows files to be uploaded and deleted", func() {
+		var baseName string
+		var uploadResponse rackhdapi.FileUploadResponse
+		var c config.Cpi
+
+		BeforeEach(func() {
 			apiServer, err := helpers.GetRackHDHost()
 			Expect(err).ToNot(HaveOccurred())
 
-			c := config.Cpi{ApiServer: apiServer}
+			c = config.Cpi{ApiServer: apiServer}
 			dummyStr := "Some ice cold file"
 			dummyFile := strings.NewReader(dummyStr)
 
 			uuid, err := uuid.NewV4()
 			Expect(err).ToNot(HaveOccurred())
-			baseName := uuid.String()
 
-			url := fmt.Sprintf("%s/api/2.0/files/%s/metadata", c.ApiServer, baseName)
-			resp, err := http.Get(url)
+			baseName = uuid.String()
+			_, err = rackhdapi.GetFile(c, baseName)
+			Expect(err).To(HaveOccurred())
+
+			uploadResponse, err = rackhdapi.UploadFile(c, baseName, dummyFile, int64(len(dummyStr)))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(resp.StatusCode).To(Equal(404))
+			Expect(uploadResponse.Name).To(Equal(baseName))
+		})
 
-			rackhdUUID, err := rackhdapi.UploadFile(c, baseName, dummyFile, int64(len(dummyStr)))
-			Expect(err).ToNot(HaveOccurred())
-			Expect(rackhdUUID).ToNot(BeEmpty())
-
-			getResp, err := http.Get(url)
-			Expect(err).ToNot(HaveOccurred())
-
-			respBytes, err := ioutil.ReadAll(getResp.Body)
+		AfterEach(func() {
+			err := rackhdapi.DeleteFile(c, uploadResponse.UUID)
 			Expect(err).ToNot(HaveOccurred())
 
-			defer getResp.Body.Close()
-			Expect(getResp.StatusCode).To(Equal(200))
+			_, err = rackhdapi.GetFile(c, uploadResponse.UUID)
+			Expect(err).To(HaveOccurred())
+		})
 
-			fileMetadataResp := models.FileMetadataResponse{}
-			err = json.Unmarshal(respBytes, &fileMetadataResp)
+		It("allows files to be uploaded and deleted", func() {
+			getFile, err := rackhdapi.GetFile(c, uploadResponse.UUID)
 			Expect(err).ToNot(HaveOccurred())
-			//Expect(fileMetadataResp).To(HaveLen(1))
-			Expect(fileMetadataResp.Basename).ToNot(BeEmpty())
-			Expect(fileMetadataResp.Md5).ToNot(BeEmpty())
-			Expect(fileMetadataResp.Sha256).ToNot(BeEmpty())
-			Expect(fileMetadataResp.UUID).ToNot(BeEmpty())
-
-			fileMetadata := fileMetadataResp
-			Expect(fileMetadata.Basename).To(Equal(baseName))
-
-			err = rackhdapi.DeleteFile(c, baseName)
-			Expect(err).ToNot(HaveOccurred())
-
-			resp, err = http.Get(url)
-			Expect(err).ToNot(HaveOccurred())
-
-			defer resp.Body.Close()
-			Expect(resp.StatusCode).To(Equal(404))
+			Expect(string(getFile)).To(Equal("Some ice cold file"))
 		})
 	})
 })
