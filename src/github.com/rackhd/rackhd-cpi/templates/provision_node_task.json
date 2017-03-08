@@ -4,9 +4,9 @@
   "implementsTask": "Task.Base.Linux.Commands",
   "options": {
     "agentSettingsFile": null,
-    "agentSettingsMd5Uri": "{{ api.files }}/md5/{{ options.agentSettingsFile }}/latest",
+    "agentSettingsMd5Uri": "{{ api.files }}/{{ options.agentSettingsFile }}/md5",
     "agentSettingsPath": null,
-    "agentSettingsUri": "{{ api.files }}/{{ options.agentSettingsFile }}/latest",
+    "agentSettingsUri": "{{ api.files }}/{{ options.agentSettingsFile }}",
     "commands": [
       {
         "command": "if {{ options.wipeDisk }}; then sudo dd if=/dev/zero of={{ options.persistent }} bs=1M count=100; fi"
@@ -64,8 +64,8 @@
     "downloadDir": "/opt/downloads",
     "persistent": "/dev/sdb",
     "stemcellFile": null,
-    "stemcellFileMd5Uri": "{{ api.files }}/md5/{{ options.stemcellFile }}/latest",
-    "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}/latest",
+    "stemcellFileMd5Uri": "{{ api.files }}/{{ options.stemcellFile }}/md5",
+    "stemcellUri": "{{ api.files }}/{{ options.stemcellFile }}",
     "wipeDisk": "true"
   },
   "properties": {}
