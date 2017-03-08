@@ -34,16 +34,16 @@ func CreateStemcell(c config.Cpi, extInput bosh.MethodArguments) (string, error)
 		return "", fmt.Errorf("error getting file's stats: %s", err)
 	}
 
-	uuid, err := helpers.GenerateUUID()
+	fileName, err := helpers.GenerateUUID()
 	if err != nil {
 		return "", err
 	}
 
-	_, err = rackhdapi.UploadFile(c, uuid, stemcellFile, fileInfo.Size())
+	uploadFile, err := rackhdapi.UploadFile(c, fileName, stemcellFile, fileInfo.Size())
 	if err != nil {
 		return "", err
 	}
-	log.Debug(fmt.Sprintf("uploaded stemcell: %s to server", uuid))
+	log.Debug(fmt.Sprintf("uploaded stemcell: %s to server", fileName))
 
-	return uuid, nil
+	return uploadFile.UUID, nil
 }

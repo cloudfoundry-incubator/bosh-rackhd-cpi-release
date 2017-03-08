@@ -1,9 +1,6 @@
 package cpi_test
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/cpi"
@@ -11,44 +8,53 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
 var _ = Describe("DeleteStemcell", func() {
-	var c config.Cpi
+	Context("Valid input", func() {
+		var c config.Cpi
+		var fileUUID string
+		var err error
 
-	BeforeEach(func() {
-		apiServer, err := helpers.GetRackHDHost()
-		Expect(err).ToNot(HaveOccurred())
-		c = config.Cpi{ApiServer: apiServer}
-	})
-
-	Context("with valid CPI v1 input", func() {
-		It("deletes a previously uploaded stemcell from the rackhd server", func() {
+		BeforeEach(func() {
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
+			c = config.Cpi{ApiServer: apiServer}
 			var createInput bosh.MethodArguments
 			createInput = append(createInput, "../spec_assets/image")
 
-			baseName, err := cpi.CreateStemcell(c, createInput)
+			fileUUID, err = cpi.CreateStemcell(c, createInput)
 			Expect(err).ToNot(HaveOccurred())
+		})
 
+		AfterEach(func() {
 			var deleteInput bosh.MethodArguments
-			deleteInput = append(deleteInput, baseName)
+			deleteInput = append(deleteInput, fileUUID)
 			err = cpi.DeleteStemcell(c, deleteInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			url := fmt.Sprintf("%s/api/2.0/files/%s/metadata", c.ApiServer, baseName)
-			resp, err := http.Get(url)
-			Expect(err).ToNot(HaveOccurred())
+			_, err = rackhdapi.GetFile(c, fileUUID)
+			Expect(err).To(HaveOccurred())
+		})
 
-			defer resp.Body.Close()
-			Expect(resp.StatusCode).To(Equal(404))
+		Context("with valid CPI v1 input", func() {
+			It("deletes a previously uploaded stemcell from the rackhd server", func() {
+				_, err = rackhdapi.GetFile(c, fileUUID)
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 	})
 
 	Context("with invalid CPI v1 input", func() {
 		It("returns an error", func() {
+			apiServer, err := helpers.GetRackHDHost()
+			Expect(err).ToNot(HaveOccurred())
+			c := config.Cpi{ApiServer: apiServer}
+
 			var deleteInput bosh.MethodArguments
 			deleteInput = append(deleteInput, map[string]string{"invalid": "true"})
-			err := cpi.DeleteStemcell(c, deleteInput)
+			err = cpi.DeleteStemcell(c, deleteInput)
 			Expect(err).To(MatchError("Received unexpected type for stemcell cid"))
 		})
 	})
