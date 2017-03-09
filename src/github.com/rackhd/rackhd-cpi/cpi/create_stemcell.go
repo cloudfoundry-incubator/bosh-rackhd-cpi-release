@@ -45,5 +45,5 @@ func CreateStemcell(c config.Cpi, extInput bosh.MethodArguments) (string, error)
 	}
 	log.Debug(fmt.Sprintf("uploaded stemcell: %s to server", fileName))
 
-	return uploadFile.UUID, nil
+	return uploadFile.Name, nil
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/helpers"
+	"github.com/rackhd/rackhd-cpi/models"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 
 	. "github.com/onsi/ginkgo"
@@ -15,7 +16,7 @@ import (
 var _ = Describe("Files", func() {
 	Describe("uploading to then deleting from the RackHD API", func() {
 		var baseName string
-		var uploadResponse rackhdapi.FileUploadResponse
+		var uploadResponse models.FileUploadResponse
 		var c config.Cpi
 
 		BeforeEach(func() {
@@ -39,10 +40,10 @@ var _ = Describe("Files", func() {
 		})
 
 		AfterEach(func() {
-			err := rackhdapi.DeleteFile(c, uploadResponse.UUID)
+			err := rackhdapi.DeleteFile(c, uploadResponse.Name)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = rackhdapi.GetFile(c, uploadResponse.UUID)
+			_, err = rackhdapi.GetFile(c, uploadResponse.Name)
 			Expect(err).To(HaveOccurred())
 		})
 
