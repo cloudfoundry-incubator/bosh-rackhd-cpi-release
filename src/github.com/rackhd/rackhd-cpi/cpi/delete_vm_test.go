@@ -91,11 +91,15 @@ var _ = Describe("DeleteVM", func() {
 						ghttp.VerifyRequest("DELETE", "/api/2.0/nodes/57fb9fb03fcc55c807add41c/tags/"+models.Unavailable),
 						ghttp.RespondWith(http.StatusNoContent, nil),
 					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("DELETE", "/api/2.0/nodes/57fb9fb03fcc55c807add41c/tags/"+vmCID),
+						ghttp.RespondWith(http.StatusNoContent, nil),
+					),
 				)
 
 				err = cpi.DeleteVM(cpiConfig, extInput)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(len(server.ReceivedRequests())).To(Equal(9))
+				Expect(len(server.ReceivedRequests())).To(Equal(10))
 			})
 		})
 
