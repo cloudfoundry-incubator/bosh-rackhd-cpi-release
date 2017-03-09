@@ -14,7 +14,7 @@ import (
 var _ = Describe("DeleteStemcell", func() {
 	Context("Valid input", func() {
 		var c config.Cpi
-		var fileUUID string
+		var fileName string
 		var err error
 
 		BeforeEach(func() {
@@ -24,23 +24,23 @@ var _ = Describe("DeleteStemcell", func() {
 			var createInput bosh.MethodArguments
 			createInput = append(createInput, "../spec_assets/image")
 
-			fileUUID, err = cpi.CreateStemcell(c, createInput)
+			fileName, err = cpi.CreateStemcell(c, createInput)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		AfterEach(func() {
 			var deleteInput bosh.MethodArguments
-			deleteInput = append(deleteInput, fileUUID)
+			deleteInput = append(deleteInput, fileName)
 			err = cpi.DeleteStemcell(c, deleteInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			_, err = rackhdapi.GetFile(c, fileUUID)
+			_, err = rackhdapi.GetFile(c, fileName)
 			Expect(err).To(HaveOccurred())
 		})
 
 		Context("with valid CPI v1 input", func() {
 			It("deletes a previously uploaded stemcell from the rackhd server", func() {
-				_, err = rackhdapi.GetFile(c, fileUUID)
+				_, err = rackhdapi.GetFile(c, fileName)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})

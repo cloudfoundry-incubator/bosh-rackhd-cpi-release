@@ -13,7 +13,7 @@ import (
 
 var _ = Describe("CreateStemcell", func() {
 	Context("With valid CPI v1 input", func() {
-		var fileUUID string
+		var fileName string
 		var c config.Cpi
 		var input bosh.MethodArguments
 		var err error
@@ -26,16 +26,16 @@ var _ = Describe("CreateStemcell", func() {
 		})
 
 		AfterEach(func() {
-			err := rackhdapi.DeleteFile(c, fileUUID)
+			err := rackhdapi.DeleteFile(c, fileName)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("Uploads the image from an OpenStack stemcell", func() {
-			fileUUID, err = cpi.CreateStemcell(c, input)
+			fileName, err = cpi.CreateStemcell(c, input)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fileUUID).ToNot(BeEmpty())
+			Expect(fileName).ToNot(BeEmpty())
 
-			_, err = rackhdapi.GetFile(c, fileUUID)
+			_, err = rackhdapi.GetFile(c, fileName)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
