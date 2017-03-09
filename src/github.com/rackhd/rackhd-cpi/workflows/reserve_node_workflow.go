@@ -78,7 +78,7 @@ var reserveNodeTaskBytes = []byte(`
   "options": {
     "commands": [
       {
-        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }}/tags -H \"Content-Type: application/json\" -d '{\"tags\": [\"unavailable\"]}'"
+        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }}/tags -H \"Content-Type: application/json\" -d '{\"tags\": [\"unavailable\", \"{{ task.nodeId }}\"]}'"
       }
     ]
   },

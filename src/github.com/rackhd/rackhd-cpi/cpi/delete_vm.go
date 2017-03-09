@@ -57,5 +57,10 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 		return err
 	}
 
+	err = rackhdapi.DeleteTag(c, node.ID, node.ID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
