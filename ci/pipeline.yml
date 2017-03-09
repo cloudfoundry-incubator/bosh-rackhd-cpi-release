@@ -157,7 +157,7 @@ resources:
       password: {{github_password}}
     source:
       uri: https://github.com/cloudfoundry-incubator/bosh-rackhd-cpi-release.git
-      branch: master
+      branch: rackhd2
       <<: *github
       ignore_paths:
         - .final_builds/**/*.yml
@@ -167,21 +167,18 @@ resources:
     type: git
     source:
       uri: git@github.com:cloudfoundry-incubator/bosh-rackhd-cpi-release.git
-      branch: master
+      branch: rackhd2
       private_key: {{github_key__bosh-rackhd-cpi-release}}
 
   - name: rackhd-openstack-ubuntu-stemcell
-    type: s3
+    type: bosh-io-stemcell
     source:
-      bucket: concourse-stemcells
-      regexp: bosh-stemcell-(3202)-openstack-kvm-ubuntu-trusty-go_agent-raw.tgz
-      access_key_id: {{s3_access_key_id}}
-      secret_access_key: {{s3_secret_access_key}}
+      name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
 
   - name: rackhd-openstack-centos-stemcell
     type: s3
     source:
-      bucket: concourse-stemcells
+      bucket: bosh-rackhd-cpi-ci
       regexp: bosh-stemcell-(3202)-openstack-kvm-centos-7-go_agent-raw.tgz
       access_key_id: {{s3_access_key_id}}
       secret_access_key: {{s3_secret_access_key}}
