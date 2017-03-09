@@ -63,7 +63,7 @@ var _ = Describe("Cpi/HasVm", func() {
 			)
 
 			hasVM, err := cpi.HasVM(cpiConfig, metadataInput)
-			Expect(err).To(HaveOccurred())
+			Expect(err).ToNot(HaveOccurred())
 			Expect(hasVM).To(BeFalse())
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
