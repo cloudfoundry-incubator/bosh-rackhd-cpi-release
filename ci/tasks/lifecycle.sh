@@ -101,8 +101,8 @@ fi
 # fi
 
 # Create persistent disk on node with VM
-node1_disk_cid_file_path="${PWD}/node1_disk_cid"
-do_create_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid_file_path} &
+# node1_disk_cid_file_path="${PWD}/node1_disk_cid"
+# do_create_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid_file_path} &
 
 # Create VM on node with persistent disk
 # node3_vm_cid_file_path="${PWD}/node3_vm_cid"
@@ -114,19 +114,19 @@ do_create_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid_file_path} &
 printf "%s\n" "Waiting for second round of creation processes to finish..."
 wait
 printf "%s\n" "Done waiting"
-node1_disk_cid=$(cat ${node1_disk_cid_file_path})
+# node1_disk_cid=$(cat ${node1_disk_cid_file_path})
 # node3_vm_cid=$(cat ${node3_vm_cid_file_path})
 # printf "%s\n" "VM ${node3_vm_cid} created"
-printf "%s\n" "Persistent disk ${node1_disk_cid} created"
+# printf "%s\n" "Persistent disk ${node1_disk_cid} created"
 
-do_get_disks ${config_path} ${node1_vm_cid}
-printf "%s\n" "Result ${get_disks_result} returned from get_disks"
-if echo $get_disks_result | grep -F ${node1_disk_cid} && ! echo $get_disks_result | grep -F ","; then
-  printf "%s\n" "Disk ${node1_disk_cid} found"
-else
-  printf "%s\n" "Invalid result returned from get_disks"
-  exit 1
-fi
+# do_get_disks ${config_path} ${node1_vm_cid}
+# printf "%s\n" "Result ${get_disks_result} returned from get_disks"
+# if echo $get_disks_result | grep -F ${node1_disk_cid} && ! echo $get_disks_result | grep -F ","; then
+#   printf "%s\n" "Disk ${node1_disk_cid} found"
+# else
+#   printf "%s\n" "Invalid result returned from get_disks"
+#   exit 1
+# fi
 
 # do_has_vm ${config_path} ${node3_vm_cid}
 # printf "%s\n" "Has_vm returned result ${has_vm_result} after creation for VM ${node2_vm_cid}"
@@ -138,26 +138,26 @@ fi
 #   exit 1
 # fi
 
-do_has_disk ${config_path} ${node1_disk_cid}
-printf "%s\n" "Result ${has_disk_result} returned from has_disk"
-if [ -z "${has_disk_result}" ] || [ "${has_disk_result}" == "null" ]; then
-  printf "%s\n" "Invalid result returned from has_disk"
-  exit 1
-elif [ ${has_disk_result} != true ]; then
-  printf "%s\n" "Disk ${node1_disk_cid} not found"
-  exit 1
-fi
+# do_has_disk ${config_path} ${node1_disk_cid}
+# printf "%s\n" "Result ${has_disk_result} returned from has_disk"
+# if [ -z "${has_disk_result}" ] || [ "${has_disk_result}" == "null" ]; then
+#   printf "%s\n" "Invalid result returned from has_disk"
+#   exit 1
+# elif [ ${has_disk_result} != true ]; then
+#   printf "%s\n" "Disk ${node1_disk_cid} not found"
+#   exit 1
+# fi
 
-do_attach_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid}
+# do_attach_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid}
 
 # do_attach_disk ${config_path} ${node3_vm_cid} ${node3_disk_cid}
 
-do_detach_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid}
+# do_detach_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid}
 
 # Delete all created VMs and Disks
 
-printf "%s\n" "Deleting disk ${node1_disk_cid}"
-do_delete_disk ${config_path} ${node1_disk_cid}
+# printf "%s\n" "Deleting disk ${node1_disk_cid}"
+# do_delete_disk ${config_path} ${node1_disk_cid}
 
 # printf "%s\n" "Deleting VM ${node3_vm_cid}"
 # do_delete_vm ${config_path} ${node3_vm_cid} &
@@ -205,15 +205,15 @@ fi
 #   exit 1
 # fi
 
-do_has_disk ${config_path} ${node1_disk_cid}
-printf "%s\n" "Result ${has_disk_result} returned from has_disk"
-if [ -z "${has_disk_result}" ] || [ "${has_disk_result}" == "null" ]; then
-  printf "%s\n" "Invalid result returned from has_disk"
-  exit 1
-elif [ ${has_disk_result} != false ]; then
-  printf "%s\n" "Disk ${node1_disk_cid} found--aborting"
-  exit 1
-fi
+# do_has_disk ${config_path} ${node1_disk_cid}
+# printf "%s\n" "Result ${has_disk_result} returned from has_disk"
+# if [ -z "${has_disk_result}" ] || [ "${has_disk_result}" == "null" ]; then
+#   printf "%s\n" "Invalid result returned from has_disk"
+#   exit 1
+# elif [ ${has_disk_result} != false ]; then
+#   printf "%s\n" "Disk ${node1_disk_cid} found--aborting"
+#   exit 1
+# fi
 
 # do_has_disk ${config_path} ${node3_disk_cid}
 # printf "%s\n" "Result ${has_disk_result} returned from has_disk"
