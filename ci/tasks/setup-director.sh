@@ -12,6 +12,11 @@ check_param RACKHD_API_URL
 check_param RACKHD_NETWORK
 check_param CPI_RELEASE_NAME
 check_param DIRECTOR_DEPLOYMENT_NAME
+check_param BOSH_DIRECTOR_VM_NETWORK_NAME
+check_param BOSH_DIRECTOR_VM_NETWORK_RESERVED
+check_param BOSH_DIRECTOR_VM_NETWORK_DNS
+check_param BOSH_DIRECTOR_VM_NETWORK_GATEWAY
+check_param BOSH_DIRECTOR_VM_NETWORK_RANGE
 
 base_dir=${PWD}
 
@@ -90,13 +95,13 @@ networks:
   - name: vm-network
     type: manual
     subnets:
-      - range: 192.168.0.0/16
-        gateway: 192.168.10.1
-        dns: [192.168.10.1]
-        reserved: [192.168.0.2 - 192.168.9.255]
+      - range: ${BOSH_DIRECTOR_VM_NETWORK_RANGE}
+        gateway: ${BOSH_DIRECTOR_VM_NETWORK_GATEWAY}
+        dns: [${BOSH_DIRECTOR_VM_NETWORK_DNS}]
+        reserved: [${BOSH_DIRECTOR_VM_NETWORK_RESERVED}]
         static:
           - ${BOSH_DIRECTOR_PUBLIC_IP} - ${BOSH_DIRECTOR_PUBLIC_IP}
-        cloud_properties: {name: 'VM Network'}
+        cloud_properties: {name: ${BOSH_DIRECTOR_VM_NETWORK_NAME}}
   - name: rackhd-network
     type: manual
     subnets:

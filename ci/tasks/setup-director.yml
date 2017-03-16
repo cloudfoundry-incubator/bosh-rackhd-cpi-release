@@ -7,11 +7,16 @@ inputs:
 run:
   path: bosh-cpi-release/ci/tasks/setup-director.sh
 params:
-  BOSH_VSPHERE_DIRECTOR:        replace-me
-  BOSH_DIRECTOR_PUBLIC_IP:      replace-me
-  BOSH_DIRECTOR_PRIVATE_IP:     replace-me
-  BOSH_DIRECTOR_PUBLIC_KEY:     replace-me
-  RACKHD_API_URL:               replace-me
-  RACKHD_NETWORK:               replace-me
-  CPI_RELEASE_NAME:             bosh-rackhd-cpi
-  DIRECTOR_DEPLOYMENT_NAME:     bat-director
+  BOSH_VSPHERE_DIRECTOR:              replace-me
+  BOSH_DIRECTOR_PUBLIC_IP:            replace-me
+  BOSH_DIRECTOR_PRIVATE_IP:           replace-me
+  BOSH_DIRECTOR_PUBLIC_KEY:           replace-me
+  RACKHD_API_URL:                     replace-me
+  RACKHD_NETWORK:                     replace-me
+  CPI_RELEASE_NAME:                   bosh-rackhd-cpi
+  DIRECTOR_DEPLOYMENT_NAME:           bat-director
+  BOSH_DIRECTOR_VM_NETWORK_NAME:      replace-me
+  BOSH_DIRECTOR_VM_NETWORK_RESERVED:  replace-me
+  BOSH_DIRECTOR_VM_NETWORK_DNS:       replace-me
+  BOSH_DIRECTOR_VM_NETWORK_GATEWAY:   replace-me
+  BOSH_DIRECTOR_VM_NETWORK_RANGE:     replace-me
