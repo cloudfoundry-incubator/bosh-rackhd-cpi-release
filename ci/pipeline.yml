@@ -64,6 +64,11 @@ jobs:
       RACKHD_NETWORK:                     {{rackhd_network}}
       CPI_RELEASE_NAME:                   {{cpi_release_name}}
       DIRECTOR_DEPLOYMENT_NAME:           {{director_deployment_name}}
+      BOSH_DIRECTOR_VM_NETWORK_NAME:      {{bosh_director_vm_network_name}}
+      BOSH_DIRECTOR_VM_NETWORK_RESERVED:  {{bosh_director_vm_network_reserved}}
+      BOSH_DIRECTOR_VM_NETWORK_DNS:       {{bosh_director_vm_network_dns}}
+      BOSH_DIRECTOR_VM_NETWORK_GATEWAY:   {{bosh_director_vm_network_gateway}}
+      BOSH_DIRECTOR_VM_NETWORK_RANGE:     {{bosh_director_vm_network_range}}
     on_failure:
       put: emccmd-env-ci
       params: {release: emccmd-env-ci}
@@ -186,9 +191,6 @@ resources:
   - name: bosh-acceptance-tests
     type: git
     source:
-      uri: git@github.com:EMC-CMD/bosh-acceptance-tests.git
-      branch: PR-BOSHSSH
-      private_key: {{github_key__bosh-acceptance-tests}}
       uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
       branch: master
       <<: *github
