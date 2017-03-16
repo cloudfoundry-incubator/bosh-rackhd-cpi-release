@@ -4,6 +4,7 @@ image: docker:///emccmd/rackhd-cpi
 inputs:
 - name: bosh-cpi-release
 - name: bosh-release
+- name: redis-release
 run:
   path: bosh-cpi-release/ci/tasks/setup-director.sh
 params:
