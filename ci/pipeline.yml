@@ -189,6 +189,9 @@ resources:
       uri: git@github.com:EMC-CMD/bosh-acceptance-tests.git
       branch: PR-BOSHSSH
       private_key: {{github_key__bosh-acceptance-tests}}
+      uri: https://github.com/cloudfoundry/bosh-acceptance-tests.git
+      branch: master
+      <<: *github
 
   - name: emccmd-env-ci
     type: pool
