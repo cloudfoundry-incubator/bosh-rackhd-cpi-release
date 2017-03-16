@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	uuid "github.com/nu7hatch/gouuid"
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/models"
@@ -118,7 +119,13 @@ func CreateVM(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 
 	wipeDisk := (nodeID == "")
 
-	vmCID := fmt.Sprintf("%s%s", VMCIDTagPrefix, uploadAgentEnv.Name)
+	u4, err := uuid.NewV4()
+	if err != nil {
+		return "", fmt.Errorf("error generating uuid")
+	}
+	uid := u4.String()
+	vmCID := fmt.Sprintf("%s%s%s", VMCIDTagPrefix, uploadAgentEnv.Name, uid)
+
 	err = workflows.RunProvisionNodeWorkflow(c, nodeID, workflowName, vmCID, stemcellCID, wipeDisk)
 	if err != nil {
 		return "", fmt.Errorf("error running provision workflow: %s", err)
