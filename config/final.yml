@@ -1,6 +1,0 @@
----
-final_name: bosh-rackhd-cpi
-blobstore:
-  provider: s3
-  options:
-    bucket_name: bosh-rackhd-cpi-blobs

@@ -1,9 +1,0 @@
----
-golang/go1.4.2.darwin-amd64-osx10.8.tar.gz:
-  object_id: a4dd30ba-3a56-4507-87da-b0b1ea2a25bd
-  sha: 58a04b3eb9853c75319d9076df6f3ac8b7430f7f
-  size: 61652688
-golang/go1.4.2.linux-amd64.tar.gz:
-  object_id: bd7caeb8-e318-4cb5-9176-d99161c6f651
-  sha: 5020af94b52b65cc9b6f11d50a67e4bae07b0aff
-  size: 62442704

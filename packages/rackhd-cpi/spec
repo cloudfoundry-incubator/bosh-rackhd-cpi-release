@@ -1,8 +1,0 @@
----
-name: rackhd-cpi
-
-dependencies:
-- golang
-
-files:
-- "**/*.go"
