@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/models"
@@ -70,6 +71,7 @@ func CreateDisk(c config.Cpi, extInput bosh.MethodArguments) (string, error) {
 		return "", err
 	}
 
+	log.Info(fmt.Sprintf("setting diskCID %s for node %s", diskCID, node.ID))
 	err = rackhdapi.CreateTag(c, node.ID, diskCID)
 	if err != nil {
 		return "", err
