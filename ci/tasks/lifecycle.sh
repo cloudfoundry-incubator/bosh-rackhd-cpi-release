@@ -108,7 +108,7 @@ do_create_disk ${config_path} ${node1_vm_cid} ${node1_disk_cid_file_path} &
 node3_vm_cid_file_path="${PWD}/node3_vm_cid"
 do_create_vm ${config_path} ${stemcell_id} ${AGENT_PUBLIC_KEY} ${node3_disk_cid} ${node3_vm_cid_file_path} ${AGENT_STATIC_IP3} &
 
-do_set_vm_metadata
+# do_set_vm_metadata
 do_set_vm_metadata ${config_path} ${node2_vm_cid}
 
 printf "%s\n" "Waiting for second round of creation processes to finish..."
