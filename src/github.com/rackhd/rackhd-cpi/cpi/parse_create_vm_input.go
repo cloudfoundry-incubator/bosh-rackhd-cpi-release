@@ -143,7 +143,7 @@ func parseCreateVMInput(extInput bosh.MethodArguments) (string, string, string, 
 }
 
 func parseDiskCID(diskCID string) string {
-	key := regexp.MustCompile(`^([0-9a-z]+)-.+`)
+	key := regexp.MustCompile(fmt.Sprintf("^%s([0-9a-z]+)-.+", DiskCIDTagPrefix))
 	array := key.FindStringSubmatch(diskCID)
 	if len(array) < 2 {
 		return ""

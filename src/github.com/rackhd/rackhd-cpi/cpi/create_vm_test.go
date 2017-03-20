@@ -90,7 +90,7 @@ var _ = Describe("The VM Creation Workflow", func() {
                 "type": "dynamic"
             }
         },
-        ["nodeid-uuid"],
+        ["disk_cid-nodeid-uuid"],
         {}]`)
 			var extInput bosh.MethodArguments
 			err := json.Unmarshal(jsonInput, &extInput)
