@@ -215,15 +215,18 @@ resources:
   - name: release-version-semver
     type: semver
     source:
-      key:               release-current-version
-      bucket:            {{s3_bucket_name}}
-      access_key_id:     {{s3_access_key_id}}
-      secret_access_key: {{s3_secret_access_key}}
+      branch: version
+      driver: git
+      file: version
+      <<: *github
+      uri: https://github.com/cloudfoundry-incubator/bosh-rackhd-cpi-release.git
 
   - name: bosh-release
     type: bosh-io-release
     source:
       repository: cloudfoundry/bosh
+      version: 256.1
+
   - name: redis-release
     type: bosh-io-release
     source:
