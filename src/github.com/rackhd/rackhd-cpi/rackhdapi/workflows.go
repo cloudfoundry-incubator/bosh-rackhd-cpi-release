@@ -145,7 +145,7 @@ func WorkflowPoster(c config.Cpi, nodeID string, req models.RunWorkflowRequestBo
 		return models.WorkflowResponse{}, fmt.Errorf("error unmarshalling returned workflow response %s", err)
 	}
 
-	log.Info("Workflow post successful")
+	log.Info(fmt.Sprintf("Begin running workflow %s for node %s", req.Name, nodeID))
 	return workflowResp, nil
 }
 
@@ -153,7 +153,7 @@ func WorkflowPoster(c config.Cpi, nodeID string, req models.RunWorkflowRequestBo
 func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c config.Cpi, nodeID string, req models.RunWorkflowRequestBody) error {
 	postedWorkflow, err := poster(c, nodeID, req)
 	if err != nil {
-		return fmt.Errorf("Failed to post workflow: %s", err)
+		return fmt.Errorf("error starting workflow %s for node %s. error:%s", req.Name, nodeID, err)
 	}
 
 	timeoutChan := time.NewTimer(time.Second * c.RunWorkflowTimeoutSeconds).C
@@ -176,21 +176,21 @@ func RunWorkflow(poster workflowPosterFunc, fetcher workflowFetcherFunc, c confi
 
 			switch wr.Status {
 			case models.WorkflowRunningStatus:
-				log.Info(fmt.Sprintf("workflow: %s is running against node: %s", wr.InstanceID, nodeID))
+				log.Info(fmt.Sprintf("workflow: %s: %s is running against node: %s", wr.Name, wr.InstanceID, nodeID))
 				continue
 			case models.WorkflowSuccessfulStatus:
-				log.Info(fmt.Sprintf("workflow: %s completed successfully against node: %s", wr.InstanceID, nodeID))
+				log.Info(fmt.Sprintf("workflow: %s: %s completed successfully against node: %s", wr.Name, wr.InstanceID, nodeID))
 				return nil
 			case models.WorkflowFailedStatus:
-				return fmt.Errorf("workflow: %s failed against node: %s", wr.InstanceID, nodeID)
+				return fmt.Errorf("workflow: %s: %s failed against node: %s", wr.Name, wr.InstanceID, nodeID)
 			case models.WorkflowCancelledStatus:
-				log.Info(fmt.Sprintf("workflow: %s was cancelled against node: %s", wr.InstanceID, nodeID))
+				log.Info(fmt.Sprintf("workflow: %s: %s was cancelled against node: %s", wr.Name, wr.InstanceID, nodeID))
 				return nil
 			case models.WorkflowPendingStatus:
-				log.Info(fmt.Sprintf("workflow: %s is pending on node: %s", wr.InstanceID, nodeID))
+				log.Info(fmt.Sprintf("workflow: %s: %s is pending on node: %s", wr.Name, wr.InstanceID, nodeID))
 				continue
 			default:
-				return fmt.Errorf("workflow: %s has unexpected status '%s' on node: %s", wr.InstanceID, wr.Status, nodeID)
+				return fmt.Errorf("workflow: %s: %s has unexpected status '%s' on node: %s", wr.Name, wr.InstanceID, wr.Status, nodeID)
 			}
 		}
 	}
