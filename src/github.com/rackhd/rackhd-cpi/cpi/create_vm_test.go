@@ -11,50 +11,50 @@ package cpi
 */
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"strings"
-	"sync"
+  "encoding/json"
+  "errors"
+  "fmt"
+  "io/ioutil"
+  "net/http"
+  "os"
+  "strings"
+  "sync"
 
-	"github.com/rackhd/rackhd-cpi/bosh"
-	"github.com/rackhd/rackhd-cpi/config"
-	"github.com/rackhd/rackhd-cpi/helpers"
-	"github.com/rackhd/rackhd-cpi/models"
-	"github.com/rackhd/rackhd-cpi/rackhdapi"
+  "github.com/rackhd/rackhd-cpi/bosh"
+  "github.com/rackhd/rackhd-cpi/config"
+  "github.com/rackhd/rackhd-cpi/helpers"
+  "github.com/rackhd/rackhd-cpi/models"
+  "github.com/rackhd/rackhd-cpi/rackhdapi"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
+  . "github.com/onsi/ginkgo"
+  . "github.com/onsi/gomega"
+  "github.com/onsi/gomega/ghttp"
 )
 
 var _ = Describe("The VM Creation Workflow", func() {
-	var server *ghttp.Server
-	var jsonReader *strings.Reader
-	var cpiConfig config.Cpi
-	var request bosh.CpiRequest
-	var allowFilter Filter
+  var server *ghttp.Server
+  var jsonReader *strings.Reader
+  var cpiConfig config.Cpi
+  var request bosh.CpiRequest
+  var allowFilter Filter
 
-	BeforeEach(func() {
-		server, jsonReader, cpiConfig, request = helpers.SetUp(bosh.CREATE_VM)
+  BeforeEach(func() {
+    server, jsonReader, cpiConfig, request = helpers.SetUp(bosh.CREATE_VM)
 
-		allowFilter = Filter{
-			data:   nil,
-			method: AllowAnyNodeMethod,
-		}
-	})
+    allowFilter = Filter{
+      data:   nil,
+      method: AllowAnyNodeMethod,
+    }
+  })
 
-	AfterEach(func() {
-		server.Close()
-	})
+  AfterEach(func() {
+    server.Close()
+  })
 
-	Describe("parseCreateVMInput", func() {
-		Context("when specifying dynamic networking", func() {
-			It("creates the networking spec without cloud_properties", func() {
-				jsonInput := []byte(`[
+  Describe("parseCreateVMInput", func() {
+    Context("when specifying dynamic networking", func() {
+      It("creates the networking spec without cloud_properties", func() {
+        jsonInput := []byte(`[
           "4149ba0f-38d9-4485-476f-1581be36f290",
           "vm-478585",
           {},
@@ -67,21 +67,21 @@ var _ = Describe("The VM Creation Workflow", func() {
           [],
           {}]`)
 
-				var extInput bosh.MethodArguments
-				err := json.Unmarshal(jsonInput, &extInput)
-				Expect(err).ToNot(HaveOccurred())
+        var extInput bosh.MethodArguments
+        err := json.Unmarshal(jsonInput, &extInput)
+        Expect(err).ToNot(HaveOccurred())
 
-				testSpec := bosh.Network{
-					NetworkType: bosh.DynamicNetworkType,
-				}
-				_, _, _, netSpec, _, err := parseCreateVMInput(extInput)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(netSpec).To(Equal(map[string]bosh.Network{"private": testSpec}))
-			})
-		})
+        testSpec := bosh.Network{
+          NetworkType: bosh.DynamicNetworkType,
+        }
+        _, _, _, netSpec, _, err := parseCreateVMInput(extInput)
+        Expect(err).ToNot(HaveOccurred())
+        Expect(netSpec).To(Equal(map[string]bosh.Network{"private": testSpec}))
+      })
+    })
 
-		It("return the fields given a valid config", func() {
-			jsonInput := []byte(`[
+    It("return the fields given a valid config", func() {
+      jsonInput := []byte(`[
         "4149ba0f-38d9-4485-476f-1581be36f290",
         "vm-478585",
         {"public_key": "MTIzNA=="},
@@ -92,23 +92,23 @@ var _ = Describe("The VM Creation Workflow", func() {
         },
         ["disk_cid-nodeid-uuid"],
         {}]`)
-			var extInput bosh.MethodArguments
-			err := json.Unmarshal(jsonInput, &extInput)
+      var extInput bosh.MethodArguments
+      err := json.Unmarshal(jsonInput, &extInput)
 
-			Expect(err).ToNot(HaveOccurred())
-			agentID, vmCID, publicKey, networks, nodeID, err := parseCreateVMInput(extInput)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(agentID).To(Equal("4149ba0f-38d9-4485-476f-1581be36f290"))
-			Expect(vmCID).To(Equal("vm-478585"))
-			Expect(nodeID).To(Equal("nodeid")) //the diskCID == nodeID in this case because we want to know which node we need to pick for the disk
-			Expect(publicKey).To(Equal("1234"))
-			Expect(networks).To(Equal(map[string]bosh.Network{"private": bosh.Network{
-				NetworkType: bosh.DynamicNetworkType,
-			}}))
-		})
+      Expect(err).ToNot(HaveOccurred())
+      agentID, vmCID, publicKey, networks, nodeID, err := parseCreateVMInput(extInput)
+      Expect(err).ToNot(HaveOccurred())
+      Expect(agentID).To(Equal("4149ba0f-38d9-4485-476f-1581be36f290"))
+      Expect(vmCID).To(Equal("vm-478585"))
+      Expect(nodeID).To(Equal("nodeid")) //the diskCID == nodeID in this case because we want to know which node we need to pick for the disk
+      Expect(publicKey).To(Equal("1234"))
+      Expect(networks).To(Equal(map[string]bosh.Network{"private": bosh.Network{
+        NetworkType: bosh.DynamicNetworkType,
+      }}))
+    })
 
-		It("returns an error if passed an unexpected type for network configuration", func() {
-			jsonInput := []byte(`[
+    It("returns an error if passed an unexpected type for network configuration", func() {
+      jsonInput := []byte(`[
         "4149ba0f-38d9-4485-476f-1581be36f290",
         "vm-478585",
         {},
@@ -120,17 +120,17 @@ var _ = Describe("The VM Creation Workflow", func() {
         "aint gon work disks",
         {}]`)
 
-			var extInput bosh.MethodArguments
-			err := json.Unmarshal(jsonInput, &extInput)
-			Expect(err).ToNot(HaveOccurred())
+      var extInput bosh.MethodArguments
+      err := json.Unmarshal(jsonInput, &extInput)
+      Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, _, _, err = parseCreateVMInput(extInput)
-			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError("disk config has unexpected type in: string. Expecting an array"))
-		})
+      _, _, _, _, _, err = parseCreateVMInput(extInput)
+      Expect(err).To(HaveOccurred())
+      Expect(err).To(MatchError("disk config has unexpected type in: string. Expecting an array"))
+    })
 
-		It("returns an error if passed an unexpected type for network configuration", func() {
-			jsonInput := []byte(`[
+    It("returns an error if passed an unexpected type for network configuration", func() {
+      jsonInput := []byte(`[
         "4149ba0f-38d9-4485-476f-1581be36f290",
         "vm-478585",
         {},
@@ -138,17 +138,17 @@ var _ = Describe("The VM Creation Workflow", func() {
         [],
         {}]`)
 
-			var extInput bosh.MethodArguments
-			err := json.Unmarshal(jsonInput, &extInput)
-			Expect(err).ToNot(HaveOccurred())
+      var extInput bosh.MethodArguments
+      err := json.Unmarshal(jsonInput, &extInput)
+      Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, _, _, err = parseCreateVMInput(extInput)
-			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError("network config has unexpected type in: string. Expecting a map"))
-		})
+      _, _, _, _, _, err = parseCreateVMInput(extInput)
+      Expect(err).To(HaveOccurred())
+      Expect(err).To(MatchError("network config has unexpected type in: string. Expecting a map"))
+    })
 
-		It("returns an error if more than one network is provided", func() {
-			jsonInput := []byte(`[
+    It("returns an error if more than one network is provided", func() {
+      jsonInput := []byte(`[
         "4149ba0f-38d9-4485-476f-1581be36f290",
         "vm-478585",
         {},
@@ -163,16 +163,16 @@ var _ = Describe("The VM Creation Workflow", func() {
         [],
         {}]`)
 
-			var extInput bosh.MethodArguments
-			err := json.Unmarshal(jsonInput, &extInput)
-			Expect(err).ToNot(HaveOccurred())
+      var extInput bosh.MethodArguments
+      err := json.Unmarshal(jsonInput, &extInput)
+      Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, _, _, err = parseCreateVMInput(extInput)
-			Expect(err).To(MatchError("config error: Only one network supported, provided length: 2"))
-		})
+      _, _, _, _, _, err = parseCreateVMInput(extInput)
+      Expect(err).To(MatchError("config error: Only one network supported, provided length: 2"))
+    })
 
-		It("defaults to manual network if network type is not defined", func() {
-			jsonInput := []byte(`[
+    It("defaults to manual network if network type is not defined", func() {
+      jsonInput := []byte(`[
         "4149ba0f-38d9-4485-476f-1581be36f290",
         "vm-478585",
         {},
@@ -186,18 +186,18 @@ var _ = Describe("The VM Creation Workflow", func() {
         [],
         {}]`)
 
-			var extInput bosh.MethodArguments
-			err := json.Unmarshal(jsonInput, &extInput)
-			Expect(err).ToNot(HaveOccurred())
+      var extInput bosh.MethodArguments
+      err := json.Unmarshal(jsonInput, &extInput)
+      Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, networks, _, err := parseCreateVMInput(extInput)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(networks).ToNot(BeEmpty())
-			Expect(networks["private"].NetworkType).To(Equal(bosh.ManualNetworkType))
-		})
+      _, _, _, networks, _, err := parseCreateVMInput(extInput)
+      Expect(err).ToNot(HaveOccurred())
+      Expect(networks).ToNot(BeEmpty())
+      Expect(networks["private"].NetworkType).To(Equal(bosh.ManualNetworkType))
+    })
 
-		It("returns an error if Agent ID is empty", func() {
-			jsonInput := []byte(`[
+    It("returns an error if Agent ID is empty", func() {
+      jsonInput := []byte(`[
         "",
         "vm-478585",
         {},
@@ -212,16 +212,16 @@ var _ = Describe("The VM Creation Workflow", func() {
         [],
         {}]`)
 
-			var extInput bosh.MethodArguments
-			err := json.Unmarshal(jsonInput, &extInput)
-			Expect(err).ToNot(HaveOccurred())
+      var extInput bosh.MethodArguments
+      err := json.Unmarshal(jsonInput, &extInput)
+      Expect(err).ToNot(HaveOccurred())
 
-			_, _, _, _, _, err = parseCreateVMInput(extInput)
-			Expect(err).To(MatchError("agent id cannot be empty"))
-		})
+      _, _, _, _, _, err = parseCreateVMInput(extInput)
+      Expect(err).To(MatchError("agent id cannot be empty"))
+    })
 
-		It("returns an error if Agent ID is of an unexpected type", func() {
-			jsonInput := []byte(`[
+    It("returns an error if Agent ID is of an unexpected type", func() {
+      jsonInput := []byte(`[
         {},
         "vm-478585",
         {},
