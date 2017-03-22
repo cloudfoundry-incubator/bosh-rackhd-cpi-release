@@ -1,6 +1,6 @@
 {
   "friendlyName": "Testing",
-  "injectableName": "Test.Worlkflow.Timeout.",
+  "injectableName": "Test.Workflow.Timeout.",
   "options": {},
   "tasks": [
     {

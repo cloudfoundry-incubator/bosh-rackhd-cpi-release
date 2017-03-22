@@ -103,7 +103,7 @@ var _ = Describe("DeleteVM", func() {
 
 				err = cpi.DeleteVM(cpiConfig, extInput)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(len(server.ReceivedRequests())).To(Equal(11))
+				Expect(len(server.ReceivedRequests())).To(Equal(9))
 			})
 		})
 

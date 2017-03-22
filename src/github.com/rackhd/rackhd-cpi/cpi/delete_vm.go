@@ -36,7 +36,7 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 		return err
 	}
 
-	err = workflows.RunDeprovisionNodeWorkflow(c, node.ID, workflowName)
+	err = workflows.RunDeprovisionNodeWorkflow(c, node.ID, workflowName, cid)
 	if err != nil {
 		return err
 	}
@@ -48,16 +48,6 @@ func DeleteVM(c config.Cpi, extInput bosh.MethodArguments) error {
 	}
 
 	err = rackhdapi.ReleaseNode(c, node.ID)
-	if err != nil {
-		return err
-	}
-
-	err = rackhdapi.DeleteTag(c, node.ID, cid)
-	if err != nil {
-		return err
-	}
-
-	err = rackhdapi.DeleteTag(c, node.ID, node.ID)
 	if err != nil {
 		return err
 	}
