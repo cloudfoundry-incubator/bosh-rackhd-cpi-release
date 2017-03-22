@@ -2,8 +2,10 @@ package cpi
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
@@ -25,10 +27,12 @@ func HasDisk(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 
 	node, err := rackhdapi.GetNodeByTag(c, diskCID)
 	if err != nil {
-		return false, err
+		log.Info(fmt.Sprintf("Error found for diskCID %s. Info: %s", diskCID, err))
+		return false, nil
 	}
 
 	for _, tag := range node.Tags {
+		log.Info(fmt.Sprintf("Tags found for diskCID %s. Info: %s", diskCID, err))
 		if tag == diskCID {
 			return true, nil
 		}

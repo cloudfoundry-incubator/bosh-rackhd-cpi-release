@@ -2,6 +2,7 @@ package cpi
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 
 	log "github.com/Sirupsen/logrus"
@@ -20,7 +21,7 @@ func HasVM(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 
 	_, err := rackhdapi.GetNodeByVMCID(c, cid)
 	if err != nil {
-		log.Info("No node found for vm cid %s. Info: %s", cid, err)
+		log.Info(fmt.Sprintf("No node found for vm cid %s. Info: %s", cid, err))
 		return false, nil
 	}
 
