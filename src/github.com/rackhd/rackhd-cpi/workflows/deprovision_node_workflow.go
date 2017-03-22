@@ -11,6 +11,7 @@ import (
 
 type deprovisionNodeWorkflowOptions struct {
 	OBMServiceName *string `json:"obmServiceName"`
+	CID            *string `json:"cid"`
 }
 
 type deprovisionNodeWorkflowDefaultOptionsContainer struct {
@@ -27,8 +28,8 @@ type deprovisionNodeWorkflow struct {
 	Tasks []models.WorkflowTask `json:"tasks"`
 }
 
-func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string) error {
-	options, err := buildDeprovisionNodeWorkflowOptions(c, nodeID)
+func RunDeprovisionNodeWorkflow(c config.Cpi, nodeID string, workflowName string, vmCID string) error {
+	options, err := buildDeprovisionNodeWorkflowOptions(c, nodeID, vmCID)
 	if err != nil {
 		return err
 	}
@@ -105,8 +106,10 @@ func generateDeprovisionNodeWorkflow(uuid string) ([][]byte, []byte, error) {
 	return [][]byte{deprovisionTaskBytes}, wBytes, nil
 }
 
-func buildDeprovisionNodeWorkflowOptions(c config.Cpi, nodeID string) (deprovisionNodeWorkflowOptions, error) {
-	options := deprovisionNodeWorkflowOptions{}
+func buildDeprovisionNodeWorkflowOptions(c config.Cpi, nodeID string, vmCID string) (deprovisionNodeWorkflowOptions, error) {
+	options := deprovisionNodeWorkflowOptions{
+		CID: &vmCID,
+	}
 
 	obmServiceName, err := rackhdapi.GetOBMServiceName(c, nodeID)
 	if err != nil {
@@ -124,12 +127,16 @@ var deprovisionNodeTaskBytes = []byte(`
   "injectableName": "Task.BOSH.Node.Deprovision",
   "options": {
     "type": "quick",
+    "cid": null,
     "commands": [
       {
         "command": "sudo dd if=/dev/zero of=/dev/sda bs=1M count=100"
       },
       {
-        "command": "curl -X PATCH {{ api.base }}/nodes/{{ task.nodeId }} -H \"Content-Type: application/json\" -d '{\"cid\": \"\", \"metadata\": \"\"}'"
+        "command": "curl -X DELETE {{ api.base }}/nodes/{{ task.nodeId }}/tags/{{ options.cid }}"
+      },
+      {
+        "command": "curl -X DELETE {{ api.base }}/nodes/{{ task.nodeId }}/tags/{{ task.nodeId }}"
       }
     ]
   },
@@ -143,7 +150,8 @@ var deprovisionNodeWorkflowBytes = []byte(`
   "injectableName": "Graph.BOSH.Node.Deprovision",
   "options": {
     "defaults": {
-      "obmServiceName": null
+      "obmServiceName": null,
+      "cid": null
     }
   },
   "tasks": [

@@ -56,6 +56,7 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 				expectedNodeData, err := json.Marshal(expectedNode)
 				Expect(err).ToNot(HaveOccurred())
 
+				vmCID := "vm-cid_5665a65a0561790005b77b85_uuid"
 				nodeID := "5665a65a0561790005b77b85"
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
@@ -67,9 +68,10 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 				ipmiServiceName := models.OBMSettingIPMIServiceName
 				expectedOptions := deprovisionNodeWorkflowOptions{
 					OBMServiceName: &ipmiServiceName,
+					CID:            &vmCID,
 				}
 
-				options, err := buildDeprovisionNodeWorkflowOptions(cpiConfig, nodeID)
+				options, err := buildDeprovisionNodeWorkflowOptions(cpiConfig, nodeID, vmCID)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(options).To(Equal(expectedOptions))
 			})
@@ -81,6 +83,7 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 				expectedNodeData, err := json.Marshal(expectedNode)
 				Expect(err).ToNot(HaveOccurred())
 
+				vmCID := "vm-cid_5665a65a0561790005b77b85_uuid"
 				nodeID := "5665a65a0561790005b77b85"
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
@@ -92,9 +95,10 @@ var _ = Describe("DeprovisionNodeWorkflow", func() {
 				ipmiServiceName := models.OBMSettingIPMIServiceName
 				expectedOptions := deprovisionNodeWorkflowOptions{
 					OBMServiceName: &ipmiServiceName,
+					CID:            &vmCID,
 				}
 
-				options, err := buildDeprovisionNodeWorkflowOptions(cpiConfig, nodeID)
+				options, err := buildDeprovisionNodeWorkflowOptions(cpiConfig, nodeID, vmCID)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(options).To(Equal(expectedOptions))
 			})
