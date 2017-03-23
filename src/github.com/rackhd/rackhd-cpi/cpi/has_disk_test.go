@@ -65,7 +65,7 @@ var _ = Describe("AttachDisk", func() {
 			err := json.Unmarshal(jsonInput, &extInput)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedNodesBytes := helpers.LoadJSON("../spec_assets/tag_nodes_with_disk_cid.json")
+			expectedNodesBytes := []byte(`[]`)
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", fmt.Sprintf("/api/2.0/tags/%s/nodes", diskCID)),

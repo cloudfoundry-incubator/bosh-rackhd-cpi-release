@@ -2,10 +2,8 @@ package cpi
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/rackhd/rackhd-cpi/bosh"
 	"github.com/rackhd/rackhd-cpi/config"
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
@@ -25,17 +23,13 @@ func HasDisk(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 		return false, nil
 	}
 
-	node, err := rackhdapi.GetNodeByTag(c, diskCID)
+	nodes, err := rackhdapi.GetNodesByTag(c, diskCID)
 	if err != nil {
-		log.Info(fmt.Sprintf("Error found for diskCID %s. Info: %s", diskCID, err))
+		return false, err
+	}
+	// check that disk is only in one node
+	if len(nodes) > 1 {
 		return false, nil
 	}
-
-	for _, tag := range node.Tags {
-		log.Info(fmt.Sprintf("Tags found for diskCID %s. Info: %s", diskCID, err))
-		if tag == diskCID {
-			return true, nil
-		}
-	}
-	return false, nil
+	return len(nodes) == 1, nil
 }

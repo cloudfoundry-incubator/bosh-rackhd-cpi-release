@@ -11,6 +11,7 @@ import (
 	"github.com/rackhd/rackhd-cpi/rackhdapi"
 )
 
+//HasVM will check all nodes available to RACKHD for the given CID, true/false if CID exists.
 func HasVM(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 	var cid string
 	if reflect.TypeOf(extInput[0]) != reflect.TypeOf(cid) {
@@ -19,11 +20,14 @@ func HasVM(c config.Cpi, extInput bosh.MethodArguments) (bool, error) {
 
 	cid = extInput[0].(string)
 
-	_, err := rackhdapi.GetNodeByVMCID(c, cid)
+	nodes, err := rackhdapi.GetNodesByTag(c, cid)
 	if err != nil {
-		log.Info(fmt.Sprintf("No node found for vm cid %s. Info: %s", cid, err))
-		return false, nil
+		log.Info(fmt.Sprintf("Error found looking for vm cid %s. Info: %s", cid, err))
+		return false, err
 	}
-
-	return true, nil
+	if len(nodes) > 1 {
+		return false, fmt.Errorf("Returned %d too many nodes for 'HasVM'", (len(nodes) - 1))
+	}
+	// if there is one, return true! if not, false.
+	return len(nodes) == 1, nil
 }
