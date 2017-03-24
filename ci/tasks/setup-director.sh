@@ -171,6 +171,7 @@ jobs:
       agent: {user: agent, password: agent-password}
 
     director:
+      generate_vm_passwords: false
       address: 127.0.0.1
       name: my-bosh
       db: *db
