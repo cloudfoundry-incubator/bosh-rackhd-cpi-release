@@ -70,6 +70,7 @@ jobs:
       BOSH_DIRECTOR_VM_NETWORK_DNS:       {{bosh_director_vm_network_dns}}
       BOSH_DIRECTOR_VM_NETWORK_GATEWAY:   {{bosh_director_vm_network_gateway}}
       BOSH_DIRECTOR_VM_NETWORK_RANGE:     {{bosh_director_vm_network_range}}
+      PASSWORD:                           {{password}}
     on_failure:
       put: emccmd-env-ci
       params: {release: emccmd-env-ci}
