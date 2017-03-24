@@ -21,3 +21,4 @@ params:
   BOSH_DIRECTOR_VM_NETWORK_DNS:       replace-me
   BOSH_DIRECTOR_VM_NETWORK_GATEWAY:   replace-me
   BOSH_DIRECTOR_VM_NETWORK_RANGE:     replace-me
+  PASSWORD:                           replace-me

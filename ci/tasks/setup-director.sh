@@ -17,6 +17,7 @@ check_param BOSH_DIRECTOR_VM_NETWORK_RESERVED
 check_param BOSH_DIRECTOR_VM_NETWORK_DNS
 check_param BOSH_DIRECTOR_VM_NETWORK_GATEWAY
 check_param BOSH_DIRECTOR_VM_NETWORK_RANGE
+check_param PASSWORD
 
 base_dir=${PWD}
 
@@ -47,8 +48,6 @@ bosh create release --force --name "${CPI_RELEASE_NAME}"
 bosh --user admin --password admin upload release
 
 public_key=$(echo ${BOSH_DIRECTOR_PUBLIC_KEY} | base64)
-password="\$6\$4gDD3aV0rdqlrKC\$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0"
-
 cat > "./director-manifest.yml" <<EOF
 ---
 name: ${DIRECTOR_DEPLOYMENT_NAME}
@@ -71,7 +70,7 @@ resource_pools:
   env:
     bosh:
       # c1oudc0w is a default password for vcap user
-      password: ${password}
+      password: ${PASSWORD}
 
 compilation:
   workers: 1
