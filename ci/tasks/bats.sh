@@ -17,6 +17,7 @@ check_param SECONDARY_STATIC_IP
 check_param BAT_SPEC
 check_param BAT_STEMCELL_NAME
 check_param BAT_DEPLOYMENT_NAME
+check_param BAT_DEPLOYMENT_DNS
 
 base_dir=${PWD}
 

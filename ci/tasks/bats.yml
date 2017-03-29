@@ -21,3 +21,4 @@ params:
   BAT_SPEC:                        replace-me
   BAT_STEMCELL_NAME:               replace-me
   BAT_DEPLOYMENT_NAME:             replace-me
+  BAT_DEPLOYMENT_DNS:              replace-me
