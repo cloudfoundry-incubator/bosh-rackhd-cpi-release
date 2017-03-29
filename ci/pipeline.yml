@@ -131,6 +131,7 @@ jobs:
       BAT_SPEC:                           {{bat_spec}}
       BAT_STEMCELL_NAME:                  bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
       BAT_DEPLOYMENT_NAME:                bat-ubuntu
+      BAT_DEPLOYMENT_DNS:                 {{bat_deployment_dns}}
     ensure:
       put: emccmd-env-bats
       params: {release: emccmd-env-bats}
@@ -226,7 +227,7 @@ resources:
     type: bosh-io-release
     source:
       repository: cloudfoundry/bosh
-      version: 256.1
+      version: 261.4
 
   - name: redis-release
     type: bosh-io-release
