@@ -24,7 +24,6 @@ base_dir=${PWD}
 gem install bosh_cli --no-ri --no-rdoc
 bosh -n target ${BOSH_VSPHERE_DIRECTOR}
 bosh --non-interactive --user admin --password admin upload release ${base_dir}/bosh-release/release.tgz
-bosh --non-interactive --user admin --password admin upload release ${base_dir}/redis-release/release.tgz
 
 if bosh -n --user admin --password admin deployments | grep -F ${DIRECTOR_DEPLOYMENT_NAME}
 then
