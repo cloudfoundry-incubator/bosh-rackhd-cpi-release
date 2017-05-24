@@ -118,8 +118,6 @@ releases:
     version: latest
   - name: ${CPI_RELEASE_NAME}
     version: latest
-  - name: redis
-    version: latest
 
 jobs:
 - name: bosh
@@ -127,7 +125,6 @@ jobs:
 
   templates:
   - {name: nats, release: bosh}
-  - {name: redis, release: redis}
   - {name: postgres, release: bosh}
   - {name: blobstore, release: bosh}
   - {name: director, release: bosh}
@@ -147,11 +144,6 @@ jobs:
       address: 127.0.0.1
       user: nats
       password: nats-password
-
-    redis:
-      listen_address: 127.0.0.1
-      address: 127.0.0.1
-      password: redis-password
 
     postgres: &db
       listen_address: 127.0.0.1
