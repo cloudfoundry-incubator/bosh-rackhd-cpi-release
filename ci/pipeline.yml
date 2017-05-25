@@ -131,6 +131,7 @@ jobs:
       BAT_STEMCELL_NAME:                  bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
       BAT_DEPLOYMENT_NAME:                bat-ubuntu
       BAT_DEPLOYMENT_DNS:                 {{bat_deployment_dns}}
+      BOSH_RESERVED:                      {{bosh_reserved}}
     ensure:
       put: emccmd-env-bats
       params: {release: emccmd-env-bats}

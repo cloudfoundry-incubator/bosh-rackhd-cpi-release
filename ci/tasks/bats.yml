@@ -22,3 +22,4 @@ params:
   BAT_STEMCELL_NAME:               replace-me
   BAT_DEPLOYMENT_NAME:             replace-me
   BAT_DEPLOYMENT_DNS:              replace-me
+  BOSH_RESERVED:                   replace-me

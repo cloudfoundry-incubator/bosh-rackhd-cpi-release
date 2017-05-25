@@ -35,6 +35,7 @@ export BAT_DNS_HOST=${BOSH_DIRECTOR_PUBLIC_IP}
 export BAT_INFRASTRUCTURE='rackhd'
 export BAT_NETWORKING='manual'
 export BAT_VCAP_PRIVATE_KEY=${director_private_key_path}
+export BOSH_RESERVED=${BOSH_RESERVED}
 
 cd bats
 ./write_gemfile
@@ -67,7 +68,7 @@ properties:
     static_ip: ${PRIMARY_NETWORK_MANUAL_IP}
     type: manual
     cidr: ${PRIMARY_NETWORK_CIDR}
-    reserved: [${BOSH_DIRECTOR_PRIVATE_IP}]
+    reserved: [${BOSH_DIRECTOR_PRIVATE_IP}, ${BOSH_RESERVED}]
     static: [${PRIMARY_NETWORK_RANGE}]
     gateway: ${PRIMARY_NETWORK_GATEWAY}
 EOF
