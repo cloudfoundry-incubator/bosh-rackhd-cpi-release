@@ -69,7 +69,14 @@ jobs:
       BOSH_DIRECTOR_VM_NETWORK_DNS:       {{bosh_director_vm_network_dns}}
       BOSH_DIRECTOR_VM_NETWORK_GATEWAY:   {{bosh_director_vm_network_gateway}}
       BOSH_DIRECTOR_VM_NETWORK_RANGE:     {{bosh_director_vm_network_range}}
-      PASSWORD:                           {{password}}
+      BOSH_ENCYPTED_PASSWORD:             {{bosh_encrypted_password}}
+      ADMIN_PASSWORD:                     {{admin_password}}
+      MBUS_PASSWORD:                      {{mbus_password}}
+      NATS_PASSWORD:                      {{nats_password}}
+      HM_PASSWORD:                        {{hm_password}}
+      AGENT_PASSWORD:                     {{agent_password}}
+      DIRECTOR_PASSWORD:                  {{director_password}}    
+      POSTGRES_PASSWORD:                  {{postgres_password}}    
     on_failure:
       put: emccmd-env-ci
       params: {release: emccmd-env-ci}

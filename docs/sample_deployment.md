@@ -2,17 +2,9 @@
 
 ## Prerequisites
 
-You must have [installed RackHD](http://rackhd.readthedocs.org/en/latest/).
+You must have [installed RackHD](http://rackhd.io).
 
 ## Installation steps
-
-### Enable MonorailAccess
-
-You must first enable MonorailAccess. Browse to `https://yourrackhd.ip/rest/v1/api.html` and find the `POST /__Internal__/MonorailAccess/{value}` and input Enable into the text box and click "Try it out!"
-
-If you then `GET /__Internal__/MonorailAccess/` it should return "enable."
-
-You should then be able to query the server for its catalog of nodes with `curl "RACKHD_API_URL/api/common/nodes" | jq .` (or whatever browser/JSON viewer you choose to use.)
 
 ### Download Packages
 
@@ -20,13 +12,13 @@ Install BOSH init: <https://bosh.io/docs/install-bosh-init.html>
 
 Download a BOSH OpenStack stemcell for Ubuntu Trusty: <https://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent-raw>
 
-Download the RackHD CPI release: <https://github.com/EMC-CMD/bosh-rackhd-cpi-release>
+Download the RackHD CPI release: <https://github.com/cloudfoundry-incubator/bosh-rackhd-cpi-release>
 
 Then, build a release:
 
 ```
 $ cd bosh-rackhd-cpi-release
-$ bosh create release
+$ bosh create release --force
 ```
 
 ### Create Public Key
@@ -41,7 +33,6 @@ Create a file like `redis.yml` below. Update the path to the CPI release file, I
 
 ```
 name: redis
-
 releases:
 - name: rackhd-cpi
   url: file:///path/to/release/rackhd-cpi.tgz
@@ -51,7 +42,6 @@ releases:
 networks:
 - name: default
   type: manual
-
   subnets:
   - range: 192.168.1.0/24
     gateway: 192.168.1.1
@@ -61,7 +51,7 @@ resource_pools:
 - name: default
   network: default
   cloud_properties:
-    public_key: "YOUR PUBLIC KEY"
+    public_key: {{YOUR_PUBLIC_KEY}}
   stemcell:
     name: bosh-openstack-kvm-ubuntu-trusty-go_agent-raw
     version: latest
@@ -72,7 +62,7 @@ compilation:
   network: default
   reuse_compilation_vms: true
   cloud_properties:
-    public_key: "YOUR PUBLIC KEY"
+    public_key: {{YOUR_PUBLIC_KEY}}
 
 update:
   canaries: 1
@@ -91,19 +81,17 @@ jobs:
   - {name: redis, release: redis}
   properties:
     redis:
-      password: r3d!s
+      password: {{REDIS_PASSWD}}
       port: 6379
 
 cloud_provider:
   template: {name: rackhd-cpi, release: rackhd-cpi}
-
-  mbus: https://mbus:mbus-password@192.168.1.2:6868
-
+  mbus: https://mbus:{{MBUS_PASSWD}}@192.168.1.2:6868
   properties:
     rackhd-cpi:
-      api_url: "RACKHD_ENDPOINT_URL"
+      api_url: {{RACKHD_ENDPOINT_URL}}
       agent:
-        mbus: "https://mbus:mbus-password@0.0.0.0:6868"
+        mbus: https://mbus:{{MBUS_PASSWD}}@0.0.0.0:6868
         blobstore:
           provider: local
           options: {blobstore_path: /var/vcap/micro_bosh/data/cache}

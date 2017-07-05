@@ -20,4 +20,11 @@ params:
   BOSH_DIRECTOR_VM_NETWORK_DNS:       replace-me
   BOSH_DIRECTOR_VM_NETWORK_GATEWAY:   replace-me
   BOSH_DIRECTOR_VM_NETWORK_RANGE:     replace-me
-  PASSWORD:                           replace-me
+  BOSH_ENCYPTED_PASSWORD:             replace-me
+  ADMIN_PASSWORD:                     replace-me
+  MBUS_PASSWORD:                      replace-me
+  NATS_PASSWORD:                      replace-me
+  HM_PASSWORD:                        replace-me
+  AGENT_PASSWORD:                     replace-me
+  DIRECTOR_PASSWORD:                  replace-me    
+  POSTGRES_PASSWORD:                  replace-me    

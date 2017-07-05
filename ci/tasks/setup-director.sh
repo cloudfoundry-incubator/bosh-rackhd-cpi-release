@@ -17,22 +17,29 @@ check_param BOSH_DIRECTOR_VM_NETWORK_RESERVED
 check_param BOSH_DIRECTOR_VM_NETWORK_DNS
 check_param BOSH_DIRECTOR_VM_NETWORK_GATEWAY
 check_param BOSH_DIRECTOR_VM_NETWORK_RANGE
-check_param PASSWORD
+check_param BOSH_ENCRYPTED_PASSWORD
+check_param ADMIN_PASSWORD
+check_param MBUS_PASSWORD
+check_param NATS_PASSWORD
+check_param HM_PASSWORD
+check_param AGENT_PASSWORD
+check_param DIRECTOR_PASSWORD
+check_param POSTGRES_PASSWORD
 
 base_dir=${PWD}
 
 gem install bosh_cli --no-ri --no-rdoc
 bosh -n target ${BOSH_VSPHERE_DIRECTOR}
-bosh --non-interactive --user admin --password admin upload release ${base_dir}/bosh-release/release.tgz
+bosh --non-interactive --user admin --password ${ADMIN_PASSWORD} upload release ${base_dir}/bosh-release/release.tgz
 
-if bosh -n --user admin --password admin deployments | grep -F ${DIRECTOR_DEPLOYMENT_NAME}
+if bosh -n --user admin --password ${ADMIN_PASSWORD} deployments | grep -F ${DIRECTOR_DEPLOYMENT_NAME}
 then
-  bosh -n --user admin --password admin delete deployment ${DIRECTOR_DEPLOYMENT_NAME}
+  bosh -n --user admin --password ${ADMIN_PASSWORD} delete deployment ${DIRECTOR_DEPLOYMENT_NAME}
 fi
 
-if bosh -n --user admin --password admin releases | grep -F ${CPI_RELEASE_NAME}
+if bosh -n --user admin --password ${ADMIN_PASSWORD} releases | grep -F ${CPI_RELEASE_NAME}
 then
-  bosh -n --user admin --password admin delete release ${CPI_RELEASE_NAME}
+  bosh -n --user admin --password ${ADMIN_PASSWORD} delete release ${CPI_RELEASE_NAME}
 fi
 
 cd bosh-cpi-release/
@@ -44,7 +51,7 @@ blobstore:
 EOF
 
 bosh create release --force --name "${CPI_RELEASE_NAME}"
-bosh --user admin --password admin upload release
+bosh --user admin --password ${ADMIN_PASSWORD} upload release
 
 public_key=$(echo ${BOSH_DIRECTOR_PUBLIC_KEY} | base64)
 cat > "./director-manifest.yml" <<EOF
@@ -68,8 +75,7 @@ resource_pools:
     disk: 15_000
   env:
     bosh:
-      # c1oudc0w is a default password for vcap user
-      password: ${PASSWORD}
+      password: ${BOSH_ENCRYPTED_PASSWORD}
 
 compilation:
   workers: 1
@@ -88,7 +94,6 @@ update:
   update_watch_time: 1000-60000
 
 # replace all addresses with your network's IP range
-#
 # e.g. X.X.0.2 -> 10.0.0.2
 networks:
   - name: vm-network
@@ -142,13 +147,13 @@ jobs:
     nats:
       address: 127.0.0.1
       user: nats
-      password: nats-password
+      password: ${NATS_PASSWORD}
 
     postgres: &db
       listen_address: 127.0.0.1
       host: 127.0.0.1
       user: postgres
-      password: postgres-password
+      password: ${POSTGRES_PASSWORD}
       database: bosh
       adapter: postgres
 
@@ -157,8 +162,8 @@ jobs:
       port: 25250
       use_ssl: false
       provider: dav
-      director: {user: director, password: director-password}
-      agent: {user: agent, password: agent-password}
+      director: {user: director, password: ${DIRECTOR_PASSWORD}}
+      agent: {user: agent, password: ${AGENT_PASSWORD}}
 
     director:
       generate_vm_passwords: false
@@ -170,31 +175,31 @@ jobs:
         provider: local
         local:
           users:
-          - {name: admin, password: admin}
-          - {name: hm, password: hm-password}
+          - {name: admin, password: ${ADMIN_PASSWORD}}
+          - {name: hm, password: ${HM_PASSWORD}}
 
     hm:
-      director_account: {user: hm, password: hm-password}
+      director_account: {user: hm, password: ${HM_PASSWORD}}
       resurrector_enabled: true
 
     rackhd-cpi:
       api_url: "${RACKHD_API_URL}"
       agent:
-        mbus: "nats://nats:nats-password@${BOSH_DIRECTOR_PRIVATE_IP}:4222"
+        mbus: "nats://nats:${NATS_PASSWORD}@${BOSH_DIRECTOR_PRIVATE_IP}:4222"
         blobstore:
           provider: dav
           options:
             endpoint: http://${BOSH_DIRECTOR_PRIVATE_IP}:25250
             user: agent
-            password: agent-password
+            password: ${AGENT_PASSWORD}
 
-    agent: {mbus: "nats://nats:nats-password@${BOSH_DIRECTOR_PRIVATE_IP}:4222"}
+    agent: {mbus: "nats://nats:${NATS_PASSWORD}@${BOSH_DIRECTOR_PRIVATE_IP}:4222"}
 
     ntp: &ntp [0.pool.ntp.org, 1.pool.ntp.org]
 
 cloud_provider:
   template: {name: rackhd-cpi, release: ${CPI_RELEASE_NAME}}
-  mbus: "https://mbus:mbus-password@${BOSH_DIRECTOR_PRIVATE_IP}:6868"
+  mbus: "https://mbus:${MBUS_PASSWORD}@${BOSH_DIRECTOR_PRIVATE_IP}:6868"
 
   properties:
     rackhd-cpi:
@@ -207,8 +212,8 @@ cloud_provider:
 
 EOF
 
-bosh --user admin --password admin deployment ./director-manifest.yml
-echo 'yes' | bosh --user admin --password admin deploy
+bosh --user admin --password ${ADMIN_PASSWORD} deployment ./director-manifest.yml
+echo 'yes' | bosh --user admin --password ${ADMIN_PASSWORD} deploy
 
 # hack
 apt-get install sshpass
