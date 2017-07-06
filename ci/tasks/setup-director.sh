@@ -219,4 +219,4 @@ echo 'yes' | bosh --user admin --password ${ADMIN_PASSWORD} deploy
 apt-get install sshpass
 echo ${BOSH_DIRECTOR_PUBLIC_KEY} > director_key.pub
 touch director_key
-sshpass -p "c1oudc0w" ssh-copy-id -o StrictHostKeyChecking=no -i director_key.pub vcap@${BOSH_DIRECTOR_PUBLIC_IP}
+sshpass -p ${BOSH_NOT_ENCRYPTED_PASSWORD} ssh-copy-id -o StrictHostKeyChecking=no -i director_key.pub vcap@${BOSH_DIRECTOR_PUBLIC_IP}
