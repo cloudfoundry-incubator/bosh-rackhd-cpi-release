@@ -6,7 +6,7 @@
   - Organization: <http://cloudfoundry.slack.com>
   - Channel: `#bosh-rackhd-cpi`
 - Roadmap: <https://www.pivotaltracker.com/n/projects/1406686>
-- Contact [Victor Fong](mailto:victor.fong@emc.com) @ [\#EMCDOJO](https://twitter.com/hashtag/emcdojo)
+- Contact [Megan Hyland](mailto:megan.hyland@emc.com) @ [\#EMCDOJO](https://twitter.com/dellemcdojo)
 
 ## Quick Setup Instructions
 - [Deploy CF to Bare-Metal environment](https://github.com/cloudfoundry-incubator/bosh-rackhd-cpi-release/blob/master/docs/how_to_deploy_cloud_foundry_on_bare-metal_machine(s).md)
